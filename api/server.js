@@ -27,6 +27,7 @@ app.get("/api/getDeploymentCounts/", async (req, res) => {
   const lastRefreshDate = blockchainAnalyzer.getLastRefreshDate();
   const totalAKTSpent = blockchainAnalyzer.getTotalAKTSpent();
   const marketData = marketDataProvider.getAktMarketData();
+  const lastSnapshot = await dbProvider.getLastSnapshot();
 
   if (activeDeploymentCount != null) {
     res.send({
@@ -37,6 +38,7 @@ app.get("/api/getDeploymentCounts/", async (req, res) => {
       totalAKTSpent,
       totalResourcesLeased,
       lastRefreshDate,
+      lastSnapshot,
     });
   } else {
     res.send(null);
@@ -49,27 +51,36 @@ app.get("/api/getSnapshot/:id", async (req, res) => {
   const id = req.params.id;
   const range = req.query.range || "7";
   let snapshots = null;
+  let currentValue = null;
 
   if (!id) return res.send("Must specify a valid snapshot.");
+
+  const totalResourcesLeased = blockchainAnalyzer.getTotalResourcesLeased();
 
   switch (id) {
     case "activeDeployment":
       snapshots = blockchainAnalyzer.getActiveDeploymentSnapshots();
+      currentValue = blockchainAnalyzer.getActiveDeploymentCount();
       break;
     case "totalAKTSpent":
       snapshots = blockchainAnalyzer.getTotalAKTSpentSnapshots();
+      currentValue = blockchainAnalyzer.getTotalAKTSpent();
       break;
     case "allTimeDeploymentCount":
       snapshots = blockchainAnalyzer.getAllTimeDeploymentCountSnapshots();
+      currentValue = blockchainAnalyzer.getDeploymentCount();
       break;
     case "compute":
       snapshots = blockchainAnalyzer.getComputeSnapshots();
+      currentValue = totalResourcesLeased.cpuSum;
       break;
     case "memory":
       snapshots = blockchainAnalyzer.getMemorySnapshots();
+      currentValue = totalResourcesLeased.memorySum;
       break;
     case "storage":
       snapshots = blockchainAnalyzer.getStorageSnapshots();
+      currentValue = totalResourcesLeased.storageSum;
       break;
 
     default:
@@ -77,7 +88,7 @@ app.get("/api/getSnapshot/:id", async (req, res) => {
   }
 
   if (snapshots != null) {
-    res.send(snapshots);
+    res.send({ snapshots, currentValue });
   } else {
     res.send(null);
   }
