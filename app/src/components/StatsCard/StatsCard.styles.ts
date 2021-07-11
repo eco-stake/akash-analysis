@@ -1,15 +1,10 @@
 import { makeStyles } from "@material-ui/core/styles";
+import { akashRedGradient } from "@src/shared/utils/colorUtils";
 
 export const useStyles = makeStyles((theme) => ({
   root: {
     position: "relative",
-    background: `linear-gradient(
-      90deg,
-      rgba(175, 24, 23, 1) 0%,
-      rgba(228, 30, 19, 1) 0%,
-      rgba(143, 0, 0, 1) 100%
-    )`,
-    color: "white",
+    background: akashRedGradient,
     height: "100%",
     flexGrow: 1,
     borderRadius: "1rem",
@@ -29,7 +24,7 @@ export const useStyles = makeStyles((theme) => ({
   cardHeader: { width: "100%", padding: "1rem", textAlign: "center" },
   title: {
     fontSize: "1rem",
-    fontWeight: "lighter",
+    fontWeight: 300,
     margin: 0,
     borderBottom: "1px solid rgba(255,255,255,0.25)",
     paddingBottom: "3px"

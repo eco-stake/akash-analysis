@@ -8,6 +8,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  Button,
+  Box,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import MenuIcon from "@material-ui/icons/Menu";
@@ -15,6 +17,8 @@ import { useMediaQueryContext } from "../../context/MediaQueryProvider";
 import clsx from "clsx";
 import { NavDrawer } from "../NavDrawer";
 import { Link, useLocation } from "react-router-dom";
+import { akashRedGradient } from "@src/shared/utils/colorUtils";
+import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -61,17 +65,30 @@ const useStyles = makeStyles((theme) => ({
   linkText: {
     textDecoration: "none",
     textTransform: "uppercase",
-    color: "white",
   },
   navButton: {
     borderRadius: "5px",
   },
+  actionButtonListItem: {
+    paddingTop: 0,
+    paddingBottom: 0,
+    height: "100%",
+  },
+  actionButtonBase: {
+    height: "100%",
+    transition: "all .3s ease",
+    minWidth: "120px",
+  },
+  actionButton: {
+    background: akashRedGradient,
+    color: "#ffffff",
+  },
 }));
 
 const navLinks = [
-  // { title: `about us`, path: `/about-us` },
+  // { title: `deploy`, path: `/deploy` },
   { title: `price compare`, path: `/price-compare` },
-  { title: `faq`, path: `/faq` }
+  { title: `faq`, path: `/faq` },
 ];
 
 export function Header() {
@@ -89,7 +106,7 @@ export function Header() {
   };
 
   return (
-    <AppBar position="static" className={classes.appBar}>
+    <AppBar position="fixed" className={classes.appBar}>
       <Toolbar className={clsx(classes.toolbar, { container: !mediaQuery.smallScreen })}>
         {mediaQuery.smallScreen && (
           <>
@@ -136,6 +153,22 @@ export function Header() {
             aria-labelledby="main navigation"
             className={classes.navDisplayFlex}
           >
+            <Link to="/deploy" className={classes.linkText}>
+              <ListItem className={classes.actionButtonListItem}>
+                <Button
+                  variant={location.pathname === "/deploy" ? "outlined" : "contained"}
+                  className={clsx(classes.actionButtonBase, {
+                    [classes.actionButton]: location.pathname !== "/deploy",
+                  })}
+                >
+                  Deploy
+                  <Box marginLeft=".5rem">
+                    <CloudUploadIcon />
+                  </Box>
+                </Button>
+              </ListItem>
+            </Link>
+
             {navLinks.map(({ title, path }) => (
               <Link to={path} key={title} className={classes.linkText}>
                 <ListItem

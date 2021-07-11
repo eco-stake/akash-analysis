@@ -1,7 +1,9 @@
 {
   "name": "akashlytics",
-  "version": "0.5.0",
+  "version": "0.6.2",
   "description": "",
+  "author": "Akashlytics",
+  "license": "GPL-3.0-or-later",
   "main": "server.js",
   "scripts": {
     "start": "nodemon --trace-warnings ./server.js",
@@ -11,8 +13,6 @@
     "type": "git",
     "url": "git+https://github.com/mbeauchamp7/akashlytics.git"
   },
-  "author": "",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/mbeauchamp7/akashlytics/issues"
   },
