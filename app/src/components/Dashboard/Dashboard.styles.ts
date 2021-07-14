@@ -32,5 +32,32 @@ export const useStyles = makeStyles((theme) => ({
     "100%": {
       color: "#00945c"
     }
+  },
+  priceDataContainer: {
+    backgroundColor: "rgba(0,0,0,0.1)",
+    padding: "1rem",
+    marginBottom: "1.5rem",
+    borderRadius: "1rem",
+    display: "flex",
+    alignItems: "center",
+    fontSize: "1rem",
+    [theme.breakpoints.down("sm")]: {
+      flexDirection: "column",
+      alignItems: "baseline"
+    }
+  },
+  priceData: {
+    marginLeft: "1rem",
+    display: "flex",
+    alignItems: "center",
+    [theme.breakpoints.down("sm")]: {
+      marginLeft: "0",
+    }
+  },
+  priceDataValue: {
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    marginLeft: ".5rem"
   }
 }));

@@ -2,13 +2,14 @@ import React from "react";
 import clsx from "clsx";
 import { useStyles } from "./Dashboard.styles";
 import { useMediaQueryContext } from "@src/context/MediaQueryProvider";
-import { Box, Button, Chip, Typography } from "@material-ui/core";
+import { Box, Button, Chip, Paper, Typography } from "@material-ui/core";
 import { StatsCard } from "../StatsCard";
 import { FormattedNumber } from "react-intl";
 import { DashboardData, SnapshotsUrlParam } from "@src/shared/models";
 import { Link as RouterLink } from "react-router-dom";
 import { average, percIncrease, uaktToAKT } from "@src/shared/utils/mathHelpers";
-import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
+import { DiffNumber } from "@src/shared/components/DiffNumber";
+import { DiffPercentageChip } from "@src/shared/components/DiffPercentageChip";
 
 interface IDashboardProps {
   deploymentCounts: DashboardData;
@@ -31,6 +32,49 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ deployment
 
   return (
     <>
+      <Paper className={classes.priceDataContainer} elevation={2}>
+        <div className={classes.priceData}>
+          AKT{" "}
+          <div className={classes.priceDataValue}>
+            <FormattedNumber
+              style="currency"
+              currency="USD"
+              value={deploymentCounts.marketData.price}
+            />
+            <Box display="flex" alignItems="center" fontSize=".8rem" fontWeight={300}>
+              <DiffPercentageChip
+                value={deploymentCounts.marketData.priceChangePercentage24 / 100}
+              />
+              <Box component="span" ml=".5rem">
+                (24h)
+              </Box>
+            </Box>
+          </div>
+        </div>
+        <div className={classes.priceData}>
+          <span>Market cap</span>{" "}
+          <span className={classes.priceDataValue}>
+            <FormattedNumber
+              style="currency"
+              currency="USD"
+              value={deploymentCounts.marketData.marketCap}
+              maximumFractionDigits={0}
+            />
+          </span>
+        </div>
+        <div className={classes.priceData}>
+          <span>Volume (24h)</span>{" "}
+          <span className={classes.priceDataValue}>
+            <FormattedNumber
+              style="currency"
+              currency="USD"
+              value={deploymentCounts.marketData.volume}
+              maximumFractionDigits={0}
+            />
+          </span>
+        </div>
+      </Paper>
+
       <div
         className={clsx("row", {
           "mb-4": !mediaQuery.smallScreen,
@@ -48,51 +92,26 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ deployment
       </div>
 
       <div className="row">
-        {deploymentCounts.marketData && (
-          <div className={clsx("col-xs-12", tileClassName)}>
-            <StatsCard
-              number={
-                <FormattedNumber
-                  style="currency"
-                  currency="USD"
-                  value={deploymentCounts.marketData.computedPrice}
-                />
-              }
-              text="Current AKT Price"
-            />
-          </div>
-        )}
-
-        {showAveragePrice && (
-          <div className={clsx("col-xs-12", tileClassName)}>
-            <StatsCard
-              number={
-                <FormattedNumber
-                  style="currency"
-                  currency="USD"
-                  value={0.432 * deploymentCounts.marketData.computedPrice}
-                />
-              }
-              text="Monthly cost for a small instance"
-              actionButton={
-                <Button aria-label="delete" component={RouterLink} to="/price-compare" size="small">
-                  <Box component="span" fontSize=".7rem">
-                    Compare price
-                  </Box>
-                </Button>
-              }
-              tooltip={
-                <>
-                  <div style={{ fontWeight: "lighter" }}>Based on these specs:</div>
-                  <div>CPU: 0.1</div>
-                  <div>RAM: 512Mi</div>
-                  <div>DISK: 512Mi</div>
-                  <div>0.432akt/month</div>
-                </>
-              }
-            />
-          </div>
-        )}
+        <div className={clsx("col-xs-12", tileClassName)}>
+          <StatsCard
+            number={
+              <FormattedNumber
+                value={uaktToAKT(deploymentCounts.dailyAktSpent)}
+                maximumFractionDigits={2}
+              />
+            }
+            text="Daily AKT spent"
+            tooltip="Last 24h"
+            graphPath={`/graph/${SnapshotsUrlParam.dailyAktSpent}`}
+            diffNumber={uaktToAKT(
+              deploymentCounts.dailyAktSpent - deploymentCounts.lastSnapshot.dailyAktSpent
+            )}
+            diffPercent={percIncrease(
+              deploymentCounts.lastSnapshot.dailyAktSpent,
+              deploymentCounts.dailyAktSpent
+            )}
+          />
+        </div>
 
         <div className={clsx("col-xs-12", tileClassName)}>
           <StatsCard
@@ -118,11 +137,59 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ deployment
           />
         </div>
 
+        {/* {showAveragePrice && (
+          <div className={clsx("col-xs-12", tileClassName)}>
+            <StatsCard
+              number={
+                <FormattedNumber
+                  style="currency"
+                  currency="USD"
+                  value={0.432 * deploymentCounts.marketData.price}
+                />
+              }
+              text="Monthly cost for a small instance"
+              actionButton={
+                <Button aria-label="delete" component={RouterLink} to="/price-compare" size="small">
+                  <Box component="span" fontSize=".7rem">
+                    Compare price
+                  </Box>
+                </Button>
+              }
+              tooltip={
+                <>
+                  <div style={{ fontWeight: "lighter" }}>Based on these specs:</div>
+                  <div>CPU: 0.1</div>
+                  <div>RAM: 512Mi</div>
+                  <div>DISK: 512Mi</div>
+                  <div>0.432akt/month</div>
+                </>
+              }
+            />
+          </div>
+        )} */}
+
+        <div className={clsx("col-xs-12", tileClassName)}>
+          <StatsCard
+            number={<FormattedNumber value={deploymentCounts.dailyDeploymentCount} />}
+            text="Daily new deployment count"
+            tooltip="Last 24h"
+            graphPath={`/graph/${SnapshotsUrlParam.dailyDeploymentCount}`}
+            diffNumber={
+              deploymentCounts.dailyDeploymentCount -
+              deploymentCounts.lastSnapshot.dailyDeploymentCount
+            }
+            diffPercent={percIncrease(
+              deploymentCounts.lastSnapshot.dailyDeploymentCount,
+              deploymentCounts.dailyDeploymentCount
+            )}
+          />
+        </div>
+
         <div className={clsx("col-xs-12", tileClassName)}>
           <StatsCard
             number={<FormattedNumber value={deploymentCounts.deploymentCount} />}
-            text="All-time deployment count"
-            tooltip="The all-time deployment count consists of all deployments that were live at some point. This includes deployments that were deployed for testing or that were meant to be only temporary."
+            text="Total deployment count"
+            tooltip="The total deployment count consists of all deployments that were live(leased) at some point and that someone paid for. This includes deployments that were deployed for testing or that were meant to be only temporary."
             graphPath={`/graph/${SnapshotsUrlParam.allTimeDeploymentCount}`}
             diffNumber={
               deploymentCounts.deploymentCount -

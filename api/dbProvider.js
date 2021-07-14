@@ -471,6 +471,62 @@ exports.getStorageSnapshots = async () => {
     .reverse();
 };
 
+exports.getDailyAktSpentSnapshots = async () => {
+  const results = await StatsSnapshot.findAll({
+    raw: true,
+    attributes: ["date", "totalAktSpent"],
+    order: [["date", "DESC"]],
+    where: {
+      date: {
+        [Op.not]: dataSnapshotsHandler.getDayStr(),
+      },
+      totalAktSpent: {
+        [Op.ne]: null,
+      },
+    },
+  });
+
+  return results
+    .map((x, i) =>
+      results[i + 1]
+        ? {
+            date: x.date,
+            value: (x.totalAktSpent - results[i + 1].totalAktSpent) * 0.000001,
+          }
+        : null
+    )
+    .filter((x) => x)
+    .reverse();
+};
+
+exports.getDailyDeploymentCountSnapshots = async () => {
+  const results = await StatsSnapshot.findAll({
+    raw: true,
+    attributes: ["date", "allTimeDeploymentCount"],
+    order: [["date", "DESC"]],
+    where: {
+      date: {
+        [Op.not]: dataSnapshotsHandler.getDayStr(),
+      },
+      allTimeDeploymentCount: {
+        [Op.ne]: null,
+      },
+    },
+  });
+
+  return results
+    .map((x, i) =>
+      results[i + 1]
+        ? {
+            date: x.date,
+            value: x.allTimeDeploymentCount - results[i + 1].allTimeDeploymentCount,
+          }
+        : null
+    )
+    .filter((x) => x)
+    .reverse();
+};
+
 exports.getAllSnapshots = async () => {
   const results = await StatsSnapshot.findAll({
     order: ["date"],
@@ -481,11 +537,59 @@ exports.getAllSnapshots = async () => {
 
 exports.getLastSnapshot = async () => {
   const results = await StatsSnapshot.findAll({
-    limit: 2,
+    raw: true,
+    limit: 4,
     order: [["date", "DESC"]],
   });
 
-  return results[1];
+  return {
+    ...results[1],
+    // For the daily values, get the day before yesterday and -1 day to get the difference
+    // gained between that value and yesterdays
+    dailyDeploymentCount: results[2].allTimeDeploymentCount - results[3].allTimeDeploymentCount,
+    dailyAktSpent: results[2].totalAktSpent - results[3].totalAktSpent,
+  };
+};
+
+exports.getDailyAktSpent = async () => {
+  const lastDailyAktSnapshot = await StatsSnapshot.findAll({
+    raw: true,
+    limit: 2,
+    attributes: ["date", "totalAktSpent"],
+    order: [["date", "DESC"]],
+    where: {
+      date: {
+        [Op.not]: dataSnapshotsHandler.getDayStr(),
+      },
+      totalAktSpent: {
+        [Op.ne]: null,
+      },
+    },
+  });
+
+  return lastDailyAktSnapshot[0].totalAktSpent - lastDailyAktSnapshot[1].totalAktSpent;
+};
+
+exports.getDailyDeploymentCount = async () => {
+  const lastTotalDeploymentSnapshot = await StatsSnapshot.findAll({
+    raw: true,
+    limit: 2,
+    attributes: ["date", "allTimeDeploymentCount"],
+    order: [["date", "DESC"]],
+    where: {
+      date: {
+        [Op.not]: dataSnapshotsHandler.getDayStr(),
+      },
+      allTimeDeploymentCount: {
+        [Op.ne]: null,
+      },
+    },
+  });
+
+  return (
+    lastTotalDeploymentSnapshot[0].allTimeDeploymentCount -
+    lastTotalDeploymentSnapshot[1].allTimeDeploymentCount
+  );
 };
 
 exports.initSnapshotsFromFile = async () => {

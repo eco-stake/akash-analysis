@@ -6,7 +6,7 @@ import { Header } from "@src/components/Header";
 import { Switch, Route } from "react-router-dom";
 import { Home } from "../Home";
 import { PriceCompare } from "../PriceCompare";
-import { Faq } from "@src/components/Faq";
+import { Faq } from "@src/routes/Faq";
 import { makeStyles } from "@material-ui/core/styles";
 import { Graph } from "../Graph";
 import { useMediaQueryContext } from "@src/context/MediaQueryProvider";
@@ -17,11 +17,10 @@ import { BetaBanner } from "@src/components/BetaBanner";
 
 const useStyles = makeStyles((theme) => ({
   appBody: {
-    paddingTop: 60,
+    paddingTop: "2rem",
     paddingBottom: 80,
   },
   appBodySmall: {
-    paddingTop: 25,
     paddingBottom: 50,
   },
 }));

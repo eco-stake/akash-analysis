@@ -8,6 +8,8 @@ export interface DashboardData {
   totalResourcesLeased: ResourceLeased;
   lastRefreshDate: Date
   lastSnapshot: SnapshotData;
+  dailyAktSpent: number;
+  dailyDeploymentCount: number;
 }
 
 export interface SnapshotData {
@@ -21,6 +23,8 @@ export interface SnapshotData {
   maxStorage: number;
   allTimeDeploymentCount: number;
   totalAktSpent: number;
+  dailyAktSpent: number;
+  dailyDeploymentCount: number;
 }
 
 export interface ResourceLeased {
@@ -30,12 +34,10 @@ export interface ResourceLeased {
 }
 
 export interface MarketData {
-  ask: number;
-  bid: number;
-  close: number;
-  computedPrice: number;
-  high: number;
-  low: number;
-  open: number;
+  price: number;
   volume: number;
+  marketCap: number;
+  marketCapRank: number;
+  priceChange24h: number;
+  priceChangePercentage24: number;
 }
