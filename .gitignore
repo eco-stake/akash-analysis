@@ -34,8 +34,9 @@ node_modules/
 # Optional eslint cache
 .eslintcache
 
-akash
+# akash
 cache
+data
 
 .DS_Store
 .vim

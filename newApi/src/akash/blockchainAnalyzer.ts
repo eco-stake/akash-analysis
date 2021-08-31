@@ -1,15 +1,15 @@
-const fetch = require("node-fetch");
+import { loadWithPagination } from "@src/shared/utils/query";
+import { pickRandomElement } from "@src/shared/utils/math";
+import { loadNodeList } from "./nodes";
+
 const dbProvider = require("./dbProvider");
 const fs = require("fs");
-const { mainNet, averageBlockTime } = require("./constants");
 const dataSnapshotsHandler = require("./dataSnapshotsHandler");
 
-const currentNet = mainNet;
-
-const cacheFolder = "./cache/";
-const leasesCachePath = cacheFolder + "leases.json";
-const deploymentsCachePath = cacheFolder + "deployments.json";
-const bidsCachePath = cacheFolder + "bids.json";
+// const cacheFolder = "./cache/";
+// const leasesCachePath = cacheFolder + "leases.json";
+// const deploymentsCachePath = cacheFolder + "deployments.json";
+// const bidsCachePath = cacheFolder + "bids.json";
 const paginationLimit = 1000;
 const autoRefreshInterval = 10 * 60 * 1000; // 10 min
 
@@ -35,34 +35,34 @@ let dailyDeploymentCountSnapshots = null;
 let lastRefreshDate = null;
 let isLoadingData = false;
 
-exports.getActiveDeploymentCount = () => activeDeploymentCount;
-exports.getDeploymentCount = () => deploymentCount;
-exports.getAveragePrice = () => averagePrice;
-exports.getTotalResourcesLeased = () => totalResourcesLeased;
-exports.getLastRefreshDate = () => lastRefreshDate;
-exports.getTotalAKTSpent = () => totalAKTSpent;
-exports.getDailyAktSpent = () => dailyAktSpent;
-exports.getDailyDeploymentCount = () => dailyDeploymentCount;
-exports.getActiveDeploymentSnapshots = () => activeDeploymentSnapshots;
-exports.getTotalAKTSpentSnapshots = () => totalAKTSpentSnapshots;
-exports.getAllTimeDeploymentCountSnapshots = () => allTimeDeploymentCountSnapshots;
-exports.getComputeSnapshots = () => computeSnapshots;
-exports.getMemorySnapshots = () => memorySnapshots;
-exports.getStorageSnapshots = () => storageSnapshots;
-exports.getDailyAktSpentSnapshots = () => dailyAktSpentSnapshots;
-exports.getDailyDeploymentCountSnapshots = () => dailyDeploymentCountSnapshots;
-exports.getLastSnapshot = () => lastSnapshot;
-exports.getAllSnapshots = () => allSnapshots;
+export const getActiveDeploymentCount = () => activeDeploymentCount;
+export const getDeploymentCount = () => deploymentCount;
+export const getAveragePrice = () => averagePrice;
+export const getTotalResourcesLeased = () => totalResourcesLeased;
+export const getLastRefreshDate = () => lastRefreshDate;
+export const getTotalAKTSpent = () => totalAKTSpent;
+export const getDailyAktSpent = () => dailyAktSpent;
+export const getDailyDeploymentCount = () => dailyDeploymentCount;
+export const getActiveDeploymentSnapshots = () => activeDeploymentSnapshots;
+export const getTotalAKTSpentSnapshots = () => totalAKTSpentSnapshots;
+export const getAllTimeDeploymentCountSnapshots = () => allTimeDeploymentCountSnapshots;
+export const getComputeSnapshots = () => computeSnapshots;
+export const getMemorySnapshots = () => memorySnapshots;
+export const getStorageSnapshots = () => storageSnapshots;
+export const getDailyAktSpentSnapshots = () => dailyAktSpentSnapshots;
+export const getDailyDeploymentCountSnapshots = () => dailyDeploymentCountSnapshots;
+export const getLastSnapshot = () => lastSnapshot;
+export const getAllSnapshots = () => allSnapshots;
 
-exports.startAutoRefresh = () => {
+export const startAutoRefresh = () => {
   console.log(`Will auto-refresh at an interval of ${Math.round(autoRefreshInterval / 1000)} secs`);
   setInterval(async () => {
     console.log("Auto-refreshing...");
-    await exports.refreshData();
+    await refreshData();
   }, autoRefreshInterval);
 };
 
-exports.refreshData = async () => {
+export const refreshData = async () => {
   const minRefreshInterval = 60 * 1000; // 60secs
   if (lastRefreshDate && new Date().getTime() - lastRefreshDate.getTime() < minRefreshInterval) {
     console.warn("Last refresh was too recent, ignoring refresh request.");
@@ -75,28 +75,27 @@ exports.refreshData = async () => {
   }
 
   console.log("Deleting cache folder");
-  if (fs.existsSync(cacheFolder)) {
-    fs.rmSync(deploymentsCachePath, { force: true });
-    fs.rmSync(leasesCachePath, { force: true });
-    fs.rmSync(bidsCachePath, { force: true });
-    fs.rmdirSync(cacheFolder);
-  }
+  // if (fs.existsSync(cacheFolder)) {
+  //   fs.rmSync(deploymentsCachePath, { force: true });
+  //   fs.rmSync(leasesCachePath, { force: true });
+  //   fs.rmSync(bidsCachePath, { force: true });
+  //   fs.rmdirSync(cacheFolder);
+  // }
 
   await dbProvider.clearDatabase();
 
-  await exports.initialize();
+  await initialize();
 
   return true;
 };
 
-exports.initialize = async (firstInit) => {
+export const initialize = async (firstInit: boolean = false) => {
   isLoadingData = true;
   try {
-    if (!fs.existsSync(cacheFolder)) {
-      fs.mkdirSync(cacheFolder);
-    }
-
-    await dbProvider.init();
+    // TODO Replace with backup database
+    // if (!fs.existsSync(cacheFolder)) {
+    //   fs.mkdirSync(cacheFolder);
+    // }
 
     const nodeList = await loadNodeList();
     const node = pickRandomElement(nodeList);
@@ -108,6 +107,8 @@ exports.initialize = async (firstInit) => {
     const bids = await loadBids(node);
 
     lastRefreshDate = new Date();
+
+    await dbProvider.init();
 
     if (firstInit) {
       await dbProvider.initSnapshotsFromFile();
@@ -160,10 +161,9 @@ exports.initialize = async (firstInit) => {
     const averagePriceByBlock = await dbProvider.getPricingAverage();
     console.log(`The average price for a small instance is: ${averagePriceByBlock} uakt / block`);
 
-    averagePrice = (averagePriceByBlock * 31 * 24 * 60 * 60) / averageBlockTime;
-    const roundedPriceAkt = Math.round((averagePrice / 1000000 + Number.EPSILON) * 100) / 100;
-
-    console.log(`That is ${roundedPriceAkt} AKT / month`);
+    // averagePrice = (averagePriceByBlock * 31 * 24 * 60 * 60) / averageBlockTime;
+    // const roundedPriceAkt = Math.round((averagePrice / 1000000 + Number.EPSILON) * 100) / 100;
+    // console.log(`That is ${roundedPriceAkt} AKT / month`);
 
     await dataSnapshotsHandler.takeSnapshot(
       activeDeploymentCount,
@@ -180,20 +180,32 @@ exports.initialize = async (firstInit) => {
   }
 };
 
+
+
+
+// TODO replace with per block 
+
+
 async function loadLeases(node) {
   let leases = null;
 
-  if (fs.existsSync(leasesCachePath)) {
-    leases = require(leasesCachePath);
-    console.log("Loaded leases from cache");
-  } else {
-    leases = await loadWithPagination(
-      node + "/akash/market/v1beta1/leases/list",
-      "leases",
-      paginationLimit
-    );
-    fs.writeFileSync(leasesCachePath, JSON.stringify(leases));
-  }
+  // if (fs.existsSync(leasesCachePath)) {
+  //   leases = require(leasesCachePath);
+  //   console.log("Loaded leases from cache");
+  // } else {
+  //   leases = await loadWithPagination(
+  //     node + "/akash/market/v1beta1/leases/list",
+  //     "leases",
+  //     paginationLimit
+  //   );
+  //   fs.writeFileSync(leasesCachePath, JSON.stringify(leases));
+  // }
+
+  leases = await loadWithPagination(
+    node + "/akash/market/v1beta1/leases/list",
+    "leases",
+    paginationLimit
+  );
 
   console.log(`Found ${leases.length} leases`);
 
@@ -203,17 +215,23 @@ async function loadLeases(node) {
 async function loadDeployments(node) {
   let deployments = null;
 
-  if (fs.existsSync(deploymentsCachePath)) {
-    deployments = require(deploymentsCachePath);
-    console.log("Loaded deployments from cache");
-  } else {
-    deployments = await loadWithPagination(
-      node + "/akash/deployment/v1beta1/deployments/list",
-      "deployments",
-      paginationLimit
-    );
-    fs.writeFileSync(deploymentsCachePath, JSON.stringify(deployments));
-  }
+  // if (fs.existsSync(deploymentsCachePath)) {
+  //   deployments = require(deploymentsCachePath);
+  //   console.log("Loaded deployments from cache");
+  // } else {
+  //   deployments = await loadWithPagination(
+  //     node + "/akash/deployment/v1beta1/deployments/list",
+  //     "deployments",
+  //     paginationLimit
+  //   );
+  //   fs.writeFileSync(deploymentsCachePath, JSON.stringify(deployments));
+  // }
+
+  deployments = await loadWithPagination(
+    node + "/akash/deployment/v1beta1/deployments/list",
+    "deployments",
+    paginationLimit
+  );
 
   console.log(`Found ${deployments.length} deployments`);
 
@@ -223,77 +241,25 @@ async function loadDeployments(node) {
 async function loadBids(node) {
   let bids = null;
 
-  if (fs.existsSync(bidsCachePath)) {
-    bids = require(bidsCachePath);
-    console.log("Loaded bids from cache");
-  } else {
-    bids = await loadWithPagination(
-      node + "/akash/market/v1beta1/bids/list",
-      "bids",
-      paginationLimit
-    );
-    fs.writeFileSync(bidsCachePath, JSON.stringify(bids));
-  }
+  // if (fs.existsSync(bidsCachePath)) {
+  //   bids = require(bidsCachePath);
+  //   console.log("Loaded bids from cache");
+  // } else {
+  //   bids = await loadWithPagination(
+  //     node + "/akash/market/v1beta1/bids/list",
+  //     "bids",
+  //     paginationLimit
+  //   );
+  //   fs.writeFileSync(bidsCachePath, JSON.stringify(bids));
+  // }
+
+  bids = await loadWithPagination(
+    node + "/akash/market/v1beta1/bids/list",
+    "bids",
+    paginationLimit
+  );
 
   console.log(`Found ${bids.length} bids`);
 
   return bids;
-}
-
-function pickRandomElement(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-async function loadNodeList() {
-  const nodeListUrl = currentNet + "/api-nodes.txt";
-  console.log("Loading node list from: " + nodeListUrl);
-
-  const response = await fetch(nodeListUrl);
-
-  if (response.status !== 200) {
-    console.error(response);
-    throw "Could not load node list";
-  }
-
-  const content = await response.text();
-
-  const nodeList = content.trim().split("\n");
-
-  if (nodeList.length === 0) {
-    throw "Found no node in the list";
-  }
-
-  console.log(`Found ${nodeList.length} nodes`);
-
-  return ["http://135.181.181.120:1518"];
-  // return nodeList;
-}
-
-async function loadWithPagination(baseUrl, dataKey, limit) {
-  let items = [];
-  let nextKey = null;
-  let callCount = 1;
-  let totalCount = null;
-
-  do {
-    let queryUrl = baseUrl + "?pagination.limit=" + limit + "&pagination.count_total=true";
-    if (nextKey) {
-      queryUrl += "&pagination.key=" + encodeURIComponent(nextKey);
-    }
-    console.log(`Querying ${dataKey} [${callCount}] from : ${queryUrl}`);
-    const response = await fetch(queryUrl);
-    const data = await response.json();
-
-    if (!nextKey) {
-      totalCount = data.pagination.total;
-    }
-
-    items = items.concat(data[dataKey]);
-    nextKey = data.pagination.next_key;
-    callCount++;
-
-    console.log(`Got ${items.length} of ${totalCount}`);
-  } while (nextKey);
-
-  return items.filter((item) => item);
 }
