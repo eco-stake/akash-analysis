@@ -244,7 +244,7 @@ async function downloadBlocks(startHeight, endHeight) {
         })
         .catch((err) => {
           console.error(err);
-          shouldStop = true;
+          shouldStop = err;
         });
     }
 
@@ -261,9 +261,9 @@ async function downloadBlocks(startHeight, endHeight) {
 
   syncingStatus = "Saving latest downloaded height";
 
-  saveLatestDownloadedHeight(endHeight);
+  if (shouldStop) throw shouldStop;
 
-  if (shouldStop) throw "Stopped";
+  saveLatestDownloadedHeight(endHeight);
 }
 
 async function downloadTransactions() {
@@ -318,7 +318,7 @@ async function downloadTransactions() {
         })
         .catch((err) => {
           console.error(err);
-          shouldStop = true;
+          shouldStop = err;
         });
     } else {
       await missingTransactions[i].update({
@@ -343,7 +343,7 @@ async function downloadTransactions() {
 
   nodeAccessor.displayTable();
 
-  if (shouldStop) throw "Stopped";
+  if (shouldStop) throw shouldStop;
 
   await nodeAccessor.waitForAllFinished();
 

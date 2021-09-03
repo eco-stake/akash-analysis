@@ -1,3 +1,4 @@
+import { isProd } from "@src/shared/constants";
 import { sleep } from "@src/shared/utils/delay";
 
 const fetch = require("node-fetch");
@@ -13,7 +14,7 @@ const apiEndpoints = [
 ];
 
 export function createNodeAccessor() {
-  let maxConcurrentQueries = 10;
+  let maxConcurrentQueries = isProd ? 5 : 10;
   let nodeClients = apiEndpoints.map((x) => createEndpointAccessor(x, maxConcurrentQueries));
 
   return {
@@ -81,7 +82,7 @@ function createEndpointAccessor(endpoint, maxConcurrentQueries) {
       } else {
         console.error(response);
         errorCount++;
-        throw "Stopped";
+        throw response;
       }
     }
   };
