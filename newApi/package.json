@@ -1,13 +1,13 @@
 {
   "name": "akashlytics",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "",
   "author": "Akashlytics",
   "license": "GPL-3.0-or-later",
   "main": "server.js",
   "scripts": {
-    "start": "webpack --watch",
-    "build": "webpack --config webpack.config.js",
+    "start": "webpack --config webpack.dev.js --watch",
+    "build": "webpack --config webpack.prod.js",
     "test": "jest"
   },
   "repository": {

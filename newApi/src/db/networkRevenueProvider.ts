@@ -1,10 +1,11 @@
 import { Op } from "sequelize";
-import { Lease, PriceHistory, DailyNetworkRevenue, Block, Transaction, Message, Deployment } from "./schema";
+import { Lease, PriceHistory, DailyNetworkRevenue, Block, Transaction, Deployment } from "./schema";
 import { add } from "date-fns";
 import { v4 } from "uuid";
-import { endOfDay, getTodayUTC, startOfDay, toUTC } from "@src/shared/utils/date";
+import { endOfDay, getTodayUTC, startOfDay } from "@src/shared/utils/date";
 import { round, uaktToAKT } from "@src/shared/utils/math";
-import { isSyncing } from "@src/akash/akashSync";
+import { isSyncing, syncingStatus } from "@src/akash/akashSync";
+import { processingStatus } from "@src/akash/statsProcessor";
 import { sleep } from "@src/shared/utils/delay";
 import { isSyncingPrices } from "./priceHistoryProvider";
 
@@ -31,7 +32,7 @@ export const calculateNetworkRevenue = async () => {
       raw: true,
       where: {
         date: {
-          [Op.gte]: new Date(firstLease.startDate)
+          [Op.gte]: startOfDay(firstLease.startDate)
         }
       }
     });
@@ -133,7 +134,9 @@ export const getStatus = async () => {
     latestCalculateDate,
     isLastComputingSuccess,
     isCalculatingRevenue,
-    isSyncing
+    isSyncing,
+    syncingStatus,
+    processingStatus
   };
 };
 
@@ -164,21 +167,41 @@ export const getWeb3IndexRevenue = async (debug: boolean) => {
   const twoDaysAgo = add(today, { days: -2 });
   const oneWeekAgo = add(today, { weeks: -1 });
   const twoWeeksAgo = add(today, { weeks: -2 });
+  const thirtyDaysAgo = add(today, { days: -30 });
+  const sixtyDaysAgo = add(today, { days: -60 });
+  const ninetyDaysAgo = add(today, { days: -90 });
   let totalRevenue: number = 0,
     oneDayAgoRevenue: number = 0,
     twoDaysAgoRevenue: number = 0,
     oneWeekAgoRevenue: number = 0,
-    twoWeeksAgoRevenue: number = 0;
+    twoWeeksAgoRevenue: number = 0,
+    thirtyDaysAgoRevenue: number = 0,
+    sixtyDaysAgoRevenue: number = 0,
+    ninetyDaysAgoRevenue: number = 0;
   let totalRevenueUAkt: number = 0,
     oneDayAgoRevenueUAkt: number = 0,
     twoDaysAgoRevenueUAkt: number = 0,
     oneWeekAgoRevenueUAkt: number = 0,
-    twoWeeksAgoRevenueUAkt: number = 0;
+    twoWeeksAgoRevenueUAkt: number = 0,
+    thirtyDaysAgoRevenueUAkt: number = 0,
+    sixtyDaysAgoRevenueUAkt: number = 0,
+    ninetyDaysAgoRevenueUAkt: number = 0;
 
   days.forEach((b) => {
-    const _date = new Date(b.date * 1000);
-    const date = new Date(Date.UTC(_date.getUTCFullYear(), _date.getUTCMonth(), _date.getUTCDate()));
+    const date = new Date(b.date * 1000);
 
+    if (date <= ninetyDaysAgo) {
+      ninetyDaysAgoRevenue += b.revenue;
+      ninetyDaysAgoRevenueUAkt += b.revenueUAkt;
+    }
+    if (date <= sixtyDaysAgo) {
+      sixtyDaysAgoRevenue += b.revenue;
+      sixtyDaysAgoRevenueUAkt += b.revenueUAkt;
+    }
+    if (date <= thirtyDaysAgo) {
+      thirtyDaysAgoRevenue += b.revenue;
+      thirtyDaysAgoRevenueUAkt += b.revenueUAkt;
+    }
     if (date <= twoWeeksAgo) {
       twoWeeksAgoRevenue += b.revenue;
       twoWeeksAgoRevenueUAkt += b.revenueUAkt;
@@ -209,17 +232,23 @@ export const getWeb3IndexRevenue = async (debug: boolean) => {
     oneDayAgo: round(oneDayAgoRevenue),
     twoDaysAgo: round(twoDaysAgoRevenue),
     oneWeekAgo: round(oneWeekAgoRevenue),
-    twoWeeksAgo: round(twoWeeksAgoRevenue)
+    twoWeeksAgo: round(twoWeeksAgoRevenue),
+    thirtyDaysAgo: round(thirtyDaysAgoRevenue),
+    sixtyDaysAgo: round(sixtyDaysAgoRevenue),
+    ninetyDaysAgo: round(ninetyDaysAgoRevenue)
   };
 
   if (debug) {
     revenueStats = {
       ...revenueStats,
-      nowRevenueAkt: uaktToAKT(totalRevenueUAkt, 6),
-      oneDayAgoRevenueAkt: uaktToAKT(oneDayAgoRevenueUAkt, 6),
-      twoDaysAgoRevenueAkt: uaktToAKT(twoDaysAgoRevenueUAkt, 6),
-      oneWeekAgoRevenueAkt: uaktToAKT(oneWeekAgoRevenueUAkt, 6),
-      twoWeeksAgoRevenueAkt: uaktToAKT(twoWeeksAgoRevenueUAkt, 6)
+      nowAkt: uaktToAKT(totalRevenueUAkt, 6),
+      oneDayAgoAkt: uaktToAKT(oneDayAgoRevenueUAkt, 6),
+      twoDaysAgoAkt: uaktToAKT(twoDaysAgoRevenueUAkt, 6),
+      oneWeekAgoAkt: uaktToAKT(oneWeekAgoRevenueUAkt, 6),
+      twoWeeksAgAkt: uaktToAKT(twoWeeksAgoRevenueUAkt, 6),
+      thirtyDaysAgoAkt: uaktToAKT(thirtyDaysAgoRevenueUAkt, 6),
+      sixtyDaysAgoAkt: uaktToAKT(sixtyDaysAgoRevenueUAkt, 6),
+      ninetyDaysAgoAkt: uaktToAKT(ninetyDaysAgoRevenueUAkt, 6)
     } as any;
   }
 
