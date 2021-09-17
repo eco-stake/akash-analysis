@@ -1,6 +1,6 @@
 {
   "name": "akashlytics",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "",
   "author": "Akashlytics",
   "license": "GPL-3.0-or-later",
@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/mbeauchamp7/akashlytics#readme",
   "dependencies": {
+    "@sentry/node": "^6.12.0",
+    "@sentry/tracing": "^6.12.0",
     "cosmjs-types": "^0.2.0",
     "date-fns": "^2.23.0",
     "date-fns-tz": "^1.1.6",
