@@ -4,8 +4,10 @@ const express = require("express");
 const path = require("path");
 const blockchainAnalyzer = require("./blockchainAnalyzer");
 const marketDataProvider = require("./marketDataProvider");
+const newApiProvider = require("./newApiProvider");
 const dbProvider = require("./dbProvider");
-const proxy = require('express-http-proxy');
+const proxy = require("express-http-proxy");
+const fetch = require("node-fetch");
 
 // Constants
 const PORT = 3080;
@@ -13,7 +15,7 @@ const PORT = 3080;
 // App
 const app = express();
 
-app.use('/web3-index', proxy('localhost:3081'));
+app.use("/web3-index", proxy("localhost:3081"));
 
 app.use("/dist", express.static(path.join(__dirname, "../app/dist")));
 app.use(express.static(path.join(__dirname, "../app/dist")));
@@ -28,10 +30,9 @@ app.get("/api/getDashboardData/", async (req, res) => {
   const averagePrice = blockchainAnalyzer.getAveragePrice();
   const totalResourcesLeased = blockchainAnalyzer.getTotalResourcesLeased();
   const lastRefreshDate = blockchainAnalyzer.getLastRefreshDate();
-  const totalAKTSpent = blockchainAnalyzer.getTotalAKTSpent();
+  const spentStats = await newApiProvider.getSpentStats();
   const marketData = marketDataProvider.getAktMarketData();
   const lastSnapshot = await dbProvider.getLastSnapshot();
-  const dailyAktSpent = blockchainAnalyzer.getDailyAktSpent();
   const dailyDeploymentCount = blockchainAnalyzer.getDailyDeploymentCount();
 
   if (activeDeploymentCount != null) {
@@ -40,12 +41,11 @@ app.get("/api/getDashboardData/", async (req, res) => {
       deploymentCount,
       averagePrice,
       marketData,
-      totalAKTSpent,
+      spentStats,
       totalResourcesLeased,
       lastRefreshDate,
       lastSnapshot,
-      dailyAktSpent,
-      dailyDeploymentCount,
+      dailyDeploymentCount
     });
   } else {
     res.send(null);
@@ -122,6 +122,22 @@ app.get("/api/refreshData", async (req, res) => {
     res.send("Data refreshed");
   } else {
     res.send("Ignored");
+  }
+});
+
+app.get("/api/getDailySpentGraph", async (req, res) => {
+  try {
+    const response = await fetch("http://localhost:3081/getDailySpentGraph");
+
+    if (response.status === 200) {
+      const data = await response.json();
+      res.send(data);
+    } else {
+      res.send(null);
+    }
+  } catch (err) {
+    console.error(err);
+    res.send(null);
   }
 });
 

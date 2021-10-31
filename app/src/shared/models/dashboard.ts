@@ -1,10 +1,23 @@
+export interface RevenueAmount {
+  akt: number;
+  uakt: number;
+  usd: number;
+}
+
+export interface SpentStats {
+  amountAkt: number;
+  amountUAkt: number;
+  amountUSD: number;
+  revenueLast24: RevenueAmount;
+  revenuePrevious24: RevenueAmount;
+}
 
 export interface DashboardData {
   activeDeploymentCount: number;
   deploymentCount: number;
   averagePrice: number;
   marketData: MarketData;
-  totalAKTSpent: number;
+  spentStats: SpentStats;
   totalResourcesLeased: ResourceLeased;
   lastRefreshDate: Date
   lastSnapshot: SnapshotData;
