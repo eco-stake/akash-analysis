@@ -38,11 +38,13 @@ const updatePriceHistory = async () => {
 
     console.log(`There are ${apiPrices.length} prices to update.`);
 
-    const pricesToInsert = apiPrices.map((p) => ({
+    let pricesToInsert = apiPrices.map((p) => ({
       id: v4(),
       date: new Date(p.date),
       price: p.price
     }));
+
+    pricesToInsert = pricesToInsert.filter(x => x.date.getUTCHours() == 0);
 
     await PriceHistory.destroy({ where: {} });
     await PriceHistory.bulkCreate(pricesToInsert);

@@ -18,7 +18,7 @@ export class Lease extends Model {
   public deploymentId!: string;
   public readonly deployment?: Deployment;
   public owner!: string;
-  public dseq!: string;
+  public dseq!: number;
   public oseq!: string;
   public gseq!: string;
   public provider!: string;
@@ -36,7 +36,7 @@ Lease.init({
   id: { type: DataTypes.UUID, primaryKey: true, allowNull: false },
   deploymentId: { type: DataTypes.UUID },
   owner: { type: DataTypes.STRING, allowNull: false },
-  dseq: { type: DataTypes.STRING, allowNull: false },
+  dseq: { type: DataTypes.INTEGER, allowNull: false },
   oseq: { type: DataTypes.STRING, allowNull: false },
   gseq: { type: DataTypes.STRING, allowNull: false },
   provider: { type: DataTypes.STRING, allowNull: false },
@@ -122,7 +122,7 @@ export class Bid extends Model {
 
 Bid.init({
   owner: { type: DataTypes.STRING, allowNull: false },
-  dseq: { type: DataTypes.STRING, allowNull: false },
+  dseq: { type: DataTypes.INTEGER, allowNull: false },
   gseq: { type: DataTypes.NUMBER, allowNull: false },
   oseq: { type: DataTypes.NUMBER, allowNull: false },
   provider: { type: DataTypes.STRING, allowNull: false },
