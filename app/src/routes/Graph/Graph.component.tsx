@@ -7,12 +7,12 @@ import { GraphResponse, Snapshots, SnapshotsUrlParam, SnapshotValue } from "@src
 import { Box, Button, ButtonGroup, CircularProgress, Typography } from "@material-ui/core";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import clsx from "clsx";
-import { useHistory, useLocation, useParams } from "react-router";
+import { useParams } from "react-router";
 import { Helmet } from "react-helmet-async";
-import { Link as RouterLink, LinkProps as RouterLinkProps } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import { urlParamToSnapshot } from "@src/shared/utils/snapshotsUrlHelpers";
 import { useGraphSnapshot } from "@src/queries/useGrapsQuery";
-import { average, nFormatter, percIncrease, round, uaktToAKT } from "@src/shared/utils/mathHelpers";
+import { nFormatter, percIncrease, round, uaktToAKT } from "@src/shared/utils/mathHelpers";
 import { DiffPercentageChip } from "@src/shared/components/DiffPercentageChip";
 import { DiffNumber } from "@src/shared/components/DiffNumber";
 import { SelectedRange } from "@src/shared/contants";
@@ -28,10 +28,12 @@ export const Graph: React.FunctionComponent<IGraphProps> = ({}) => {
   const classes = useStyles();
   const theme = getTheme();
   const intl = useIntl();
+
+  const title = getTitle(snapshot as Snapshots);
+  const snapshotMetadata = snapshotData && getSnapshotMetadata(snapshot as Snapshots, snapshotData);
   const rangedData = snapshotData && snapshotData.snapshots.slice(snapshotData.snapshots.length - selectedRange, snapshotData.snapshots.length);
-  const minValue = rangedData && rangedData.map((x) => x.min || x.value).reduce((a, b) => (a < b ? a : b));
-  const maxValue = snapshotData && rangedData.map((x) => x.max || x.value).reduce((a, b) => (a > b ? a : b));
-  const isAverage = snapshotData && rangedData.some((x) => x.average);
+  const minValue = rangedData && snapshotMetadata.unitFn(rangedData.map((x) => x.value).reduce((a, b) => (a < b ? a : b)));
+  const maxValue = snapshotData && snapshotMetadata.unitFn(rangedData.map((x) => x.value).reduce((a, b) => (a > b ? a : b)));
   const graphData = snapshotData
     ? [
         {
@@ -39,13 +41,11 @@ export const Graph: React.FunctionComponent<IGraphProps> = ({}) => {
           color: "rgb(1,0,0)",
           data: rangedData.map((snapshot) => ({
             x: snapshot.date,
-            y: round(snapshot.average ? snapshot.average : snapshot.value)
+            y: round(snapshotMetadata.unitFn(snapshot.value))
           }))
         }
       ]
     : null;
-  const title = getTitle(snapshot as Snapshots);
-  const snapshotMetadata = snapshotData && getSnapshotMetadata(snapshot as Snapshots, snapshotData);
   const graphMetadata = getGraphMetadataPerRange(selectedRange);
 
   return (
@@ -77,11 +77,11 @@ export const Graph: React.FunctionComponent<IGraphProps> = ({}) => {
           <Box className={classes.subTitle}>
             <Box className={classes.subTitleValues}>
               <Typography variant="h3" className={classes.titleValue}>
-                <FormattedNumber value={snapshotMetadata.value} maximumFractionDigits={2} />
+                <FormattedNumber value={snapshotMetadata.unitFn(snapshotData.currentValue)} maximumFractionDigits={2} />
                 &nbsp;
-                <DiffPercentageChip value={snapshotMetadata.diffPercent} size="medium" />
+                <DiffPercentageChip value={percIncrease(snapshotData.compareValue, snapshotData.currentValue)} size="medium" />
                 &nbsp;
-                <DiffNumber value={snapshotMetadata.diffNumber} className={classes.diffNumber} />
+                <DiffNumber value={snapshotMetadata.unitFn(snapshotData.currentValue - snapshotData.compareValue)} className={classes.diffNumber} />
               </Typography>
             </Box>
 
@@ -144,14 +144,6 @@ export const Graph: React.FunctionComponent<IGraphProps> = ({}) => {
               enableCrosshair={true}
             />
           </div>
-
-          {isAverage && (
-            <div className="row">
-              <div className="col-lg-12">
-                <p className={clsx(classes.graphExplanation)}>* The data points represent the average between the minimum and maximum value for the day.</p>
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>
@@ -185,77 +177,46 @@ const getTheme = () => {
   };
 };
 
-const getSnapshotMetadata = (snapshot: Snapshots, snapshotData: GraphResponse): { value?: number; diffNumber?: number; diffPercent?: number } => {
-  const lastSnapshot = snapshotData.snapshots[snapshotData.snapshots.length - 1];
-  const previousLastSnapshot = snapshotData.snapshots[snapshotData.snapshots.length - 2];
+const getSnapshotMetadata = (snapshot: Snapshots, snapshotData: GraphResponse): { unitFn: (number) => number } => {
   switch (snapshot) {
-    case Snapshots.activeDeployment:
+    case Snapshots.dailyUAktSpent:
+    case Snapshots.totalUAktSpent:
+      return { unitFn: (x) => uaktToAKT(x) };
+    case Snapshots.activeCPU:
       return {
-        value: snapshotData.currentValue,
-        diffPercent: percIncrease(Math.ceil(average(lastSnapshot.min, lastSnapshot.max)), snapshotData.currentValue),
-        diffNumber: snapshotData.currentValue - Math.ceil(average(lastSnapshot.min, lastSnapshot.max))
+        unitFn: (x) => x / 1000
       };
-    case Snapshots.totalAKTSpent:
+    case Snapshots.activeMemory:
+    case Snapshots.activeStorage:
       return {
-        value: uaktToAKT(snapshotData.currentValue),
-        diffPercent: percIncrease(lastSnapshot.value, uaktToAKT(snapshotData.currentValue)),
-        diffNumber: uaktToAKT(snapshotData.currentValue) - lastSnapshot.value
-      };
-    case Snapshots.dailyAktSpent:
-      return {
-        value: uaktToAKT(snapshotData.currentValue),
-        diffPercent: percIncrease(previousLastSnapshot.value, uaktToAKT(snapshotData.currentValue)),
-        diffNumber: uaktToAKT(snapshotData.currentValue) - previousLastSnapshot.value
-      };
-    case Snapshots.allTimeDeploymentCount:
-      return {
-        value: snapshotData.currentValue,
-        diffPercent: percIncrease(lastSnapshot.value, snapshotData.currentValue),
-        diffNumber: snapshotData.currentValue - lastSnapshot.value
-      };
-    case Snapshots.dailyDeploymentCount:
-      return {
-        value: snapshotData.currentValue,
-        diffPercent: percIncrease(previousLastSnapshot.value, snapshotData.currentValue),
-        diffNumber: snapshotData.currentValue - previousLastSnapshot.value
-      };
-    case Snapshots.compute:
-      return {
-        value: snapshotData.currentValue / 1000,
-        diffPercent: percIncrease(average(lastSnapshot.min, lastSnapshot.max), snapshotData.currentValue / 1000),
-        diffNumber: snapshotData.currentValue / 1000 - average(lastSnapshot.min, lastSnapshot.max)
-      };
-    case Snapshots.memory:
-    case Snapshots.storage:
-      return {
-        value: snapshotData.currentValue / 1024 / 1024 / 1024,
-        diffPercent: percIncrease(average(lastSnapshot.min, lastSnapshot.max), snapshotData.currentValue / 1024 / 1024 / 1024),
-        diffNumber: snapshotData.currentValue / 1024 / 1024 / 1024 - average(lastSnapshot.min, lastSnapshot.max)
+        unitFn: (x) => x / 1024 / 1024 / 1024
       };
 
     default:
-      return { value: 0, diffNumber: 0, diffPercent: 0 };
+      return {
+        unitFn: (x) => x
+      };
   }
 };
 
 const getTitle = (snapshot: Snapshots): string => {
   switch (snapshot) {
-    case Snapshots.activeDeployment:
-      return "Active deployments";
-    case Snapshots.totalAKTSpent:
+    case Snapshots.activeLeaseCount:
+      return "Active leases";
+    case Snapshots.totalUAktSpent:
       return "Total AKT spent";
-    case Snapshots.allTimeDeploymentCount:
-      return "All-time deployment count";
-    case Snapshots.compute:
+    case Snapshots.totalLeaseCount:
+      return "All-time lease count";
+    case Snapshots.activeCPU:
       return "Number of vCPUs currently leased";
-    case Snapshots.memory:
+    case Snapshots.activeMemory:
       return "Number of Gi of memory currently leased";
-    case Snapshots.storage:
+    case Snapshots.activeStorage:
       return "Number of Gi of disk currently leased";
-    case Snapshots.dailyAktSpent:
+    case Snapshots.dailyUAktSpent:
       return "Daily AKT spent";
-    case Snapshots.dailyDeploymentCount:
-      return "Daily new deployment count";
+    case Snapshots.dailyLeaseCount:
+      return "Daily new leases";
 
     default:
       return "Graph not found.";

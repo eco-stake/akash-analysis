@@ -1,16 +1,23 @@
 import express from "express";
+import cors from "cors";
 import { getDbSize, initDatabase } from "./db/buildDatabase";
-import { calculateNetworkRevenue, getStatus, getWeb3IndexRevenue, getTotalSpent, getDailySpentGraph } from "./db/networkRevenueProvider";
-import { syncPriceHistory } from "./db/priceHistoryProvider";
+import { getStatus, getWeb3IndexRevenue } from "./db/networkRevenueProvider";
+import { syncPriceHistoryAtInterval, updatePriceHistory } from "./db/priceHistoryProvider";
 import { syncBlocks, isSyncing } from "./akash/akashSync";
 import { deleteCache, getCacheSize } from "./akash/dataStore";
-import { isProd } from "./shared/constants";
+import { executionMode, ExecutionMode, isProd } from "./shared/constants";
 import { bytesToHumanReadableSize } from "./shared/utils/files";
 import * as Sentry from "@sentry/node";
 import * as Tracing from "@sentry/tracing";
+import { rebuildStatsTables } from "./akash/statsProcessor";
+import { getGraphData, getDashboardData } from "./db/statsProvider";
+import * as marketDataProvider from "./providers/marketDataProvider";
+import path from "path";
 
 const app = express();
-const { PORT = 3081 } = process.env;
+app.use(cors());
+
+const { PORT = 3080 } = process.env;
 
 let latestSyncingError = null;
 let latestSyncingErrorDate = null;
@@ -44,25 +51,48 @@ app.use(Sentry.Handlers.requestHandler());
 // TracingHandler creates a trace for every incoming request
 app.use(Sentry.Handlers.tracingHandler());
 
-app.get("/getTotalSpent", async (req, res) => {
+const apiRouter = express.Router();
+const web3IndexRouter = express.Router();
+
+apiRouter.get("/getDashboardData", async (req, res) => {
   try {
-    const totalSpend = await getTotalSpent();
-    res.send(totalSpend);
+    const totalSpend = await getDashboardData();
+    const marketData = marketDataProvider.getAktMarketData();
+    res.send({ ...totalSpend, marketData });
   } catch (err) {
     console.error(err);
   }
 });
 
-app.get("/getDailySpentGraph", async (req, res) => {
+apiRouter.get("/getGraphData/:dataName", async (req, res) => {
   try {
-    const dailySpentGraph = await getDailySpentGraph();
-    res.send(dailySpentGraph)
-  } catch (err) {
-    console.error(err)
-  }
-})
+    const dataName = req.params.dataName;
+    const authorizedDataNames = [
+      "dailyUAktSpent",
+      "dailyLeaseCount",
+      "totalUAktSpent",
+      "activeLeaseCount",
+      "totalLeaseCount",
+      "activeCPU",
+      "activeMemory",
+      "activeStorage"
+    ];
 
-app.get("/status", async (req, res) => {
+    if (!authorizedDataNames.includes(dataName)) {
+      console.log("Rejected graph request: " + dataName);
+      res.sendStatus(404);
+      return;
+    }
+
+    const graphData = await getGraphData(dataName);
+    res.send(graphData);
+  } catch (err) {
+    res.sendStatus(500);
+    console.error(err);
+  }
+});
+
+web3IndexRouter.get("/status", async (req, res) => {
   console.log("getting debug infos");
 
   try {
@@ -85,7 +115,7 @@ app.get("/status", async (req, res) => {
   }
 });
 
-app.get("/revenue", async (req, res) => {
+web3IndexRouter.get("/revenue", async (req, res) => {
   try {
     console.log("calculating revenue");
 
@@ -101,6 +131,18 @@ app.get("/revenue", async (req, res) => {
 
     res.status(500).send("An error occured");
   }
+});
+
+app.use("/api", apiRouter);
+app.use("/web3-index", web3IndexRouter);
+
+app.use(express.static(path.join(__dirname, "../../app/dist")));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../app/dist/index.html"));
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../app/dist/index.html"));
 });
 
 // the rest of your app
@@ -120,12 +162,21 @@ async function initApp() {
   try {
     await initDatabase();
 
-    await syncPriceHistory();
-
-    await computeAtInterval();
-    setInterval(async () => {
+    if (executionMode === ExecutionMode.RebuildStats) {
+      await rebuildStatsTables();
+    } else if (executionMode === ExecutionMode.RebuildAll) {
       await computeAtInterval();
-    }, 15 * 60 * 1000); // 15min
+    } else if (executionMode === ExecutionMode.DownloadAndSync || executionMode === ExecutionMode.SyncOnly) {
+      await marketDataProvider.syncAtInterval();
+      await computeAtInterval();
+      await syncPriceHistoryAtInterval();
+      setInterval(async () => {
+        await computeAtInterval();
+        await updatePriceHistory();
+      }, 15 * 60 * 1000); // 15min
+    } else {
+      throw "Invalid execution mode";
+    }
   } catch (err) {
     latestSyncingError = err;
     latestSyncingErrorDate = new Date();
@@ -140,7 +191,6 @@ async function computeAtInterval() {
     if (isSyncing) return;
 
     await syncBlocks();
-    await calculateNetworkRevenue();
 
     if (isProd) {
       await deleteCache();

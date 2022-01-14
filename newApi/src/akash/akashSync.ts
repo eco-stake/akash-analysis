@@ -3,11 +3,12 @@ import base64js from "base64-js";
 import { processMessages } from "./statsProcessor";
 import { blocksDb, txsDb } from "./dataStore";
 import { createNodeAccessor } from "./nodeAccessor";
-import { Block, Transaction, Message, Op } from "@src/db/schema";
+import { Block, Transaction, Message, Op, Day } from "@src/db/schema";
 
 import * as uuid from "uuid";
 import { sha256 } from "js-sha256";
 import { isProd } from "@src/shared/constants";
+import { isEqual } from "date-fns";
 
 export let isSyncing = false;
 export let syncingStatus = null;
@@ -113,7 +114,7 @@ export async function syncBlocks() {
       await downloadBlocks(startHeight, latestAvailableHeight);
     }
 
-    let latestInsertedHeight: number = await Block.max("height");
+    let latestInsertedHeight: number = (await Block.max("height")) || 0;
 
     await insertBlocks(latestInsertedHeight + 1, latestAvailableHeight);
     await downloadTransactions();
@@ -131,14 +132,19 @@ export async function syncBlocks() {
 }
 
 async function insertBlocks(startHeight, endHeight) {
-  const blockCount = endHeight - startHeight;
+  const blockCount = endHeight - startHeight + 1;
   console.log("Inserting " + blockCount + " blocks into database");
   syncingStatus = "Inserting blocks";
 
-  let lastInsertedBlock = await Block.findOne({
+  let lastInsertedBlock = (await Block.findOne({
+    include: [
+      {
+        model: Day,
+        required: true
+      }
+    ],
     order: [["height", "DESC"]]
-  });
-  let lastInsertedDate = lastInsertedBlock?.datetime ?? new Date(2000, 1, 1);
+  })) as any;
 
   let blocksToAdd = [];
   let txsToAdd = [];
@@ -150,12 +156,8 @@ async function insertBlocks(startHeight, endHeight) {
 
     if (!blockData) throw "Block # " + i + " was not in cache";
 
+    let msgIndexInBlock = 0;
     const blockDatetime = new Date(blockData.block.header.time);
-    const blockDate = new Date(Date.UTC(blockDatetime.getUTCFullYear(), blockDatetime.getUTCMonth(), blockDatetime.getUTCDate()));
-    const firstBlockOfDay = blockDate > lastInsertedDate;
-    if (firstBlockOfDay) {
-      lastInsertedDate = blockDate;
-    }
 
     const txs = blockData.block.data.txs;
     for (let txIndex = 0; txIndex < txs.length; ++txIndex) {
@@ -164,7 +166,8 @@ async function insertBlocks(startHeight, endHeight) {
       const txId = uuid.v4();
 
       let hasInterestingTypes = false;
-      let msgs = decodeTxRaw(fromBase64(tx)).body.messages;
+      const decodedTx = decodeTxRaw(fromBase64(tx));
+      const msgs = decodedTx.body.messages;
 
       for (let msgIndex = 0; msgIndex < msgs.length; ++msgIndex) {
         const msg = msgs[msgIndex];
@@ -174,7 +177,10 @@ async function insertBlocks(startHeight, endHeight) {
           id: uuid.v4(),
           txId: txId,
           type: msg.typeUrl,
+          typeCategory: msg.typeUrl.split(".")[0].substring(1),
           index: msgIndex,
+          height: i,
+          indexInBlock: msgIndexInBlock++,
           isInterestingType: isInterestingType
         });
 
@@ -192,31 +198,52 @@ async function insertBlocks(startHeight, endHeight) {
       });
     }
 
-    blocksToAdd.push({
+    const blockEntry = {
       height: i,
       datetime: new Date(blockData.block.header.time),
-      firstBlockOfDay: firstBlockOfDay
-    });
+      dayId: lastInsertedBlock?.dayId,
+      day: lastInsertedBlock?.day
+    };
 
-    if (blocksToAdd.length >= 1000) {
+    const blockDate = new Date(Date.UTC(blockDatetime.getUTCFullYear(), blockDatetime.getUTCMonth(), blockDatetime.getUTCDate()));
+
+    if (!lastInsertedBlock || !isEqual(blockDate, lastInsertedBlock.day.date)) {
+      console.log("Creating day: ", blockDate, i);
+      const newDay = await Day.create({
+        id: uuid.v4(),
+        date: blockDate,
+        firstBlockHeight: i,
+        lastBlockHeightYet: i
+      });
+
+      blockEntry.dayId = newDay.id;
+      blockEntry.day = newDay;
+
+      if (lastInsertedBlock) {
+        lastInsertedBlock.day.lastBlockHeight = lastInsertedBlock.height;
+        lastInsertedBlock.day.lastBlockHeightYet = lastInsertedBlock.height;
+        await lastInsertedBlock.day.save();
+      }
+    }
+    lastInsertedBlock = blockEntry;
+
+    blocksToAdd.push(blockEntry);
+
+    if (blocksToAdd.length >= 1_000 || i === endHeight) {
       await Block.bulkCreate(blocksToAdd);
       await Transaction.bulkCreate(txsToAdd);
       await Message.bulkCreate(msgsToAdd);
+
       blocksToAdd = [];
       txsToAdd = [];
       msgsToAdd = [];
-      console.log(`Blocks added to db: ${i - startHeight} / ${blockCount} (${(((i - startHeight) * 100) / blockCount).toFixed(2)}%)`);
-    }
-  }
+      console.log(`Blocks added to db: ${i - startHeight + 1} / ${blockCount} (${(((i - startHeight + 1) * 100) / blockCount).toFixed(2)}%)`);
 
-  try {
-    await Block.bulkCreate(blocksToAdd);
-    await Transaction.bulkCreate(txsToAdd);
-    await Message.bulkCreate(msgsToAdd);
-    console.log("Blocks added to db: " + blockCount + " / " + blockCount + " (100%)");
-  } catch (err) {
-    console.log(err);
-    throw err;
+      if (lastInsertedBlock) {
+        lastInsertedBlock.day.lastBlockHeightYet = lastInsertedBlock.height;
+        await lastInsertedBlock.day.save();
+      }
+    }
   }
 
   let totalBlockCount = await Block.count();

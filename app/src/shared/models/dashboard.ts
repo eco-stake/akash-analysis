@@ -12,17 +12,23 @@ export interface SpentStats {
   revenuePrevious24: RevenueAmount;
 }
 
+export interface DashboardBlockStats {
+  date: Date;
+  height: number;
+  activeLeaseCount: number;
+  totalLeaseCount: number;
+  dailyLeaseCount: number;
+  totalUAktSpent: number;
+  dailyUAktSpent: number;
+  activeCPU: number;
+  activeMemory: number;
+  activeStorage: number;
+}
+
 export interface DashboardData {
-  activeDeploymentCount: number;
-  deploymentCount: number;
-  averagePrice: number;
   marketData: MarketData;
-  spentStats: SpentStats;
-  totalResourcesLeased: ResourceLeased;
-  lastRefreshDate: Date
-  lastSnapshot: SnapshotData;
-  dailyAktSpent: number;
-  dailyDeploymentCount: number;
+  now: DashboardBlockStats;
+  compare: DashboardBlockStats;
 }
 
 export interface SnapshotData {
