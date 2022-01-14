@@ -1,6 +1,6 @@
 services:
   app:
-    image: baktun/akashlytics:0.10.4
+    image: baktun/akashlytics:1.0.0
     container_name: akashlytics
     build:
       context: .

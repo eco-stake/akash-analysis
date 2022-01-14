@@ -25,6 +25,6 @@ npm start
 ## Build and push the docker image
 
 ```
-docker build . -t baktun/akashlytics:0.10.4
-docker push baktun/akashlytics:0.10.4
+docker build . -t baktun/akashlytics:1.0.0
+docker push baktun/akashlytics:1.0.0
 ```
