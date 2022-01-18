@@ -3,7 +3,7 @@ version: "2.0"
 
 services:
   web:
-    image: baktun/akashlytics:1.0.0
+    image: baktun/akashlytics:1.0.1
     env:
       - AkashlyticsGithubPAT=<GITHUB_PAT>
     expose:
