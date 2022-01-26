@@ -19,7 +19,12 @@ import { fetchGithubReleases } from "./providers/githubProvider";
 require("dotenv").config();
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.AKASHLYTICS_CORS_WEBSITE_URLS.split(",") || "http://localhost:3080",
+    optionsSuccessStatus: 200
+  })
+);
 
 const { PORT = 3080 } = process.env;
 
@@ -174,6 +179,8 @@ app.listen(PORT, () => {
  */
 async function initApp() {
   try {
+    if (executionMode === ExecutionMode.DoNotSync) return;
+
     await initDatabase();
 
     if (executionMode === ExecutionMode.RebuildStats) {

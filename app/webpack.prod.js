@@ -9,15 +9,16 @@ module.exports = merge(commonConfig, {
   devtool: "cheap-module-source-map",
   optimization: {
     minimize: true,
-    minimizer: [new TerserPlugin()],
+    minimizer: [new TerserPlugin()]
   },
   plugins: [
     new webpack.DefinePlugin({
       "process.env": {
         PACKAGE_VERSION: JSON.stringify(require("./package.json").version),
         NODE_ENV: JSON.stringify("production"),
-      },
-    }),
+        API_BASE_URL: JSON.stringify(process.env.API_BASE_URL)
+      }
+    })
     // new webpack.HashedModuleIdsPlugin()
-  ],
+  ]
 });

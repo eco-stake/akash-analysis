@@ -5,3 +5,5 @@ export enum SelectedRange {
   "1M" = 30,
   "ALL" = Number.MAX_SAFE_INTEGER
 }
+
+export const baseApiUrl = process.env.API_BASE_URL || "http://localhost:3080";
