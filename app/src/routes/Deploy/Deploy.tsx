@@ -10,6 +10,7 @@ import GitHubIcon from "@material-ui/icons/GitHub";
 import { DiscordIcon } from "@src/shared/components/icons";
 import Alert from "@material-ui/lab/Alert";
 import { Remarkable } from "remarkable";
+import { baseApiUrl } from "@src/shared/contants";
 
 export interface IDeployProps {}
 
@@ -22,7 +23,7 @@ export const Deploy: React.FunctionComponent<IDeployProps> = ({}) => {
   useEffect(() => {
     (async () => {
       try {
-        const response = await fetch("/api/latestDeployToolVersion");
+        const response = await fetch(`${baseApiUrl}/api/latestDeployToolVersion`);
         const data = await response.json();
 
         setReleaseInfo(data);

@@ -155,15 +155,6 @@ web3IndexRouter.get("/revenue", async (req, res) => {
 app.use("/api", apiRouter);
 app.use("/web3-index", web3IndexRouter);
 
-app.use(express.static(path.join(__dirname, "../../app/dist")));
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../app/dist/index.html"));
-});
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../app/dist/index.html"));
-});
-
 // the rest of your app
 app.use(Sentry.Handlers.errorHandler());
 
