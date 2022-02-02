@@ -13,6 +13,82 @@ export const sequelize = new Sequelize({
 
 export { Op, Sequelize } from "sequelize";
 
+export class Provider extends Model {
+  public owner: string;
+  public hostUri: string;
+  public createdHeight: number;
+  public email?: string;
+  public website?: string;
+
+  // Stats
+  public isOnline?: boolean;
+  public lastCheckDate?: Date;
+  public error?: string;
+  public deploymentCount?: number;
+  public leaseCount?: number;
+  public activeCPU?: number;
+  public activeMemory?: number;
+  public activeStorage?: number;
+  public pendingCPU?: number;
+  public pendingMemory?: number;
+  public pendingStorage?: number;
+  public availableCPU?: number;
+  public availableMemory?: number;
+  public availableStorage?: number;
+}
+
+Provider.init(
+  {
+    owner: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
+    hostUri: { type: DataTypes.STRING, allowNull: false },
+    createdHeight: { type: DataTypes.INTEGER, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: true },
+    website: { type: DataTypes.STRING, allowNull: true },
+
+    // Stats
+    isOnline: { type: DataTypes.BOOLEAN, allowNull: true },
+    lastCheckDate: { type: DataTypes.DATE, allowNull: true },
+    error: { type: DataTypes.STRING, allowNull: true },
+    deploymentCount: { type: DataTypes.INTEGER, allowNull: true },
+    leaseCount: { type: DataTypes.INTEGER, allowNull: true },
+    activeCPU: { type: DataTypes.BIGINT, allowNull: true },
+    activeMemory: { type: DataTypes.BIGINT, allowNull: true },
+    activeStorage: { type: DataTypes.BIGINT, allowNull: true },
+    pendingCPU: { type: DataTypes.BIGINT, allowNull: true },
+    pendingMemory: { type: DataTypes.BIGINT, allowNull: true },
+    pendingStorage: { type: DataTypes.BIGINT, allowNull: true },
+    availableCPU: { type: DataTypes.BIGINT, allowNull: true },
+    availableMemory: { type: DataTypes.BIGINT, allowNull: true },
+    availableStorage: { type: DataTypes.BIGINT, allowNull: true }
+  },
+  {
+    tableName: "provider",
+    modelName: "provider",
+    indexes: [{ unique: false, fields: ["owner"] }],
+    sequelize
+  }
+);
+
+export class ProviderAttribute extends Model {
+  public provider: string;
+  public key: string;
+  public value: string;
+}
+
+ProviderAttribute.init(
+  {
+    provider: { type: DataTypes.STRING, allowNull: false },
+    key: { type: DataTypes.STRING, allowNull: false },
+    value: { type: DataTypes.STRING, allowNull: false }
+  },
+  {
+    tableName: "providerAttribute",
+    modelName: "providerAttribute",
+    indexes: [{ unique: false, fields: ["provider"] }],
+    sequelize
+  }
+);
+
 export class Lease extends Model {
   public id!: string;
   public deploymentId!: string;
@@ -169,6 +245,7 @@ export class Bid extends Model {
   public oseq!: number;
   public provider!: number;
   public price!: number;
+  public createdHeight!: number;
 }
 
 Bid.init(
@@ -178,9 +255,8 @@ Bid.init(
     gseq: { type: DataTypes.INTEGER, allowNull: false },
     oseq: { type: DataTypes.INTEGER, allowNull: false },
     provider: { type: DataTypes.STRING, allowNull: false },
-    state: { type: DataTypes.STRING, allowNull: false },
     price: { type: DataTypes.INTEGER, allowNull: false },
-    datetime: { type: DataTypes.DATE, allowNull: false }
+    createdHeight: { type: DataTypes.INTEGER, allowNull: false }
   },
   {
     tableName: "bid",
@@ -230,12 +306,14 @@ export class Block extends Model {
   public dayId!: string;
   // Stats
   public isProcessed!: boolean;
-  public totalUAktSpent!: number;
+  public totalTxCount!: number;
+  public totalUAktSpent: number;
   public activeLeaseCount: number;
   public totalLeaseCount: number;
   public activeCPU: number;
   public activeMemory: number;
   public activeStorage: number;
+  public activeProviderCount: number;
 
   public readonly day: Day;
   public readonly transactions?: Transaction[];
@@ -249,12 +327,14 @@ Block.init(
 
     // Stats
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    totalTxCount: { type: DataTypes.BIGINT, allowNull: false },
     totalUAktSpent: { type: DataTypes.BIGINT, allowNull: true },
     activeLeaseCount: { type: DataTypes.INTEGER, allowNull: true },
     totalLeaseCount: { type: DataTypes.INTEGER, allowNull: true },
     activeCPU: { type: DataTypes.INTEGER, allowNull: true },
     activeMemory: { type: DataTypes.BIGINT, allowNull: true },
-    activeStorage: { type: DataTypes.BIGINT, allowNull: true }
+    activeStorage: { type: DataTypes.BIGINT, allowNull: true },
+    activeProviderCount: { type: DataTypes.INTEGER, allowNull: true }
   },
   {
     tableName: "block",
