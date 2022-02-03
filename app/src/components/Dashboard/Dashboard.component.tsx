@@ -2,14 +2,13 @@ import React from "react";
 import clsx from "clsx";
 import { useStyles } from "./Dashboard.styles";
 import { useMediaQueryContext } from "@src/context/MediaQueryProvider";
-import { Box, Button, Chip, Paper, Typography } from "@material-ui/core";
+import { Box, Paper, Typography } from "@material-ui/core";
 import { StatsCard } from "../StatsCard";
 import { FormattedNumber } from "react-intl";
 import { DashboardData, SnapshotsUrlParam } from "@src/shared/models";
-import { Link as RouterLink } from "react-router-dom";
-import { average, percIncrease, uaktToAKT } from "@src/shared/utils/mathHelpers";
-import { DiffNumber } from "@src/shared/components/DiffNumber";
+import { percIncrease, uaktToAKT } from "@src/shared/utils/mathHelpers";
 import { DiffPercentageChip } from "@src/shared/components/DiffPercentageChip";
+import { HumanReadableBytes } from "@src/shared/components/HumanReadableBytes";
 
 interface IDashboardProps {
   dashboardData: DashboardData;
@@ -175,7 +174,7 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
             number={
               <>
                 <FormattedNumber value={dashboardData.now.activeMemory / 1024 / 1024 / 1024} maximumFractionDigits={2} />
-                <small style={{ paddingLeft: "5px", fontWeight: "bold", fontSize: 16 }}>Gi</small>
+                <small style={{ paddingLeft: "5px", fontWeight: "bold", fontSize: 16 }}>GB</small>
               </>
             }
             text="Memory"
@@ -190,13 +189,73 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
             number={
               <>
                 <FormattedNumber value={dashboardData.now.activeStorage / 1024 / 1024 / 1024} maximumFractionDigits={2} />
-                <small style={{ paddingLeft: "5px", fontWeight: "bold", fontSize: 16 }}>Gi</small>
+                <small style={{ paddingLeft: "5px", fontWeight: "bold", fontSize: 16 }}>GB</small>
               </>
             }
             text="Storage"
             graphPath={`/graph/${SnapshotsUrlParam.storage}`}
             diffNumber={(dashboardData.now.activeStorage - dashboardData.compare.activeStorage) / 1024 / 1024 / 1024}
             diffPercent={percIncrease(dashboardData.compare.activeStorage, dashboardData.now.activeStorage)}
+          />
+        </div>
+      </div>
+
+      <div
+        className={clsx("row mt-5", {
+          "mb-4": !mediaQuery.smallScreen,
+          "mb-2 text-center": mediaQuery.smallScreen
+        })}
+      >
+        <div className="col-xs-12">
+          <Typography variant="h1" className={clsx(classes.title, { "text-center": mediaQuery.smallScreen })}>
+            Network Capacity
+          </Typography>
+        </div>
+      </div>
+      <div className="row">
+        <div className={clsx("col-xs-12 col-lg-3")}>
+          <StatsCard
+            number={<FormattedNumber value={dashboardData.networkCapacity.activeProviderCount} />}
+            text="Active providers"
+            tooltip={
+              <>
+                <div>This is number of providers currently active on the network.</div>
+              </>
+            }
+          />
+        </div>
+
+        <div className={clsx("col-xs-12 col-lg-3")}>
+          <StatsCard
+            number={
+              <>
+                <FormattedNumber value={dashboardData.networkCapacity.totalCPU / 1000} maximumFractionDigits={0} />
+                <small style={{ paddingLeft: "5-px", fontWeight: "bold", fontSize: 16 }}>vCPUs</small>
+              </>
+            }
+            text="Compute"
+          />
+        </div>
+
+        <div className={clsx("col-xs-12 col-lg-3")}>
+          <StatsCard
+            number={
+              <>
+                <HumanReadableBytes value={dashboardData.networkCapacity.totalMemory} />
+              </>
+            }
+            text="Memory"
+          />
+        </div>
+
+        <div className={clsx("col-xs-12 col-lg-3")}>
+          <StatsCard
+            number={
+              <>
+                <HumanReadableBytes value={dashboardData.networkCapacity.totalStorage} />
+              </>
+            }
+            text="Storage"
           />
         </div>
       </div>

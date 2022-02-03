@@ -25,10 +25,27 @@ export interface DashboardBlockStats {
   activeStorage: number;
 }
 
+export interface NetworkCapacity {
+  activeProviderCount: number;
+  activeCPU: number;
+  activeMemory: number;
+  activeStorage: number;
+  pendingCPU: number;
+  pendingMemory: number;
+  pendingStorage: number;
+  availableCPU: number;
+  availableMemory: number;
+  availableStorage: number;
+  totalCPU: number;
+  totalMemory: number;
+  totalStorage: number;
+}
+
 export interface DashboardData {
   marketData: MarketData;
   now: DashboardBlockStats;
   compare: DashboardBlockStats;
+  networkCapacity: NetworkCapacity;
 }
 
 export interface SnapshotData {
