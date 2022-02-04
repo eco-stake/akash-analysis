@@ -144,7 +144,7 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
             text="Active leases"
             tooltip={
               <>
-                <div>This is number of leases currently active on the network. A deployment can be anything. </div>
+                <div>This is the number of leases currently active on the network. A deployment can be anything. </div>
                 <div>For example: a simple website to a blockchain node or a video game server.</div>
               </>
             }
@@ -219,7 +219,7 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
             text="Active providers"
             tooltip={
               <>
-                <div>This is number of providers currently active on the network.</div>
+                <div>This is the number of providers currently active on the network.</div>
               </>
             }
           />
