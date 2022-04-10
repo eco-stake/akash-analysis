@@ -26,14 +26,14 @@ npm start
 
 ### Individually
 ```
-docker build . -t baktun/akashlytics-web --build-arg API_BASE_URL="https://api.akashlytics.com"
-docker push baktun/akashlytics-web
 docker build . -t baktun/akashlytics-api
 docker push baktun/akashlytics-api
+docker build . -t baktun/akashlytics-web --build-arg API_BASE_URL="https://api.akashlytics.com"
+docker push baktun/akashlytics-web
 ```
 ### With docker compose
 ```
 docker-compose build --build-arg API_BASE_URL="https://api.akashlytics.com"
-docker push baktun/akashlytics-web
 docker push baktun/akashlytics-api
+docker push baktun/akashlytics-web
 ```
