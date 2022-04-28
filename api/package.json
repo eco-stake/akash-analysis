@@ -1,6 +1,6 @@
 {
   "name": "akashlytics",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "",
   "author": "Akashlytics",
   "license": "GPL-3.0-or-later",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/mbeauchamp7/akashlytics#readme",
   "dependencies": {
+    "@cosmjs/math": "^0.28.4",
     "@octokit/rest": "^18.12.0",
     "@sentry/node": "^6.12.0",
     "@sentry/tracing": "^6.12.0",

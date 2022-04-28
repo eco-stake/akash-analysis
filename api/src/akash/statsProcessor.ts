@@ -12,6 +12,7 @@ const {
   MsgUpdateProvider,
   MsgDeleteProvider
 } = require("./ProtoAkashTypes");
+import * as v1beta2 from "./ProtoAkashTypes_v1beta2";
 const uuid = require("uuid");
 const sha256 = require("js-sha256");
 const { performance } = require("perf_hooks");
@@ -33,6 +34,8 @@ import {
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 export let processingStatus = null;
+
+const v3Height = 5629650;
 
 function fromBase64(base64String) {
   if (!base64String.match(/^[a-zA-Z0-9+/]*={0,2}$/)) {
@@ -309,7 +312,19 @@ export const messageHandlers: { [key: string]: (encodedMessage, height: number, 
   "/akash.market.v1beta1.MsgWithdrawLease": handleWithdrawLease,
   "/akash.provider.v1beta1.MsgCreateProvider": handleCreateProvider,
   "/akash.provider.v1beta1.MsgUpdateProvider": handleUpdateProvider,
-  "/akash.provider.v1beta1.MsgDeleteProvider": handleDeleteProvider
+  "/akash.provider.v1beta1.MsgDeleteProvider": handleDeleteProvider,
+  // v1beta2 types
+  "/akash.deployment.v1beta2.MsgCreateDeployment": handleCreateDeploymentV2,
+  "/akash.deployment.v1beta2.MsgCloseDeployment": handleCloseDeployment,
+  "/akash.market.v1beta2.MsgCreateLease": handleCreateLease,
+  "/akash.market.v1beta2.MsgCloseLease": handleCloseLease,
+  "/akash.market.v1beta2.MsgCreateBid": handleCreateBid,
+  "/akash.market.v1beta2.MsgCloseBid": handleCloseBid,
+  "/akash.deployment.v1beta2.MsgDepositDeployment": handleDepositDeployment,
+  "/akash.market.v1beta2.MsgWithdrawLease": handleWithdrawLease,
+  "/akash.provider.v1beta2.MsgCreateProvider": handleCreateProvider,
+  "/akash.provider.v1beta2.MsgUpdateProvider": handleUpdateProvider,
+  "/akash.provider.v1beta2.MsgDeleteProvider": handleDeleteProvider
 };
 
 async function processMessage(msg, encodedMessage, height, time, blockGroupTransaction) {
@@ -377,7 +392,57 @@ async function handleCreateDeployment(encodedMessage, height, blockGroupTransact
           memoryQuantity: parseInt(groupResource.resources.memory.quantity.val),
           storageQuantity: parseInt(groupResource.resources.storage.quantity.val),
           count: groupResource.count,
-          price: parseInt(groupResource.price.amount) // TODO: handle denom
+          price: parseFloat(groupResource.price.amount) // TODO: handle denom
+        },
+        { transaction: blockGroupTransaction }
+      );
+    }
+  }
+}
+
+async function handleCreateDeploymentV2(encodedMessage, height, blockGroupTransaction, msg: Message) {
+  const decodedMessage = v1beta2.MsgCreateDeployment.decode(encodedMessage);
+
+  const created = await Deployment.create(
+    {
+      id: uuid.v4(),
+      owner: decodedMessage.id.owner,
+      dseq: decodedMessage.id.dseq.toNumber(),
+      deposit: parseInt(decodedMessage.deposit.amount),
+      balance: parseInt(decodedMessage.deposit.amount),
+      createdHeight: height,
+      state: "-",
+      escrowAccountTransferredAmount: 0
+    },
+    { transaction: blockGroupTransaction }
+  );
+
+  msg.relatedDeploymentId = created.id;
+
+  addToDeploymentIdCache(decodedMessage.id.owner, decodedMessage.id.dseq.toNumber(), created.id);
+
+  for (const group of decodedMessage.groups) {
+    const createdGroup = await DeploymentGroup.create(
+      {
+        id: uuid.v4(),
+        deploymentId: created.id,
+        owner: created.owner,
+        dseq: created.dseq,
+        gseq: decodedMessage.groups.indexOf(group) + 1
+      },
+      { transaction: blockGroupTransaction }
+    );
+    addToDeploymentGroupIdCache(createdGroup.owner, createdGroup.dseq, createdGroup.gseq, createdGroup.id);
+
+    for (const groupResource of group.resources) {
+      await DeploymentGroupResource.create(
+        {
+          deploymentGroupId: createdGroup.id,
+          cpuUnits: parseInt(groupResource.resources.cpu.units.val),
+          memoryQuantity: parseInt(groupResource.resources.memory.quantity.val),
+          storageQuantity: groupResource.resources.storage.map((x) => parseInt(x.quantity.val)).reduce((a, b) => a + b, 0),
+          count: groupResource.count,
+          price: parseFloat(groupResource.price.amount) // TODO: handle denom
         },
         { transaction: blockGroupTransaction }
       );

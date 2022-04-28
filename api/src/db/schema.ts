@@ -228,7 +228,7 @@ DeploymentGroupResource.init(
     memoryQuantity: { type: DataTypes.BIGINT, allowNull: true },
     storageQuantity: { type: DataTypes.BIGINT, allowNull: true },
     count: { type: DataTypes.INTEGER, allowNull: false },
-    price: { type: DataTypes.INTEGER, allowNull: false }
+    price: { type: DataTypes.DECIMAL, allowNull: false }
   },
   {
     tableName: "deploymentGroupResource",
