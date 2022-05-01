@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { Provider } from "@src/db/schema";
+import { Provider, ProviderAttribute } from "@src/db/schema";
 
 const https = require("https");
 
@@ -88,12 +88,26 @@ export async function fetchProvidersInfo() {
   console.log("Finished refreshing provider infos");
 }
 
+function getStorageFromResource(resource) {
+  return Object.keys(resource).includes("storage_ephemeral") ? resource.storage_ephemeral : resource.storage;
+}
+
+function getCpuValue(cpu) {
+  return typeof cpu === "number" ? cpu : parseInt(cpu.units.val);
+}
+
+function getByteValue(val) {
+  return typeof val === "number" ? val : parseInt(val.size.val);
+}
+
 function sumResources(resources) {
-  return (resources || [])
+  const resourcesArr = resources?.nodes || resources || [];
+
+  return resourcesArr
     .map((x) => ({
-      cpu: parseInt(x.cpu.units.val),
-      memory: parseInt(x.memory.size.val),
-      storage: parseInt(x.storage.size.val)
+      cpu: getCpuValue(x.cpu),
+      memory: getByteValue(x.memory),
+      storage: getByteValue(getStorageFromResource(x))
     }))
     .reduce(
       (prev, next) => ({
@@ -139,8 +153,43 @@ export async function getNetworkCapacity() {
 
 export async function getProviders() {
   const providers = await Provider.findAll({
-    attributes: ["owner", "hostUri", "createdHeight", "isOnline", "lastCheckDate", "error"]
+    where: {
+      isOnline: true
+    },
+    include: [
+      {
+        model: ProviderAttribute
+      }
+    ]
   });
 
-  return providers.map((x) => x.toJSON());
+  return providers.map((x) => ({
+    owner: x.owner,
+    hostUri: x.hostUri,
+    createdHeight: x.createdHeight,
+    email: x.email,
+    website: x.website,
+    lastCheckDate: x.lastCheckDate,
+    deploymentCount: x.deploymentCount,
+    leaseCount: x.leaseCount,
+    attributes: x.providerAttributes.map((attr) => ({
+      key: attr.key,
+      value: attr.value
+    })),
+    activeStats: {
+      cpu: x.activeCPU,
+      memory: x.activeMemory,
+      storage: x.activeStorage
+    },
+    pendingStats: {
+      cpu: x.pendingCPU,
+      memory: x.pendingMemory,
+      storage: x.pendingStorage
+    },
+    availableStats: {
+      cpu: x.availableCPU,
+      memory: x.availableMemory,
+      storage: x.availableStorage
+    }
+  }));
 }
