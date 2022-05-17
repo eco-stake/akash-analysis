@@ -38,11 +38,11 @@ async function getTemplatesFromRepo(octokit: Octokit, repoOwner: string, repoNam
 function mergeTemplateCategories(...categories: any[]) {
   let mergedCategories = [];
   for (const category of categories.flat()) {
-    const existingCategory = mergedCategories.find((c) => c.title === category.title);
+    const existingCategory = mergedCategories.find((c) => c.title.toLowerCase() === category.title.toLowerCase());
     if (existingCategory) {
       existingCategory.templates = (existingCategory.templates || []).concat(category.templates);
     } else {
-      mergedCategories.push(category);
+      mergedCategories.push(JSON.parse(JSON.stringify(category)));
     }
   }
 

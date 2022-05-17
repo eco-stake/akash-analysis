@@ -220,6 +220,7 @@ async function initApp() {
 
     initDatabaseTask = initDatabase();
     await initDatabaseTask;
+    initDatabaseTask = null;
 
     if (executionMode === ExecutionMode.RebuildStats) {
       await rebuildStatsTables();
