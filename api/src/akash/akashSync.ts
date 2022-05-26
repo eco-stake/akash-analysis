@@ -1,9 +1,9 @@
 import fs from "fs";
 import base64js from "base64-js";
 import { messageHandlers, processMessages } from "./statsProcessor";
-import { blocksDb, txsDb } from "./dataStore";
+import { blockHeightToKey, blocksDb, getCachedBlockByHeight, getCachedTxByHash, txsDb } from "./dataStore";
 import { createNodeAccessor } from "./nodeAccessor";
-import { Block, Transaction, Message, Op, Day } from "@src/db/schema";
+import { Block, Transaction, Message, Op, Day, sequelize } from "@src/db/schema";
 
 import * as uuid from "uuid";
 import { sha256 } from "js-sha256";
@@ -32,28 +32,6 @@ function decodeTxRaw(tx) {
     body: TxBody.decode(txRaw.bodyBytes),
     signatures: txRaw.signatures
   };
-}
-
-async function getCachedBlockByHeight(height) {
-  try {
-    const content = await blocksDb.get(height);
-    return JSON.parse(content);
-  } catch (err) {
-    if (!err.notFound) throw err;
-
-    return null;
-  }
-}
-
-async function getCachedTxByHash(hash) {
-  try {
-    const content = await txsDb.get(hash);
-    return JSON.parse(content);
-  } catch (err) {
-    if (!err.notFound) throw err;
-
-    return null;
-  }
 }
 
 async function getLatestDownloadedHeight() {
@@ -142,6 +120,7 @@ async function insertBlocks(startHeight, endHeight) {
 
   for (let i = startHeight; i <= endHeight; ++i) {
     syncingStatus = `Inserting block #${i} / ${endHeight}`;
+
     const blockData = await getCachedBlockByHeight(i);
 
     if (!blockData) throw "Block # " + i + " was not in cache";
@@ -245,7 +224,7 @@ async function insertBlocks(startHeight, endHeight) {
   console.table([{ totalBlockCount, totalTxCount, totalMsgCount }]);
 }
 
-async function downloadBlocks(startHeight, endHeight) {
+async function downloadBlocks(startHeight: number, endHeight: number) {
   syncingStatus = "Downloading blocks";
   const missingBlockCount = endHeight - startHeight;
   let shouldStop = false;
@@ -259,7 +238,7 @@ async function downloadBlocks(startHeight, endHeight) {
     if (!cachedBlock) {
       nodeAccessor
         .fetch("/block?height=" + height, async (blockJson) => {
-          await blocksDb.put(height, JSON.stringify(blockJson.result));
+          await blocksDb.put(blockHeightToKey(height), JSON.stringify(blockJson.result));
         })
         .catch((err) => {
           console.error(err);
@@ -329,6 +308,9 @@ async function downloadTransactions() {
     let shouldStop = false;
     let highestHeight = 0;
 
+    const groupTransaction = await sequelize.transaction();
+
+    let promises = [];
     for (let i = 0; i < missingTransactions.length; ++i) {
       const txIndex = groupIndex * txGroupSize + i;
       syncingStatus = `Downloading transaction ${i} / ${missingTransactions.length}`;
@@ -340,23 +322,28 @@ async function downloadTransactions() {
       const cachedTx = await getCachedTxByHash(hash);
 
       const updateTx = async (txJson) => {
-        await missingTransactions[i].update({
-          downloaded: true,
-          hasDownloadError: !txJson.tx,
-          hasProcessingError: !!txJson.tx_result.code
-        });
+        await missingTransactions[i].update(
+          {
+            downloaded: true,
+            hasDownloadError: !txJson.tx,
+            hasProcessingError: !!txJson.tx_result.code
+          },
+          { transaction: groupTransaction }
+        );
       };
 
       if (!cachedTx) {
-        nodeAccessor
-          .fetch("/tx?hash=0x" + hash, async (txJson) => {
-            await txsDb.put(hash, JSON.stringify(txJson.result));
-            await updateTx(txJson.result);
-          })
-          .catch((err) => {
-            console.error(err);
-            shouldStop = err;
-          });
+        promises.push(
+          nodeAccessor
+            .fetch("/tx?hash=0x" + hash, async (txJson) => {
+              await txsDb.put(hash, JSON.stringify(txJson.result));
+              await updateTx(txJson.result);
+            })
+            .catch((err) => {
+              console.error(err);
+              shouldStop = err;
+            })
+        );
       } else {
         await updateTx(cachedTx);
       }
@@ -371,6 +358,9 @@ async function downloadTransactions() {
         }
       }
     }
+
+    await Promise.all(promises);
+    await groupTransaction.commit();
 
     console.clear();
     console.log("Current tx: " + missingTxCount + " / " + missingTxCount);
