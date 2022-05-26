@@ -129,7 +129,7 @@ export const Deploy: React.FunctionComponent<IDeployProps> = ({}) => {
         </Box>
 
         <Box margin="1rem auto" display="flex" justifyContent="center">
-          <ReactPlayer url="https://www.youtube.com/watch?v=GNEvWmqW7hI" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} />
+          <ReactPlayer url="https://www.youtube.com/watch?v=KscVdyESSm4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} />
         </Box>
 
         <Box margin="3rem auto 5rem" maxWidth="640px">
