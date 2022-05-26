@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo } from "react";
-import useMedia from "use-media";
+import { useMediaQuery } from "./useMediaQuery";
 
 export const MediaQueryContext = createContext(null);
 
@@ -11,10 +11,10 @@ const mediaQueries = {
 };
 
 export function MediaQueryProvider({ children }) {
-  const phoneView = useMedia(mediaQueries.phone);
-  const mobileView = useMedia(mediaQueries.mobile);
-  const smallScreen = useMedia(mediaQueries.small);
-  const prefersReducedMotion = useMedia(mediaQueries.prefersReducedMotion);
+  const phoneView = useMediaQuery(mediaQueries.phone);
+  const mobileView = useMediaQuery(mediaQueries.mobile);
+  const smallScreen = useMediaQuery(mediaQueries.small);
+  const prefersReducedMotion = useMediaQuery(mediaQueries.prefersReducedMotion);
   const value = useMemo(() => ({ mobileView, prefersReducedMotion, smallScreen, phoneView }), [
     mobileView,
     prefersReducedMotion,
