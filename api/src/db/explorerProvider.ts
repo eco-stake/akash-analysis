@@ -1,4 +1,4 @@
-import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute } from "./schema";
+import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute, TransactionSigner } from "./schema";
 import { msgToJSON } from "@src/shared/utils/protobuf";
 import { getAktMarketData } from "@src/providers/marketDataProvider";
 import { averageBlockCountInAMonth, averageBlockTime } from "@src/shared/constants";
@@ -67,6 +67,13 @@ export async function getTransaction(hash) {
 
   if (!tx) return null;
 
+  const signerAddresses = await TransactionSigner.findAll({
+    attributes: ["address"],
+    where: {
+      txId: tx.id
+    }
+  });
+
   const messages = tx.messages.map((msg) => ({
     type: msg.type,
     data: msgToJSON(msg.type, msg.data)
@@ -76,6 +83,8 @@ export async function getTransaction(hash) {
     height: tx.block.height,
     datetime: tx.block.datetime,
     hash: tx.hash,
+    multisigThreshold: tx.multisigThreshold,
+    signerAddresses: signerAddresses.map((s) => s.address),
     isSuccess: !tx.hasProcessingError,
     error: tx.hasProcessingError ? tx.log : null,
     gasUsed: tx.gasUsed,

@@ -16,7 +16,9 @@ import {
   Day,
   Provider,
   ProviderAttribute,
-  ProviderAttributeSignature
+  ProviderAttributeSignature,
+  TransactionSigner,
+  TransferEvent
 } from "./schema";
 
 /**
@@ -60,7 +62,9 @@ export const initDatabase = async () => {
     await Provider.drop();
     await ProviderAttribute.drop();
     await ProviderAttributeSignature.drop();
+    await TransferEvent.drop();
     await Message.drop();
+    await TransactionSigner.drop();
     await Transaction.drop();
     await Block.drop();
     await Day.drop();
@@ -69,7 +73,9 @@ export const initDatabase = async () => {
   await Day.sync();
   await Block.sync();
   await Transaction.sync();
+  await TransactionSigner.sync();
   await Message.sync();
+  await TransferEvent.sync();
 
   await Deployment.sync({ force: false });
   await DeploymentGroup.sync({ force: false });

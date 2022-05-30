@@ -384,6 +384,7 @@ export class Transaction extends Model {
   public hash!: string;
   public index!: number;
   public height!: number;
+  public multisigThreshold: number;
   public gasUsed?: number;
   public gasWanted?: number;
   public fee: number;
@@ -409,6 +410,7 @@ Transaction.init(
       allowNull: false,
       references: { model: Block, key: "height" }
     },
+    multisigThreshold: { type: DataTypes.INTEGER, allowNull: true },
     gasUsed: { type: DataTypes.INTEGER, allowNull: true },
     gasWanted: { type: DataTypes.INTEGER, allowNull: true },
     fee: { type: DataTypes.INTEGER, allowNull: false },
@@ -480,6 +482,53 @@ Message.init(
       { unique: false, fields: ["txId"] },
       { unique: false, fields: ["relatedDeploymentId"] },
       { unique: false, fields: ["height"] }
+    ],
+    sequelize
+  }
+);
+
+export class TransactionSigner extends Model {
+  public txId: string;
+  public address!: string;
+}
+
+TransactionSigner.init(
+  {
+    txId: { type: DataTypes.UUID, allowNull: null },
+    address: { type: DataTypes.STRING, allowNull: false }
+  },
+  {
+    tableName: "transactionSigner",
+    modelName: "transactionSigner",
+    indexes: [
+      { unique: false, fields: ["txId"] },
+      { unique: false, fields: ["address"] }
+    ],
+    sequelize
+  }
+);
+
+export class TransferEvent extends Model {
+  public messageId!: string;
+  public recpipient!: string;
+  public sender!: string;
+  public amount!: number;
+}
+
+TransferEvent.init(
+  {
+    messageId: { type: DataTypes.UUID, allowNull: false },
+    recipient: { type: DataTypes.STRING, allowNull: false },
+    sender: { type: DataTypes.STRING, allowNull: false },
+    amount: { type: DataTypes.BIGINT, allowNull: false }
+  },
+  {
+    tableName: "transferEvent",
+    modelName: "transferEvent",
+    indexes: [
+      { unique: false, fields: ["messageId"] },
+      { unique: false, fields: ["recipient"] },
+      { unique: false, fields: ["sender"] }
     ],
     sequelize
   }

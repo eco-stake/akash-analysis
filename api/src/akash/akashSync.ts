@@ -2,12 +2,13 @@ import fs from "fs";
 import { messageHandlers, processMessages } from "./statsProcessor";
 import { blockHeightToKey, blocksDb, getCachedBlockByHeight, getCachedTxByHash, txsDb } from "./dataStore";
 import { createNodeAccessor } from "./nodeAccessor";
-import { Block, Transaction, Message, Op, Day, sequelize } from "@src/db/schema";
+import { Block, Transaction, Message, Op, Day, sequelize, TransactionSigner, TransferEvent } from "@src/db/schema";
 import { sha256 } from "js-sha256";
 import { isProd, lastBlockToSync } from "@src/shared/constants";
 import { isEqual } from "date-fns";
 import { decodeTxRaw, fromBase64 } from "@src/shared/utils/types";
 import * as uuid from "uuid";
+import { getTransactionSignerAddresses, getTransferEvents } from "@src/shared/utils/transactions";
 
 export let isSyncing = false;
 export let syncingStatus = null;
@@ -69,7 +70,7 @@ export async function syncBlocks() {
 
     syncingStatus = "Processing messages";
 
-    await processMessages();
+    //await processMessages();
   } catch (err) {
     console.error("Error while syncing", err);
     throw err;
@@ -96,6 +97,7 @@ async function insertBlocks(startHeight, endHeight) {
 
   let blocksToAdd = [];
   let txsToAdd = [];
+  let txSignersToAdd = [];
   let msgsToAdd = [];
 
   for (let i = startHeight; i <= endHeight; ++i) {
@@ -116,6 +118,7 @@ async function insertBlocks(startHeight, endHeight) {
 
       let hasInterestingTypes = false;
       const decodedTx = decodeTxRaw(fromBase64(tx));
+
       const msgs = decodedTx.body.messages;
 
       for (let msgIndex = 0; msgIndex < msgs.length; ++msgIndex) {
@@ -139,10 +142,15 @@ async function insertBlocks(startHeight, endHeight) {
         }
       }
 
+      const { multisigThreshold, addresses } = getTransactionSignerAddresses(decodedTx);
+
+      txSignersToAdd.push(...addresses.map((address) => ({ txId: txId, address: address })));
+
       txsToAdd.push({
         id: txId,
         hash: hash,
         height: i,
+        multisigThreshold: multisigThreshold,
         index: txIndex,
         fee: decodedTx.authInfo.fee.amount.length > 0 ? parseInt(decodedTx.authInfo.fee.amount[0].amount) : 0,
         memo: decodedTx.body.memo,
@@ -187,10 +195,12 @@ async function insertBlocks(startHeight, endHeight) {
     if (blocksToAdd.length >= 1_000 || i === endHeight) {
       await Block.bulkCreate(blocksToAdd);
       await Transaction.bulkCreate(txsToAdd);
+      await TransactionSigner.bulkCreate(txSignersToAdd);
       await Message.bulkCreate(msgsToAdd);
 
       blocksToAdd = [];
       txsToAdd = [];
+      txSignersToAdd = [];
       msgsToAdd = [];
       console.log(`Blocks added to db: ${i - startHeight + 1} / ${blockCount} (${(((i - startHeight + 1) * 100) / blockCount).toFixed(2)}%)`);
 
@@ -287,7 +297,8 @@ async function downloadTransactions() {
       attributes: ["id", "hash", "height"],
       where: whereFilter,
       order: [["height", "ASC"]],
-      limit: txGroupSize
+      limit: txGroupSize,
+      include: [{ model: Message, attributes: ["id", "index"] }]
     });
 
     let shouldStop = false;
@@ -307,17 +318,31 @@ async function downloadTransactions() {
       const cachedTx = await getCachedTxByHash(hash);
 
       const updateTx = async (txJson) => {
+        const hasProcessingError = !!txJson.tx_result.code;
         await missingTransactions[i].update(
           {
             downloaded: true,
             hasDownloadError: !txJson.tx,
-            hasProcessingError: !!txJson.tx_result.code,
+            hasProcessingError: hasProcessingError,
             log: !!txJson.tx_result.code ? txJson.tx_result.log : null,
             gasUsed: parseInt(txJson.tx_result.gas_used),
             gasWanted: parseInt(txJson.tx_result.gas_wanted)
           },
           { transaction: groupTransaction }
         );
+
+        if (!hasProcessingError) {
+          const transferEvents = getTransferEvents(txJson);
+          await TransferEvent.bulkCreate(
+            transferEvents.map((x) => ({
+              messageId: missingTransactions[i].messages.find((m) => m.index === x.messageIndex).id,
+              recipient: x.recipient,
+              sender: x.sender,
+              amount: x.amount
+            })),
+            { transaction: groupTransaction }
+          );
+        }
       };
 
       if (!cachedTx) {
