@@ -3,7 +3,11 @@ import https from "https";
 import { Provider, ProviderAttribute, ProviderAttributeSignature } from "@src/db/schema";
 
 export async function syncProvidersInfo() {
-  let providers = await Provider.findAll();
+  let providers = await Provider.findAll({
+    where: {
+      deletedHeight: null
+    }
+  });
 
   const httpsAgent = new https.Agent({
     rejectUnauthorized: false
@@ -116,7 +120,8 @@ function sumResources(resources) {
 export async function getNetworkCapacity() {
   const providers = await Provider.findAll({
     where: {
-      isOnline: true
+      isOnline: true,
+      deletedHeight: null
     }
   });
 
@@ -144,7 +149,8 @@ export async function getNetworkCapacity() {
 export async function getProviders() {
   const providers = await Provider.findAll({
     where: {
-      isOnline: true
+      isOnline: true,
+      deletedHeight: null
     },
     include: [
       {
