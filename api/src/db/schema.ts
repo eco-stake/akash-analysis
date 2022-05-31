@@ -17,6 +17,7 @@ export class Provider extends Model {
   public owner: string;
   public hostUri: string;
   public createdHeight: number;
+  public deletedHeight?: number;
   public email?: string;
   public website?: string;
 
@@ -45,6 +46,7 @@ Provider.init(
     owner: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
     hostUri: { type: DataTypes.STRING, allowNull: false },
     createdHeight: { type: DataTypes.INTEGER, allowNull: false },
+    deletedHeight: { type: DataTypes.INTEGER, allowNull: true },
     email: { type: DataTypes.STRING, allowNull: true },
     website: { type: DataTypes.STRING, allowNull: true },
 
@@ -124,7 +126,7 @@ export class Lease extends Model {
   public dseq!: number;
   public oseq!: number;
   public gseq!: number;
-  public provider!: string;
+  public providerAddress!: string;
   public createdHeight!: number;
   public closedHeight?: number;
   public predictedClosedHeight!: number;
@@ -136,6 +138,8 @@ export class Lease extends Model {
   cpuUnits: number;
   memoryQuantity: number;
   storageQuantity: number;
+
+  public readonly provider?: Provider;
 }
 
 Lease.init(
@@ -147,7 +151,7 @@ Lease.init(
     dseq: { type: DataTypes.INTEGER, allowNull: false },
     oseq: { type: DataTypes.INTEGER, allowNull: false },
     gseq: { type: DataTypes.INTEGER, allowNull: false },
-    provider: { type: DataTypes.STRING, allowNull: false },
+    providerAddress: { type: DataTypes.STRING, allowNull: false },
     createdHeight: { type: DataTypes.INTEGER, allowNull: false },
     closedHeight: { type: DataTypes.INTEGER, allowNull: true },
     predictedClosedHeight: { type: DataTypes.INTEGER, allowNull: false },
@@ -175,12 +179,12 @@ export class Deployment extends Model {
   public id!: string;
   public owner!: string;
   public dseq!: number;
-  public state?: string;
   public escrowAccountTransferredAmount?: number;
   public createdHeight!: number;
   public balance!: number;
   public deposit!: number;
   public readonly leases?: Lease[];
+  public readonly relatedMessages?: Message[];
 }
 
 Deployment.init(
@@ -188,7 +192,6 @@ Deployment.init(
     id: { type: DataTypes.UUID, defaultValue: UUIDV4, primaryKey: true, allowNull: false },
     owner: { type: DataTypes.STRING, allowNull: false },
     dseq: { type: DataTypes.INTEGER, allowNull: false },
-    state: { type: DataTypes.STRING, allowNull: false },
     escrowAccountTransferredAmount: { type: DataTypes.INTEGER, allowNull: false },
     createdHeight: { type: DataTypes.INTEGER, allowNull: false },
     balance: { type: DataTypes.INTEGER, allowNull: false },
@@ -328,6 +331,8 @@ Day.init(
 export class Block extends Model {
   public height!: number;
   public readonly datetime!: Date;
+  public hash: string;
+  public proposer: string;
   public dayId!: string;
   // Stats
   public isProcessed!: boolean;
@@ -348,6 +353,8 @@ Block.init(
   {
     height: { type: DataTypes.INTEGER, primaryKey: true, allowNull: false },
     datetime: { type: DataTypes.DATE, allowNull: false },
+    hash: { type: DataTypes.STRING, allowNull: false },
+    proposer: { type: DataTypes.STRING, allowNull: false },
     dayId: { type: DataTypes.UUID, allowNull: false, references: { model: Day, key: "id" } },
 
     // Stats
@@ -377,11 +384,16 @@ export class Transaction extends Model {
   public hash!: string;
   public index!: number;
   public height!: number;
+  public gasUsed?: number;
+  public gasWanted?: number;
+  public fee: number;
+  public memo: string;
   public isProcessed!: boolean;
   public downloaded!: boolean;
   public hasInterestingType!: boolean;
   public hasDownloadError!: boolean;
   public hasProcessingError!: boolean;
+  public log?: string;
 
   public readonly block?: Block;
   public readonly messages?: Message[];
@@ -397,11 +409,16 @@ Transaction.init(
       allowNull: false,
       references: { model: Block, key: "height" }
     },
+    gasUsed: { type: DataTypes.INTEGER, allowNull: true },
+    gasWanted: { type: DataTypes.INTEGER, allowNull: true },
+    fee: { type: DataTypes.INTEGER, allowNull: false },
+    memo: { type: DataTypes.STRING, allowNull: false },
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     downloaded: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     hasInterestingTypes: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     hasDownloadError: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    hasProcessingError: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
+    hasProcessingError: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    log: { type: DataTypes.STRING, allowNull: true }
   },
   {
     tableName: "transaction",
@@ -423,10 +440,14 @@ export class Message extends Model {
   public isProcessed!: boolean;
   public shouldProcess!: boolean;
   public relatedDeploymentId?: string;
+  public data: Uint8Array;
+
   public readonly transaction?: Transaction;
+  public readonly block?: Block;
 
   public static associations: {
     transaction: Association<Message, Transaction>;
+    block: Association<Message, Block>;
   };
 }
 
@@ -449,12 +470,17 @@ Message.init(
     isInterestingType: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     shouldProcess: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    relatedDeploymentId: { type: DataTypes.STRING, allowNull: true }
+    relatedDeploymentId: { type: DataTypes.STRING, allowNull: true },
+    data: { type: DataTypes.BLOB, allowNull: false }
   },
   {
     tableName: "message",
     modelName: "message",
-    indexes: [{ unique: false, fields: ["txId"] }],
+    indexes: [
+      { unique: false, fields: ["txId"] },
+      { unique: false, fields: ["relatedDeploymentId"] },
+      { unique: false, fields: ["height"] }
+    ],
     sequelize
   }
 );
@@ -477,3 +503,19 @@ Day.belongsTo(Block, { as: "lastBlockYet", foreignKey: "lastBlockHeightYet", con
 
 Provider.hasMany(ProviderAttribute, { foreignKey: "provider" });
 Provider.hasMany(ProviderAttributeSignature, { foreignKey: "provider" });
+
+Deployment.hasMany(Message, { as: "relatedMessages", foreignKey: "relatedDeploymentId" });
+
+Deployment.hasMany(DeploymentGroup);
+DeploymentGroup.belongsTo(Deployment, { foreignKey: "deploymentId" });
+
+DeploymentGroup.hasMany(DeploymentGroupResource);
+DeploymentGroupResource.belongsTo(DeploymentGroup, { foreignKey: "deploymentGroupId" });
+
+DeploymentGroup.hasMany(Lease, { foreignKey: "deploymentGroupId" });
+Lease.belongsTo(DeploymentGroup);
+
+Deployment.hasMany(Lease, { foreignKey: "deploymentId" });
+Lease.belongsTo(Deployment);
+
+Lease.belongsTo(Provider, { foreignKey: "providerAddress" });
