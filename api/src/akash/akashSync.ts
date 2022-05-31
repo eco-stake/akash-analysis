@@ -146,6 +146,10 @@ async function insertBlocks(startHeight, endHeight) {
 
       txSignersToAdd.push(...addresses.map((address) => ({ txId: txId, address: address })));
 
+      if (decodedTx.authInfo.fee.amount.length > 1) {
+        throw "Fee amount is not a single integer: " + JSON.stringify(decodedTx.authInfo.fee.amount);
+      }
+
       txsToAdd.push({
         id: txId,
         hash: hash,

@@ -16,7 +16,7 @@ import * as marketDataProvider from "./providers/marketDataProvider";
 import { fetchGithubReleases } from "./providers/githubProvider";
 import { fetchProvidersInfoAtInterval, getNetworkCapacity, getProviders } from "./providers/providerStatusProvider";
 import { getTemplateGallery } from "./providers/templateReposProvider";
-import { getBlock, getDeployment, getTransaction } from "./db/explorerProvider";
+import { getAddressMessages, getBlock, getDeployment, getTransaction } from "./db/explorerProvider";
 
 require("dotenv").config();
 
@@ -100,6 +100,17 @@ apiRouter.get("/transaction/:hash", async (req, res) => {
     } else {
       res.status(404).send("Tx not found");
     }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/address/:address/messages/:pageIndex/:pageSize", async (req, res) => {
+  try {
+    const messages = await getAddressMessages(req.params.address, parseInt(req.params.pageIndex), parseInt(req.params.pageSize));
+
+    res.send(messages);
   } catch (err) {
     console.error(err);
     res.status(500).send(err?.message || err);

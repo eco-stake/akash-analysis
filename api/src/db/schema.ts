@@ -513,6 +513,8 @@ export class TransferEvent extends Model {
   public recpipient!: string;
   public sender!: string;
   public amount!: number;
+
+  public readonly message: Message;
 }
 
 TransferEvent.init(
@@ -542,6 +544,9 @@ Transaction.belongsTo(Block, { foreignKey: "height" });
 
 Block.hasMany(Message, { foreignKey: "height" });
 Message.belongsTo(Block, { foreignKey: "height" });
+
+Message.hasMany(TransferEvent, { foreignKey: "messageId" });
+TransferEvent.belongsTo(Message, { foreignKey: "messageId" });
 
 Day.hasMany(Block, { foreignKey: "dayId" });
 Block.belongsTo(Day, { foreignKey: "dayId" });

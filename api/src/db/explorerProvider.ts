@@ -1,4 +1,4 @@
-import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute, TransactionSigner } from "./schema";
+import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute, TransactionSigner, TransferEvent, Op } from "./schema";
 import { msgToJSON } from "@src/shared/utils/protobuf";
 import { getAktMarketData } from "@src/providers/marketDataProvider";
 import { averageBlockCountInAMonth, averageBlockTime } from "@src/shared/constants";
@@ -173,6 +173,65 @@ export async function getDeployment(owner: string, dseq: string) {
       txHash: msg.transaction.hash,
       date: msg.block.datetime,
       type: msg.type
+    }))
+  };
+}
+
+export async function getAddressMessages(address: string, pageIndex: number, pageSize: number) {
+  if (pageSize > 100) {
+    throw new Error("Page size cannot be greater than 100");
+  }
+  if (pageSize < 1) {
+    throw new Error("Page size cannot be less than 1");
+  }
+  if (pageIndex < 0) {
+    throw new Error("Page index cannot be less than 0");
+  }
+
+  const result = await Message.findAndCountAll({
+    attributes: ["type"],
+    include: [
+      {
+        model: Transaction,
+        attributes: ["hash", "hasProcessingError", "fee", "height"],
+        required: true,
+        include: [
+          {
+            model: Block,
+            attributes: ["datetime"],
+            required: true
+          }
+        ]
+      },
+      {
+        model: TransferEvent,
+        attributes: [],
+        required: true,
+        where: {
+          [Op.or]: [
+            {
+              recipient: address
+            },
+            {
+              sender: address
+            }
+          ]
+        }
+      }
+    ],
+    offset: pageIndex * pageSize,
+    limit: pageSize
+  });
+
+  return {
+    totalCount: result.count,
+    messages: result.rows.map((message) => ({
+      txHash: message.transaction.hash,
+      messageType: message.type,
+      success: !message.transaction.hasProcessingError,
+      fee: message.transaction.fee,
+      height: message.transaction.height,
+      datetime: message.transaction.block.datetime
     }))
   };
 }
