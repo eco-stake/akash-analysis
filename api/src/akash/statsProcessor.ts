@@ -580,7 +580,7 @@ class StatsProcessor {
         dseq: decodedMessage.bid_id.dseq.toNumber(),
         oseq: decodedMessage.bid_id.oseq,
         gseq: decodedMessage.bid_id.gseq,
-        provider: decodedMessage.bid_id.provider,
+        providerAddress: decodedMessage.bid_id.provider,
         createdHeight: height,
         predictedClosedHeight: predictedClosedHeight,
         price: bid.price,
@@ -612,7 +612,7 @@ class StatsProcessor {
     });
 
     const lease = deployment.leases.find(
-      (x) => x.oseq === decodedMessage.lease_id.oseq && x.gseq === decodedMessage.lease_id.gseq && x.provider === decodedMessage.lease_id.provider
+      (x) => x.oseq === decodedMessage.lease_id.oseq && x.gseq === decodedMessage.lease_id.gseq && x.providerAddress === decodedMessage.lease_id.provider
     );
 
     if (!lease) throw new Error("Lease not found");
@@ -685,7 +685,7 @@ class StatsProcessor {
     msg.relatedDeploymentId = deployment.id;
 
     const lease = deployment.leases.find(
-      (x) => x.oseq === decodedMessage.bid_id.oseq && x.gseq === decodedMessage.bid_id.gseq && x.provider === decodedMessage.bid_id.provider
+      (x) => x.oseq === decodedMessage.bid_id.oseq && x.gseq === decodedMessage.bid_id.gseq && x.providerAddress === decodedMessage.bid_id.provider
     );
 
     if (lease) {
@@ -839,20 +839,15 @@ class StatsProcessor {
   private async handleDeleteProvider(encodedMessage, height: number, blockGroupTransaction, msg: Message) {
     const decodedMessage = MsgDeleteProvider.decode(encodedMessage);
 
-    await Provider.destroy({
-      where: { owner: decodedMessage.owner },
-      transaction: blockGroupTransaction
-    });
-    await ProviderAttribute.destroy({
-      where: {
-        provider: decodedMessage.owner
+    await Provider.update(
+      {
+        deletedHeight: height
       },
-      transaction: blockGroupTransaction
-    });
-    await ProviderAttributeSignature.destroy({
-      where: { provider: decodedMessage.owner },
-      transaction: blockGroupTransaction
-    });
+      {
+        where: { owner: decodedMessage.owner },
+        transaction: blockGroupTransaction
+      }
+    );
 
     this.activeProviderCount--;
   }

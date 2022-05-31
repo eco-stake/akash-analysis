@@ -1,9 +1,11 @@
 import { isProd } from "@src/shared/constants";
 import { sleep } from "@src/shared/utils/delay";
+import { missingTxs } from "./akashlyticsNodeInfo";
 
 const fetch = require("node-fetch");
 
 const rpcEndpoints = ["http://akash-node.akashlytics.com:26657"];
+const fallbackEndpoint = "https://rpc.akash.forbole.com";
 
 export function createNodeAccessor() {
   let maxConcurrentQueries = isProd ? 5 : 10;
@@ -57,7 +59,8 @@ function createEndpointAccessor(endpoint, maxConcurrentQueries) {
       pendingQueries.push(url);
 
       try {
-        const fullUrl = endpoint + url;
+        const needFallback = missingTxs.some((x) => url.includes(x));
+        const fullUrl = (needFallback ? fallbackEndpoint : endpoint) + url;
 
         const response = await fetch(fullUrl);
 
