@@ -442,6 +442,7 @@ export class Message extends Model {
   public isProcessed!: boolean;
   public shouldProcess!: boolean;
   public relatedDeploymentId?: string;
+  public amount?: number;
   public data: Uint8Array;
 
   public readonly transaction?: Transaction;
@@ -473,6 +474,7 @@ Message.init(
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     shouldProcess: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     relatedDeploymentId: { type: DataTypes.STRING, allowNull: true },
+    amount: { type: DataTypes.BIGINT, allowNull: true },
     data: { type: DataTypes.BLOB, allowNull: false }
   },
   {
@@ -508,30 +510,24 @@ TransactionSigner.init(
   }
 );
 
-export class TransferEvent extends Model {
+export class MessageAddressReference extends Model {
   public messageId!: string;
-  public recpipient!: string;
-  public sender!: string;
-  public amount!: number;
+  public address!: string;
+  public type!: string;
 
   public readonly message: Message;
 }
 
-TransferEvent.init(
+MessageAddressReference.init(
   {
     messageId: { type: DataTypes.UUID, allowNull: false },
-    recipient: { type: DataTypes.STRING, allowNull: false },
-    sender: { type: DataTypes.STRING, allowNull: false },
-    amount: { type: DataTypes.BIGINT, allowNull: false }
+    address: { type: DataTypes.STRING, allowNull: false },
+    type: { type: DataTypes.STRING, allowNull: false }
   },
   {
-    tableName: "transferEvent",
-    modelName: "transferEvent",
-    indexes: [
-      { unique: false, fields: ["messageId"] },
-      { unique: false, fields: ["recipient"] },
-      { unique: false, fields: ["sender"] }
-    ],
+    tableName: "messageAddressReference",
+    modelName: "messageAddressReference",
+    indexes: [{ unique: false, fields: ["address"] }],
     sequelize
   }
 );
@@ -545,8 +541,8 @@ Transaction.belongsTo(Block, { foreignKey: "height" });
 Block.hasMany(Message, { foreignKey: "height" });
 Message.belongsTo(Block, { foreignKey: "height" });
 
-Message.hasMany(TransferEvent, { foreignKey: "messageId" });
-TransferEvent.belongsTo(Message, { foreignKey: "messageId" });
+Message.hasMany(MessageAddressReference, { foreignKey: "messageId" });
+MessageAddressReference.belongsTo(Message, { foreignKey: "messageId" });
 
 Day.hasMany(Block, { foreignKey: "dayId" });
 Block.belongsTo(Day, { foreignKey: "dayId" });

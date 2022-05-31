@@ -18,7 +18,7 @@ import {
   ProviderAttribute,
   ProviderAttributeSignature,
   TransactionSigner,
-  TransferEvent
+  MessageAddressReference
 } from "./schema";
 
 /**
@@ -62,7 +62,7 @@ export const initDatabase = async () => {
     await Provider.drop();
     await ProviderAttribute.drop();
     await ProviderAttributeSignature.drop();
-    await TransferEvent.drop();
+    await MessageAddressReference.drop();
     await Message.drop();
     await TransactionSigner.drop();
     await Transaction.drop();
@@ -75,7 +75,7 @@ export const initDatabase = async () => {
   await Transaction.sync();
   await TransactionSigner.sync();
   await Message.sync();
-  await TransferEvent.sync();
+  await MessageAddressReference.sync();
 
   await Deployment.sync({ force: false });
   await DeploymentGroup.sync({ force: false });

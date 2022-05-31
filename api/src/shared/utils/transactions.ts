@@ -1,6 +1,8 @@
 import { ripemd160, sha256 } from "@cosmjs/crypto";
 import { toBech32 } from "@cosmjs/encoding";
-import { decodePubkey } from "@cosmjs/proto-signing";
+import { Coin, decodePubkey } from "@cosmjs/proto-signing";
+import { Any } from "cosmjs-types/google/protobuf/any";
+import { MsgSend, MsgMultiSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import { DecodedTx } from "./types";
 
 export function getTransactionSignerAddresses(tx: DecodedTx): { multisigThreshold?: number; addresses: string[] } {
@@ -36,43 +38,44 @@ function rawSecp256k1PubkeyToRawAddress(pubkeyData: Uint8Array): Uint8Array {
   return ripemd160(sha256(pubkeyData));
 }
 
-export function getTransferEvents(tx) {
-  try {
-    const logs = JSON.parse(tx.tx_result.log);
+export function getMessageInfo(msg: Any) {
+  switch (msg.typeUrl) {
+    case "/cosmos.bank.v1beta1.MsgSend":
+      const msgSend = MsgSend.decode(msg.value);
 
-    let transferEvents = [];
-    for (let messageIndex = 0; messageIndex < logs.length; messageIndex++) {
-      const messageLogs = logs[messageIndex];
-      for (const event of messageLogs.events) {
-        if (event.type == "transfer") {
-          if (event.attributes.length % 3 !== 0) throw "Unexpected number of attributes in transfer event";
+      return {
+        amount: parseAmount(msgSend.amount),
+        addressReferences: [
+          { type: "recipient", address: msgSend.toAddress },
+          { type: "sender", address: msgSend.fromAddress }
+        ]
+      };
 
-          for (let i = 0; i < event.attributes.length; i += 3) {
-            if (event.attributes[i + 2].value.includes("ibc")) continue;
+    case "/cosmos.bank.v1beta1.MsgMultiSend":
+      const msgMultiSend = MsgMultiSend.decode(msg.value);
 
-            transferEvents.push({
-              messageIndex: messageIndex,
-              recipient: event.attributes[i].value,
-              sender: event.attributes[i + 1].value,
-              amount: parseAmountToUAkt(event.attributes[i + 2].value)
-            });
-          }
-        }
-      }
-    }
-
-    return transferEvents;
-  } catch (err) {
-    throw `Unable to parse transfer events for tx (${tx.hash}): ${err}`;
+      return {
+        addressReferences: [
+          ...msgMultiSend.inputs.map((input) => ({ type: "sender", address: input.address })),
+          ...msgMultiSend.outputs.map((output) => ({ type: "recipient", address: output.address }))
+        ]
+      };
   }
+
+  return {};
 }
 
-function parseAmountToUAkt(amount: string) {
-  if (amount.endsWith("uakt")) {
-    return parseInt(amount.substring(0, amount.length - 4));
-  } else if (amount.endsWith("akt")) {
-    return parseInt(amount.substring(0, amount.length - 3)) * 1000000;
+function parseAmount(amount: Coin[]) {
+  if (amount.length !== 1) {
+    throw new Error("Unexpected number of coins in tx: " + JSON.stringify(amount));
+  }
+
+  if (amount[0].denom === "uakt") {
+    return parseInt(amount[0].amount);
+  } else if (amount[0].denom === "akt") {
+    return parseInt(amount[0].amount) * 1_000_000;
   } else {
-    throw "Unrecognized amount format: " + amount;
+    return null;
+    //throw new Error("Unexpected coin denom in tx: " + amount[0].denom);
   }
 }

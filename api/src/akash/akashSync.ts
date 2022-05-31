@@ -2,13 +2,13 @@ import fs from "fs";
 import { messageHandlers, processMessages } from "./statsProcessor";
 import { blockHeightToKey, blocksDb, getCachedBlockByHeight, getCachedTxByHash, txsDb } from "./dataStore";
 import { createNodeAccessor } from "./nodeAccessor";
-import { Block, Transaction, Message, Op, Day, sequelize, TransactionSigner, TransferEvent } from "@src/db/schema";
+import { Block, Transaction, Message, Op, Day, sequelize, TransactionSigner, MessageAddressReference } from "@src/db/schema";
 import { sha256 } from "js-sha256";
 import { isProd, lastBlockToSync } from "@src/shared/constants";
 import { isEqual } from "date-fns";
 import { decodeTxRaw, fromBase64 } from "@src/shared/utils/types";
 import * as uuid from "uuid";
-import { getTransactionSignerAddresses, getTransferEvents } from "@src/shared/utils/transactions";
+import { getMessageInfo, getTransactionSignerAddresses } from "@src/shared/utils/transactions";
 
 export let isSyncing = false;
 export let syncingStatus = null;
@@ -98,6 +98,7 @@ async function insertBlocks(startHeight, endHeight) {
   let blocksToAdd = [];
   let txsToAdd = [];
   let txSignersToAdd = [];
+  let messageAddressReferencesToAdd = [];
   let msgsToAdd = [];
 
   for (let i = startHeight; i <= endHeight; ++i) {
@@ -122,23 +123,39 @@ async function insertBlocks(startHeight, endHeight) {
       const msgs = decodedTx.body.messages;
 
       for (let msgIndex = 0; msgIndex < msgs.length; ++msgIndex) {
-        const msg = msgs[msgIndex];
-        const isInterestingType = Object.keys(messageHandlers).includes(msg.typeUrl);
+        try {
+          const msg = msgs[msgIndex];
+          const isInterestingType = Object.keys(messageHandlers).includes(msg.typeUrl);
+          const msgId = uuid.v4();
 
-        msgsToAdd.push({
-          id: uuid.v4(),
-          txId: txId,
-          type: msg.typeUrl,
-          typeCategory: msg.typeUrl.split(".")[0].substring(1),
-          index: msgIndex,
-          height: i,
-          indexInBlock: msgIndexInBlock++,
-          isInterestingType: isInterestingType,
-          data: Buffer.from(msg.value)
-        });
+          let msgInfo = getMessageInfo(msg);
+          messageAddressReferencesToAdd.push(
+            ...(msgInfo.addressReferences || []).map((r) => ({
+              messageId: msgId,
+              type: r.type,
+              address: r.address
+            }))
+          );
 
-        if (isInterestingType) {
-          hasInterestingTypes = true;
+          msgsToAdd.push({
+            id: msgId,
+            txId: txId,
+            type: msg.typeUrl,
+            typeCategory: msg.typeUrl.split(".")[0].substring(1),
+            index: msgIndex,
+            height: i,
+            indexInBlock: msgIndexInBlock++,
+            isInterestingType: isInterestingType,
+            amount: msgInfo.amount,
+            data: Buffer.from(msg.value)
+          });
+
+          if (isInterestingType) {
+            hasInterestingTypes = true;
+          }
+        } catch (err) {
+          console.error("Error while processing message #" + msgIndex + " in tx: " + hash);
+          throw err;
         }
       }
 
@@ -201,11 +218,13 @@ async function insertBlocks(startHeight, endHeight) {
       await Transaction.bulkCreate(txsToAdd);
       await TransactionSigner.bulkCreate(txSignersToAdd);
       await Message.bulkCreate(msgsToAdd);
+      await MessageAddressReference.bulkCreate(messageAddressReferencesToAdd);
 
       blocksToAdd = [];
       txsToAdd = [];
       txSignersToAdd = [];
       msgsToAdd = [];
+      messageAddressReferencesToAdd = [];
       console.log(`Blocks added to db: ${i - startHeight + 1} / ${blockCount} (${(((i - startHeight + 1) * 100) / blockCount).toFixed(2)}%)`);
 
       if (lastInsertedBlock) {
@@ -334,19 +353,6 @@ async function downloadTransactions() {
           },
           { transaction: groupTransaction }
         );
-
-        if (!hasProcessingError) {
-          const transferEvents = getTransferEvents(txJson);
-          await TransferEvent.bulkCreate(
-            transferEvents.map((x) => ({
-              messageId: missingTransactions[i].messages.find((m) => m.index === x.messageIndex).id,
-              recipient: x.recipient,
-              sender: x.sender,
-              amount: x.amount
-            })),
-            { transaction: groupTransaction }
-          );
-        }
       };
 
       if (!cachedTx) {

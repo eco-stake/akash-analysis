@@ -1,9 +1,10 @@
-import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute, TransactionSigner, TransferEvent, Op } from "./schema";
+import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute, TransactionSigner, sequelize } from "./schema";
 import { msgToJSON } from "@src/shared/utils/protobuf";
 import { getAktMarketData } from "@src/providers/marketDataProvider";
 import { averageBlockCountInAMonth, averageBlockTime } from "@src/shared/constants";
 import { round } from "@src/shared/utils/math";
 import { add } from "date-fns";
+import { QueryTypes } from "sequelize";
 
 export async function getBlock(height: number) {
   const latestBlock = await Block.findOne({
@@ -188,44 +189,43 @@ export async function getAddressMessages(address: string, pageIndex: number, pag
     throw new Error("Page index cannot be less than 0");
   }
 
-  const result = await Message.findAndCountAll({
-    attributes: ["type"],
-    include: [
-      {
-        model: Transaction,
-        attributes: ["hash", "hasProcessingError", "fee", "height"],
-        required: true,
-        include: [
-          {
-            model: Block,
-            attributes: ["datetime"],
-            required: true
-          }
-        ]
-      },
-      {
-        model: TransferEvent,
-        attributes: [],
-        required: true,
-        where: {
-          [Op.or]: [
-            {
-              recipient: address
-            },
-            {
-              sender: address
-            }
-          ]
-        }
-      }
-    ],
-    offset: pageIndex * pageSize,
-    limit: pageSize
-  });
+  const selectQuery = `SELECT 
+    u.type AS "type",
+    u.hash AS "transaction.type",
+    u.hasProcessingError AS "transaction.hasProcessingError",
+    u.fee AS "transaction.fee",
+    u.height AS "transaction.height",
+    b.datetime AS "transaction.block.datetime"
+  FROM (
+  SELECT m.*,t.* FROM message m
+  INNER JOIN "transaction" t ON t.id=m.txId
+  INNER JOIN "transactionSigner" ts ON ts.txId=t.id AND ts.address='${address}'
+  UNION
+  SELECT m.*,t.* FROM message m
+  INNER JOIN "transaction" t ON t.id=m.txId
+  INNER JOIN messageAddressReference mar ON mar.messageId=m.id AND mar.address='${address}'
+  ) u
+  INNER JOIN block b ON b.height=u.height
+  ORDER BY u.height ASC, u.indexInBlock ASC
+  LIMIT ${pageIndex * pageSize},${pageSize}`;
+
+  const countQuery = `SELECT COUNT(*)
+  FROM (
+  SELECT m.*,t.* FROM message m
+  INNER JOIN "transaction" t ON t.id=m.txId
+  INNER JOIN "transactionSigner" ts ON ts.txId=t.id AND ts.address='${address}'
+  UNION
+  SELECT m.*,t.* FROM message m
+  INNER JOIN "transaction" t ON t.id=m.txId
+  INNER JOIN messageAddressReference mar ON mar.messageId=m.id AND mar.address='${address}'
+  ) u`;
+
+  const messages = (await sequelize.query(selectQuery, { type: QueryTypes.SELECT, nest: true })) as Message[];
+  const totalCount = (await sequelize.query(countQuery, { type: QueryTypes.SELECT, nest: true }))[0]["COUNT(*)"];
 
   return {
-    totalCount: result.count,
-    messages: result.rows.map((message) => ({
+    totalCount: totalCount,
+    messages: messages.map((message) => ({
       txHash: message.transaction.hash,
       messageType: message.type,
       success: !message.transaction.hasProcessingError,
