@@ -164,6 +164,7 @@ Lease.init(
     modelName: "lease",
     indexes: [
       { unique: false, fields: ["closedHeight"] },
+      { unique: false, fields: ["predictedClosedHeight"] },
       { unique: false, fields: ["deploymentId"] },
       { unique: false, fields: ["owner", "dseq", "gseq", "oseq"] }
     ],
@@ -454,7 +455,10 @@ Message.init(
   {
     tableName: "message",
     modelName: "message",
-    indexes: [{ unique: false, fields: ["txId"] }],
+    indexes: [
+      { unique: false, fields: ["txId"] },
+      { unique: false, fields: ["height"] }
+    ],
     sequelize
   }
 );

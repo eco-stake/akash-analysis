@@ -1,9 +1,10 @@
 import fs from "fs";
 import base64js from "base64-js";
-import { messageHandlers, processMessages } from "./statsProcessor";
+import { statsProcessor } from "./statsProcessor";
 import { blockHeightToKey, blocksDb, getCachedBlockByHeight, getCachedTxByHash, txsDb } from "./dataStore";
 import { createNodeAccessor } from "./nodeAccessor";
 import { Block, Transaction, Message, Op, Day, sequelize } from "@src/db/schema";
+import * as benchmark from "../shared/utils/benchmark";
 
 import * as uuid from "uuid";
 import { sha256 } from "js-sha256";
@@ -79,17 +80,28 @@ export async function syncBlocks() {
       console.log("Will end download at block #" + latestBlockToDownload);
       console.log(latestBlockToDownload - startHeight + " blocks to download");
 
-      await downloadBlocks(startHeight, latestBlockToDownload);
+      await benchmark.measureAsync("downloadBlocks", async () => {
+        await downloadBlocks(startHeight, latestBlockToDownload);
+      });
     }
 
     let latestInsertedHeight: number = (await Block.max("height")) || 0;
 
-    await insertBlocks(latestInsertedHeight + 1, latestBlockToDownload);
-    await downloadTransactions();
+    await benchmark.measureAsync("insertBlocks", async () => {
+      await insertBlocks(latestInsertedHeight + 1, latestBlockToDownload);
+    });
+
+    await benchmark.measureAsync("downloadTransactions", async () => {
+      await downloadTransactions();
+    });
 
     syncingStatus = "Processing messages";
 
-    await processMessages();
+    await benchmark.measureAsync("processMessages", async () => {
+      await statsProcessor.processMessages();
+    });
+
+    benchmark.displayTimes();
   } catch (err) {
     console.error("Error while syncing", err);
     throw err;
@@ -140,7 +152,7 @@ async function insertBlocks(startHeight, endHeight) {
 
       for (let msgIndex = 0; msgIndex < msgs.length; ++msgIndex) {
         const msg = msgs[msgIndex];
-        const isInterestingType = Object.keys(messageHandlers).includes(msg.typeUrl);
+        const isInterestingType = statsProcessor.hasMessageHandlerFor(msg.typeUrl);
 
         msgsToAdd.push({
           id: uuid.v4(),
