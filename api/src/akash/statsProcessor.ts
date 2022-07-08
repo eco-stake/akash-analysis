@@ -21,6 +21,8 @@ import {
   Proposal
 } from "@src/db/schema";
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { MsgSubmitProposal } from "cosmjs-types/cosmos/gov/v1beta1/tx";
+import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
 import * as benchmark from "../shared/utils/benchmark";
 import { accountSettle } from "@src/shared/utils/akashPaymentSettle";
 import { lastBlockToSync } from "@src/shared/constants";
@@ -425,7 +427,34 @@ class StatsProcessor {
   }
 
   private async handleSubmitProposal(encodedMessage, height: number, blockGroupTransaction, msg: Message) {
-    throw Error("Not implemented");
+    const decodedMessage = MsgSubmitProposal.decode(encodedMessage);
+
+    const proposalId = (await Proposal.count()) + 1;
+
+    let proposal = Proposal.build({
+      id: proposalId,
+      messageId: msg.id,
+      proposer: decodedMessage.proposer,
+      submittedHeight: height
+      // public initialDeposit: number;
+    });
+
+    switch (decodedMessage.content.typeUrl) {
+      case "/cosmos.params.v1beta1.ParameterChangeProposal":
+        throw new Error("Not implemented");
+
+      case "CommunityPoolSpendProposal":
+        const communityPoolSpendProposal = CommunityPoolSpendProposal.decode(decodedMessage.content.value);
+        throw JSON.stringify(communityPoolSpendProposal);
+      // proposal.type = "CommunityPoolSpendProposal";
+      // proposal.title = communityPoolSpendProposal.title,
+      // proposal.description = communityPoolSpendProposal.description,
+      // proposal.recipient = communityPoolSpendProposal.recipient,
+      // proposal.amount = communityPoolSpendProposal.amount
+
+      default:
+        throw Error("Unsupported proposal type: " + decodedMessage.content.typeUrl);
+    }
   }
 
   private async handleCreateDeployment(decodedMessage: v1beta1.MsgCreateDeployment, height: number, blockGroupTransaction, msg: Message) {

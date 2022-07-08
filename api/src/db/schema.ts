@@ -301,11 +301,13 @@ Bid.init(
 
 export class Proposal extends Model {
   public id: number;
-  public txId: string;
+  public messageId: string;
   public proposer: string;
+  public type: string;
   public title: string;
   public description: string;
-  public type: string;
+  public recipient: string;
+  public amount: number;
   public submittedHeight: number;
   public initialDeposit: number;
 }
@@ -313,11 +315,13 @@ export class Proposal extends Model {
 Proposal.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true },
-    txId: { type: DataTypes.STRING, allowNull: false },
+    messageId: { type: DataTypes.STRING, allowNull: false },
     proposer: { type: DataTypes.STRING, allowNull: false },
+    type: { type: DataTypes.STRING, allowNull: false },
     title: { type: DataTypes.STRING, allowNull: false },
     description: { type: DataTypes.STRING, allowNull: false },
-    type: { type: DataTypes.STRING, allowNull: false },
+    recipient: { type: DataTypes.STRING, allowNull: false },
+    amount: { type: DataTypes.BIGINT, allowNull: false },
     submittedHeight: { type: DataTypes.INTEGER, allowNull: false },
     initialDeposit: { type: DataTypes.BIGINT, allowNull: false }
   },
