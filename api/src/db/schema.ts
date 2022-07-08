@@ -299,6 +299,35 @@ Bid.init(
   }
 );
 
+export class Proposal extends Model {
+  public id: number;
+  public txId: string;
+  public proposer: string;
+  public title: string;
+  public description: string;
+  public type: string;
+  public submittedHeight: number;
+  public initialDeposit: number;
+}
+
+Proposal.init(
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true },
+    txId: { type: DataTypes.STRING, allowNull: false },
+    proposer: { type: DataTypes.STRING, allowNull: false },
+    title: { type: DataTypes.STRING, allowNull: false },
+    description: { type: DataTypes.STRING, allowNull: false },
+    type: { type: DataTypes.STRING, allowNull: false },
+    submittedHeight: { type: DataTypes.INTEGER, allowNull: false },
+    initialDeposit: { type: DataTypes.BIGINT, allowNull: false }
+  },
+  {
+    tableName: "proposal",
+    modelName: "proposal",
+    sequelize
+  }
+);
+
 export class Day extends Model {
   public id!: string;
   public date!: Date;

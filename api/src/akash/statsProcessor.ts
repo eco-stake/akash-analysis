@@ -17,7 +17,8 @@ import {
   sequelize,
   Provider,
   ProviderAttribute,
-  ProviderAttributeSignature
+  ProviderAttributeSignature,
+  Proposal
 } from "@src/db/schema";
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import * as benchmark from "../shared/utils/benchmark";
@@ -106,6 +107,8 @@ class StatsProcessor {
     await DeploymentGroupResource.drop();
     await DeploymentGroup.drop();
     await Deployment.drop();
+    await Proposal.drop();
+    await Proposal.sync({ force: true });
     await Deployment.sync({ force: true });
     await DeploymentGroup.sync({ force: true });
     await DeploymentGroupResource.sync({ force: true });
@@ -378,6 +381,9 @@ class StatsProcessor {
   }
 
   private messageHandlers: { [key: string]: (encodedMessage, height: number, blockGroupTransaction, msg: Message) => Promise<void> } = {
+    // Cosmos types
+    "/cosmos.gov.v1beta1.MsgSubmitProposal": this.handleSubmitProposal,
+    // Akash v1beta1 types
     "/akash.deployment.v1beta1.MsgCreateDeployment": this.handleCreateDeployment,
     "/akash.deployment.v1beta1.MsgCloseDeployment": this.handleCloseDeployment,
     "/akash.market.v1beta1.MsgCreateLease": this.handleCreateLease,
@@ -391,7 +397,7 @@ class StatsProcessor {
     "/akash.provider.v1beta1.MsgDeleteProvider": this.handleDeleteProvider,
     "/akash.audit.v1beta1.MsgSignProviderAttributes": this.handleSignProviderAttributes,
     "/akash.audit.v1beta1.MsgDeleteProviderAttributes": this.handleDeleteSignProviderAttributes,
-    // v1beta2 types
+    // Akash v1beta2 types
     "/akash.deployment.v1beta2.MsgCreateDeployment": this.handleCreateDeploymentV2,
     "/akash.deployment.v1beta2.MsgCloseDeployment": this.handleCloseDeployment,
     "/akash.market.v1beta2.MsgCreateLease": this.handleCreateLease,
@@ -416,6 +422,10 @@ class StatsProcessor {
       const decodedMessage = decodeAkashType(msg.type, encodedMessage);
       await this.messageHandlers[msg.type].bind(this)(decodedMessage, height, blockGroupTransaction, msg);
     });
+  }
+
+  private async handleSubmitProposal(encodedMessage, height: number, blockGroupTransaction, msg: Message) {
+    throw Error("Not implemented");
   }
 
   private async handleCreateDeployment(decodedMessage: v1beta1.MsgCreateDeployment, height: number, blockGroupTransaction, msg: Message) {
