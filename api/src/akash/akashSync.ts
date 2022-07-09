@@ -1,7 +1,7 @@
 import fs from "fs";
 import base64js from "base64-js";
 import { statsProcessor } from "./statsProcessor";
-import { blockHeightToKey, blocksDb, getCachedBlockByHeight, getCachedTxByHash, txsDb } from "./dataStore";
+import { blockHeightToKey, blocksDb, deleteCache, getCachedBlockByHeight, getCachedTxByHash, txsDb } from "./dataStore";
 import { createNodeAccessor } from "./nodeAccessor";
 import { Block, Transaction, Message, Op, Day, sequelize } from "@src/db/schema";
 import * as benchmark from "../shared/utils/benchmark";
@@ -11,7 +11,6 @@ import { sha256 } from "js-sha256";
 import { isProd, lastBlockToSync } from "@src/shared/constants";
 import { isEqual } from "date-fns";
 
-export let isSyncing = false;
 export let syncingStatus = null;
 
 const nodeAccessor = createNodeAccessor();
@@ -36,16 +35,13 @@ function decodeTxRaw(tx) {
 }
 
 async function getLatestDownloadedHeight() {
-  if (fs.existsSync("./data/latestDownloadedHeight.txt")) {
-    const fileContent = await fs.promises.readFile("./data/latestDownloadedHeight.txt", { encoding: "utf-8" });
-    return parseInt(fileContent);
+  const keyStr = await blocksDb.keys({ reverse: true }).next();
+
+  if (keyStr) {
+    return parseInt(keyStr);
   } else {
     return 0;
   }
-}
-
-async function saveLatestDownloadedHeight(height) {
-  await fs.promises.writeFile("./data/latestDownloadedHeight.txt", height.toString(), { encoding: "utf-8" });
 }
 
 async function getLatestDownloadedTxHeight() {
@@ -63,7 +59,6 @@ async function saveLatestDownloadedTxHeight(height) {
 
 export async function syncBlocks() {
   try {
-    isSyncing = true;
     syncingStatus = "Fetching latest block";
 
     const status = await nodeAccessor.fetch("/status");
@@ -106,8 +101,11 @@ export async function syncBlocks() {
     console.error("Error while syncing", err);
     throw err;
   } finally {
-    isSyncing = false;
     syncingStatus = "Done";
+  }
+
+  if (isProd) {
+    await deleteCache();
   }
 }
 
@@ -227,13 +225,6 @@ async function insertBlocks(startHeight, endHeight) {
       }
     }
   }
-
-  let totalBlockCount = await Block.count();
-  let totalTxCount = await Transaction.count();
-  let totalMsgCount = await Message.count();
-
-  console.log("Total: ");
-  console.table([{ totalBlockCount, totalTxCount, totalMsgCount }]);
 }
 
 async function downloadBlocks(startHeight: number, endHeight: number) {
@@ -274,8 +265,6 @@ async function downloadBlocks(startHeight: number, endHeight: number) {
   syncingStatus = "Saving latest downloaded height";
 
   if (shouldStop) throw shouldStop;
-
-  saveLatestDownloadedHeight(endHeight);
 }
 
 async function downloadTransactions() {

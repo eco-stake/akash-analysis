@@ -3,9 +3,9 @@ import cors from "cors";
 import cache from "./caching/cacheMiddleware";
 import { getDbSize, initDatabase } from "./db/buildDatabase";
 import { getStatus, getWeb3IndexRevenue } from "./db/networkRevenueProvider";
-import { syncPriceHistoryAtInterval, updatePriceHistory } from "./db/priceHistoryProvider";
-import { syncBlocks, isSyncing } from "./akash/akashSync";
-import { deleteCache, getCacheSize } from "./akash/dataStore";
+import { syncPriceHistory } from "./db/priceHistoryProvider";
+import { syncBlocks } from "./akash/akashSync";
+import { getCacheSize } from "./akash/dataStore";
 import { executionMode, ExecutionMode, isProd } from "./shared/constants";
 import { bytesToHumanReadableSize } from "./shared/utils/files";
 import * as Sentry from "@sentry/node";
@@ -14,8 +14,9 @@ import { statsProcessor } from "./akash/statsProcessor";
 import { getGraphData, getDashboardData } from "./db/statsProvider";
 import * as marketDataProvider from "./providers/marketDataProvider";
 import { fetchGithubReleases } from "./providers/githubProvider";
-import { fetchProvidersInfoAtInterval, getNetworkCapacity, getProviders } from "./providers/providerStatusProvider";
+import { getNetworkCapacity, getProviders, syncProvidersInfo } from "./providers/providerStatusProvider";
 import { getTemplateGallery } from "./providers/templateReposProvider";
+import { Scheduler } from "./scheduler";
 
 require("dotenv").config();
 
@@ -29,8 +30,6 @@ app.use(
 
 const { PORT = 3080 } = process.env;
 
-let latestSyncingError = null;
-let latestSyncingErrorDate = null;
 let latestQueryingError = null;
 let latestQueryingErrorDate = null;
 
@@ -53,6 +52,14 @@ Sentry.init({
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
   tracesSampleRate: 0.1
+});
+
+const scheduler = new Scheduler({
+  healthchecksEnabled: process.env.HealthchecksEnabled === "true",
+  errorHandler: (task, error) => {
+    console.error(`Task "${task.name}" failed: ${error}`);
+    Sentry.captureException(error);
+  }
 });
 
 // RequestHandler creates a separate execution context using domains, so that every
@@ -143,6 +150,16 @@ apiRouter.get("/getGraphData/:dataName", waitForInitMiddleware, async (req, res)
   }
 });
 
+apiRouter.get("/status", waitForInitMiddleware, async (req, res) => {
+  try {
+    const status = scheduler.getTasksStatus();
+    res.send(status);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
 web3IndexRouter.get("/status", waitForInitMiddleware, async (req, res) => {
   console.log("getting debug infos");
 
@@ -158,10 +175,8 @@ web3IndexRouter.get("/status", waitForInitMiddleware, async (req, res) => {
       external: bytesToHumanReadableSize(memoryInBytes.external)
     };
 
-    res.send({ ...debugInfos, latestSyncingError, latestSyncingErrorDate, latestQueryingError, latestQueryingErrorDate, ...cacheSize, dbSize, memory });
+    res.send({ ...debugInfos, latestQueryingError, latestQueryingErrorDate, ...cacheSize, dbSize, memory });
   } catch (err) {
-    Sentry.captureException(err);
-
     res.status(500).send(err);
   }
 });
@@ -177,8 +192,6 @@ web3IndexRouter.get("/revenue", waitForInitMiddleware, async (req, res) => {
     latestQueryingError = err;
     latestQueryingErrorDate = new Date();
     console.error(err);
-
-    Sentry.captureException(err);
 
     res.status(500).send("An error occured");
   }
@@ -226,45 +239,30 @@ async function initApp() {
       await statsProcessor.rebuildStatsTables();
     } else if (executionMode === ExecutionMode.RebuildAll) {
       console.time("Rebuilding all");
-      await computeAtInterval();
+      await syncBlocks();
       console.timeEnd("Rebuilding all");
     } else if (executionMode === ExecutionMode.DownloadAndSync || executionMode === ExecutionMode.SyncOnly) {
-      await marketDataProvider.syncAtInterval();
-      await computeAtInterval();
-      await syncPriceHistoryAtInterval();
-      await fetchProvidersInfoAtInterval();
-      setInterval(async () => {
-        await computeAtInterval();
-        await updatePriceHistory();
-      }, 15 * 60 * 1000); // 15min
+      scheduler.registerTask("Sync Blocks", syncBlocks, "7 seconds", true, {
+        id: "66fa2c48-8a7c-4245-81ac-a0493298f9de",
+        measureDuration: true
+      });
+      scheduler.registerTask("Sync AKT Market Data", marketDataProvider.fetchLatestData, "5 minutes", true, {
+        id: "23e94b00-940a-4b4a-8b61-c2167865fa2f",
+        measureDuration: true
+      });
+      scheduler.registerTask("Sync AKT Price History", syncPriceHistory, "1 hour", true, { id: "21a14234-8721-4477-a792-049f6c6104d8", measureDuration: true });
+      scheduler.registerTask("Sync Providers Info", syncProvidersInfo, "15 minutes", true, {
+        id: "98b40f97-b946-4d6b-a957-5a6e266a4a93",
+        measureDuration: true
+      });
+      scheduler.start();
     } else {
       throw "Invalid execution mode";
     }
   } catch (err) {
-    latestSyncingError = err;
-    latestSyncingErrorDate = new Date();
     console.error("Error while initializing app", err);
 
     Sentry.captureException(err);
-  }
-}
-
-async function computeAtInterval() {
-  try {
-    if (isSyncing) return;
-
-    await syncBlocks();
-
-    if (isProd) {
-      await deleteCache();
-    }
-  } catch (err) {
-    latestSyncingError = err;
-    latestSyncingErrorDate = new Date();
-
-    Sentry.captureException(err);
-
-    console.error(err);
   }
 }
 
