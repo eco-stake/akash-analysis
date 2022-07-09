@@ -785,7 +785,7 @@ class StatsProcessor {
 
     if (!deployment) throw new Error(`Deployment not found for owner: ${owner} and dseq: ${dseq}`);
 
-    const lease = deployment.leases.find((x) => x.gseq === gseq && x.oseq === oseq && x.provider === provider);
+    const lease = deployment.leases.find((x) => x.gseq === gseq && x.oseq === oseq && x.providerAddress === provider);
 
     if (!lease) throw new Error(`Lease not found for gseq: ${gseq}, oseq: ${oseq} and provider: ${provider}`);
 
@@ -876,7 +876,7 @@ class StatsProcessor {
     const provider = await Provider.findOne({ where: { owner: decodedMessage.owner }, transaction: blockGroupTransaction });
 
     if (!provider) {
-      console.warn(`Provider ${decodedMessage.provider} not found`);
+      console.warn(`Provider ${decodedMessage.owner} not found`);
       return;
     }
 
