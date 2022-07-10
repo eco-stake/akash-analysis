@@ -35,3 +35,21 @@ export function roundDecimal(value: number, precision = 2) {
 export function ceilDecimal(value: number) {
   return Math.ceil((value + Number.EPSILON) * 100) / 100;
 }
+
+export function uaktToAKT(amount: number, precision = 2) {
+  return roundDecimal(amount / 1000000, precision);
+}
+
+export function percIncrease(a: number, b: number) {
+  let percent: number;
+  if (b !== 0) {
+    if (a !== 0) {
+      percent = (b - a) / a;
+    } else {
+      percent = b;
+    }
+  } else {
+    percent = -a;
+  }
+  return roundDecimal(percent, 4);
+}

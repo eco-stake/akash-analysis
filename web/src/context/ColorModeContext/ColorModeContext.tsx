@@ -5,6 +5,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { customColors } from "@src/utils/colors";
 import { grey } from "@mui/material/colors";
 import { useDarkMode } from "next-dark-mode";
+import { MediaQueryProvider } from "../MediaQueryProvider";
 
 type ContextType = {
   mode: string;
@@ -163,8 +164,10 @@ export const ColorModeProvider = ({ children }) => {
   return (
     <ColorModeProviderContext.Provider value={{ mode, toggleMode }}>
       <ThemeProvider theme={theme}>
-        <CssBaseline enableColorScheme />
-        {isMounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
+        <MediaQueryProvider>
+          <CssBaseline enableColorScheme />
+          {isMounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
+        </MediaQueryProvider>
       </ThemeProvider>
     </ColorModeProviderContext.Provider>
   );
