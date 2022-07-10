@@ -18,7 +18,8 @@ import {
   Provider,
   ProviderAttribute,
   ProviderAttributeSignature,
-  Proposal
+  Proposal,
+  ProposalParameterChange
 } from "./schema";
 
 /**
@@ -63,6 +64,7 @@ export const initDatabase = async () => {
   }
 
   if (executionMode === ExecutionMode.RebuildAll) {
+    await ProposalParameterChange.drop();
     await Proposal.drop();
     await Bid.drop();
     await Lease.drop();
@@ -92,6 +94,7 @@ export const initDatabase = async () => {
   await ProviderAttribute.sync({ force: false });
   await ProviderAttributeSignature.sync({ force: false });
   await Proposal.sync({ force: false });
+  await ProposalParameterChange.sync({ force: true });
 };
 
 export async function getDbSize() {

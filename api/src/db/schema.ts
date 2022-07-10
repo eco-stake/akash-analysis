@@ -301,33 +301,69 @@ Bid.init(
 
 export class Proposal extends Model {
   public id: number;
-  public messageId: string;
-  public proposer: string;
+  public messageId?: string;
+  public proposer?: string;
   public type: string;
   public title: string;
   public description: string;
-  public recipient: string;
-  public amount: number;
-  public submittedHeight: number;
-  public initialDeposit: number;
+  public submittedHeight?: number;
+  public initialDeposit?: number;
+
+  // CommunityPoolSpendProposal
+  public recipient?: string;
+  public amount?: number;
+
+  // SoftwareUpgradeProposal
+  public softwareUpgradeName?: string;
+  public softwareUpgradeHeight?: number;
+  public softwareUpgradeInfo?: string;
 }
 
 Proposal.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true },
-    messageId: { type: DataTypes.STRING, allowNull: false },
-    proposer: { type: DataTypes.STRING, allowNull: false },
+    messageId: { type: DataTypes.STRING, allowNull: true },
+    proposer: { type: DataTypes.STRING, allowNull: true },
     type: { type: DataTypes.STRING, allowNull: false },
     title: { type: DataTypes.STRING, allowNull: false },
     description: { type: DataTypes.STRING, allowNull: false },
-    recipient: { type: DataTypes.STRING, allowNull: false },
-    amount: { type: DataTypes.BIGINT, allowNull: false },
-    submittedHeight: { type: DataTypes.INTEGER, allowNull: false },
-    initialDeposit: { type: DataTypes.BIGINT, allowNull: false }
+    submittedHeight: { type: DataTypes.INTEGER, allowNull: true },
+    initialDeposit: { type: DataTypes.BIGINT, allowNull: true },
+
+    // CommunityPoolSpendProposal
+    recipient: { type: DataTypes.STRING, allowNull: true },
+    amount: { type: DataTypes.BIGINT, allowNull: true },
+
+    // SoftwareUpgradeProposal
+    softwareUpgradeName: { type: DataTypes.STRING, allowNull: true },
+    softwareUpgradeHeight: { type: DataTypes.INTEGER, allowNull: true },
+    softwareUpgradeInfo: { type: DataTypes.STRING, allowNull: true }
   },
   {
     tableName: "proposal",
     modelName: "proposal",
+    sequelize
+  }
+);
+
+export class ProposalParameterChange extends Model {
+  public proposalId: number;
+  public subspace: string;
+  public key: string;
+  public value: string;
+}
+
+ProposalParameterChange.init(
+  {
+    id: { type: DataTypes.UUID, primaryKey: true, allowNull: false },
+    proposalId: { type: DataTypes.INTEGER, primaryKey: true },
+    subspace: { type: DataTypes.STRING, allowNull: false },
+    key: { type: DataTypes.STRING, allowNull: false },
+    value: { type: DataTypes.STRING, allowNull: false }
+  },
+  {
+    tableName: "proposalParameterChange",
+    modelName: "proposalParameterChange",
     sequelize
   }
 );

@@ -18,15 +18,16 @@ import {
   Provider,
   ProviderAttribute,
   ProviderAttributeSignature,
-  Proposal
+  Proposal,
+  ProposalParameterChange
 } from "@src/db/schema";
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { MsgSubmitProposal } from "cosmjs-types/cosmos/gov/v1beta1/tx";
-import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
 import * as benchmark from "../shared/utils/benchmark";
 import { accountSettle } from "@src/shared/utils/akashPaymentSettle";
 import { lastBlockToSync } from "@src/shared/constants";
-import { decodeAkashType, uint8arrayToString } from "@src/shared/utils/protobuf";
+import { decodeMsg, uint8arrayToString } from "@src/shared/utils/protobuf";
+import { createProposalFromMsg } from "./handlers/proposal";
 
 export let processingStatus = null;
 
@@ -110,6 +111,8 @@ class StatsProcessor {
     await DeploymentGroup.drop();
     await Deployment.drop();
     await Proposal.drop();
+    await ProposalParameterChange.drop();
+    await ProposalParameterChange.sync({ force: true });
     await Proposal.sync({ force: true });
     await Deployment.sync({ force: true });
     await DeploymentGroup.sync({ force: true });
@@ -421,40 +424,13 @@ class StatsProcessor {
     }
 
     await benchmark.measureAsync(msg.type, async () => {
-      const decodedMessage = decodeAkashType(msg.type, encodedMessage);
+      const decodedMessage = decodeMsg(msg.type, encodedMessage);
       await this.messageHandlers[msg.type].bind(this)(decodedMessage, height, blockGroupTransaction, msg);
     });
   }
 
-  private async handleSubmitProposal(encodedMessage, height: number, blockGroupTransaction, msg: Message) {
-    const decodedMessage = MsgSubmitProposal.decode(encodedMessage);
-
-    const proposalId = (await Proposal.count()) + 1;
-
-    let proposal = Proposal.build({
-      id: proposalId,
-      messageId: msg.id,
-      proposer: decodedMessage.proposer,
-      submittedHeight: height
-      // public initialDeposit: number;
-    });
-
-    switch (decodedMessage.content.typeUrl) {
-      case "/cosmos.params.v1beta1.ParameterChangeProposal":
-        throw new Error("Not implemented");
-
-      case "CommunityPoolSpendProposal":
-        const communityPoolSpendProposal = CommunityPoolSpendProposal.decode(decodedMessage.content.value);
-        throw JSON.stringify(communityPoolSpendProposal);
-      // proposal.type = "CommunityPoolSpendProposal";
-      // proposal.title = communityPoolSpendProposal.title,
-      // proposal.description = communityPoolSpendProposal.description,
-      // proposal.recipient = communityPoolSpendProposal.recipient,
-      // proposal.amount = communityPoolSpendProposal.amount
-
-      default:
-        throw Error("Unsupported proposal type: " + decodedMessage.content.typeUrl);
-    }
+  private async handleSubmitProposal(decodedMessage: MsgSubmitProposal, height: number, blockGroupTransaction, msg: Message) {
+    await createProposalFromMsg(decodedMessage, height, blockGroupTransaction, msg.id);
   }
 
   private async handleCreateDeployment(decodedMessage: v1beta1.MsgCreateDeployment, height: number, blockGroupTransaction, msg: Message) {

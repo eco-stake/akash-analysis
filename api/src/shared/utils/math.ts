@@ -1,3 +1,5 @@
+import { Coin } from "@cosmjs/proto-signing";
+
 export function pickRandomElement(arr: any[]) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -8,4 +10,15 @@ export function round(amount: number, precision: number = 2) {
 
 export function uaktToAKT(amount: number, precision = 2) {
   return round(amount / 1_000_000, precision);
+}
+
+export function coinToUAkt(coin: Coin) {
+  switch (coin.denom) {
+    case "uakt":
+      return parseInt(coin.amount);
+    case "akt":
+      return parseInt(coin.amount) * 1_000_000;
+    default:
+      throw new Error(`Unknown coin denom: ${coin.denom}`);
+  }
 }

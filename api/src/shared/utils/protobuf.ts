@@ -6,8 +6,8 @@ import * as v1beta2 from "../../proto/akash/v1beta2";
 
 const akashTypes: ReadonlyArray<[string, GeneratedType]> = [...Object.values(v1beta1), ...Object.values(v1beta2)].map((x) => ["/" + x.$type, x]);
 
-export function decodeAkashType(type: string, msg) {
-  const myRegistry = new Registry(akashTypes);
+export function decodeMsg(type: string, msg) {
+  const myRegistry = new Registry([...defaultRegistryTypes, ...akashTypes]);
 
   const msgType = myRegistry.lookupType(type);
 
