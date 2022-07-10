@@ -37,7 +37,7 @@ export const KeplrWalletProvider = ({ children }) => {
       setIsKeplrInstalled(true);
 
       if (localStorage.getItem("keplr_autoconnect")) {
-        loadWallet();
+        // loadWallet();
       }
 
       const onKeystoreChange = async () => {
