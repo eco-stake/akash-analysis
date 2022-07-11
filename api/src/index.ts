@@ -17,13 +17,14 @@ import { fetchGithubReleases } from "./providers/githubProvider";
 import { getNetworkCapacity, getProviders, syncProvidersInfo } from "./providers/providerStatusProvider";
 import { getTemplateGallery } from "./providers/templateReposProvider";
 import { Scheduler } from "./scheduler";
+import { getBlock, getDeployment, getTransaction } from "./db/explorerProvider";
 
 require("dotenv").config();
 
 const app = express();
 app.use(
   cors({
-    origin: process.env.AKASHLYTICS_CORS_WEBSITE_URLS?.split(",") || "http://localhost:3000",
+    origin: process.env.AKASHLYTICS_CORS_WEBSITE_URLS?.split(",") || ["http://localhost:3000", "http://localhost:3001"],
     optionsSuccessStatus: 200
   })
 );
@@ -81,7 +82,53 @@ apiRouter.get("/templates", cache(60 * 5), async (req, res) => {
   }
 });
 
-apiRouter.get("/latestDeployToolVersion", cache(60 * 2), async (req, res) => {
+apiRouter.get("/block/:height", async (req, res) => {
+  try {
+    const heightInt = parseInt(req.params.height);
+    const blockInfo = await getBlock(heightInt);
+
+    if (blockInfo) {
+      res.send(blockInfo);
+    } else {
+      res.status(400).send("Block not found");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/transaction/:hash", async (req, res) => {
+  try {
+    const txInfo = await getTransaction(req.params.hash);
+
+    if (txInfo) {
+      res.send(txInfo);
+    } else {
+      res.status(404).send("Tx not found");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/deployment/:owner/:dseq", async (req, res) => {
+  try {
+    const deployment = await getDeployment(req.params.owner, req.params.dseq);
+
+    if (deployment) {
+      res.send(deployment);
+    } else {
+      res.status(404).send("Deployment not found");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/latestDeployToolVersion", cache(120), async (req, res) => {
   try {
     const releaseData = await fetchGithubReleases();
     res.send(releaseData);
@@ -229,7 +276,10 @@ async function waitForInitMiddleware(req, res, next) {
  */
 async function initApp() {
   try {
-    if (executionMode === ExecutionMode.DoNotSync) return;
+    if (executionMode === ExecutionMode.DoNotSync) {
+      await marketDataProvider.fetchLatestData();
+      return;
+    }
 
     initDatabaseTask = initDatabase();
     await initDatabaseTask;

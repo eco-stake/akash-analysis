@@ -1,38 +1,18 @@
 import fs from "fs";
-import base64js from "base64-js";
 import { statsProcessor } from "./statsProcessor";
 import { blockHeightToKey, blocksDb, deleteCache, getCachedBlockByHeight, getCachedTxByHash, txsDb } from "./dataStore";
 import { createNodeAccessor } from "./nodeAccessor";
 import { Block, Transaction, Message, Op, Day, sequelize } from "@src/db/schema";
-import * as benchmark from "../shared/utils/benchmark";
-
-import * as uuid from "uuid";
 import { sha256 } from "js-sha256";
 import { isProd, lastBlockToSync } from "@src/shared/constants";
 import { isEqual } from "date-fns";
+import { decodeTxRaw, fromBase64 } from "@src/shared/utils/types";
+import * as benchmark from "../shared/utils/benchmark";
+import * as uuid from "uuid";
 
 export let syncingStatus = null;
 
 const nodeAccessor = createNodeAccessor();
-
-const { AuthInfo, TxBody, TxRaw } = require("cosmjs-types/cosmos/tx/v1beta1/tx");
-function fromBase64(base64String) {
-  if (!base64String.match(/^[a-zA-Z0-9+/]*={0,2}$/)) {
-    throw new Error("Invalid base64 string format");
-  }
-  return base64js.toByteArray(base64String);
-}
-/**
- * Takes a serialized TxRaw (the bytes stored in Tendermint) and decodes it into something usable.
- */
-function decodeTxRaw(tx) {
-  const txRaw = TxRaw.decode(tx);
-  return {
-    authInfo: AuthInfo.decode(txRaw.authInfoBytes),
-    body: TxBody.decode(txRaw.bodyBytes),
-    signatures: txRaw.signatures
-  };
-}
 
 async function getLatestDownloadedHeight() {
   const keyStr = await blocksDb.keys({ reverse: true }).next();
@@ -160,7 +140,8 @@ async function insertBlocks(startHeight, endHeight) {
           index: msgIndex,
           height: i,
           indexInBlock: msgIndexInBlock++,
-          isInterestingType: isInterestingType
+          isInterestingType: isInterestingType,
+          data: Buffer.from(msg.value)
         });
 
         if (isInterestingType) {
@@ -173,6 +154,8 @@ async function insertBlocks(startHeight, endHeight) {
         hash: hash,
         height: i,
         index: txIndex,
+        fee: decodedTx.authInfo.fee.amount.length > 0 ? parseInt(decodedTx.authInfo.fee.amount[0].amount) : 0,
+        memo: decodedTx.body.memo,
         hasInterestingTypes: hasInterestingTypes
       });
     }
@@ -180,6 +163,8 @@ async function insertBlocks(startHeight, endHeight) {
     const blockEntry = {
       height: i,
       datetime: new Date(blockData.block.header.time),
+      hash: blockData.block_id.hash,
+      proposer: blockData.block.header.proposer_address,
       totalTxCount: (lastInsertedBlock?.totalTxCount || 0) + txs.length,
       dayId: lastInsertedBlock?.dayId,
       day: lastInsertedBlock?.day
@@ -269,6 +254,7 @@ async function downloadBlocks(startHeight: number, endHeight: number) {
 
 async function downloadTransactions() {
   syncingStatus = "Downloading transactions";
+  console.log(syncingStatus);
   const latestDownloadedTxHeight = await getLatestDownloadedTxHeight();
 
   if (latestDownloadedTxHeight > 0) {
@@ -287,12 +273,11 @@ async function downloadTransactions() {
 
   const whereFilter = {
     downloaded: false,
-    hasInterestingTypes: true,
     height: { [Op.gt]: latestDownloadedTxHeight || 0 }
   };
 
   const missingTxCount = await Transaction.count({ where: whereFilter });
-  const txGroupSize = 100_000;
+  const txGroupSize = 50_000;
   const txGroupCount = Math.ceil(missingTxCount / txGroupSize);
 
   for (let groupIndex = 0; groupIndex < txGroupCount; groupIndex++) {
@@ -327,7 +312,10 @@ async function downloadTransactions() {
           {
             downloaded: true,
             hasDownloadError: !txJson.tx,
-            hasProcessingError: !!txJson.tx_result.code
+            hasProcessingError: !!txJson.tx_result.code,
+            log: !!txJson.tx_result.code ? txJson.tx_result.log : null,
+            gasUsed: parseInt(txJson.tx_result.gas_used),
+            gasWanted: parseInt(txJson.tx_result.gas_wanted)
           },
           { transaction: groupTransaction }
         );
@@ -341,6 +329,7 @@ async function downloadTransactions() {
               await updateTx(txJson.result);
             })
             .catch((err) => {
+              logFailedTx(hash);
               console.error(err);
               shouldStop = err;
             })
@@ -380,3 +369,16 @@ async function downloadTransactions() {
     }
   }
 }
+
+const logFailedTx = async (tx) => {
+  let failedTx = [];
+  if (fs.existsSync("./data/failedTx.json")) {
+    failedTx = JSON.parse(fs.readFileSync("./data/failedTx.json", "utf-8"));
+  }
+
+  if (!failedTx.includes(tx)) {
+    failedTx.push(tx);
+  }
+
+  fs.writeFileSync("./data/failedTx.json", JSON.stringify(failedTx));
+};

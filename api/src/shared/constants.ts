@@ -1,4 +1,6 @@
 export const averageBlockTime = 6.174;
+export const averageDaysInMonth = 30.437;
+export const averageBlockCountInAMonth = (averageDaysInMonth * 24 * 60 * 60) / averageBlockTime;
 export const isProd = process.env.NODE_ENV === "production";
 
 export enum ExecutionMode {
