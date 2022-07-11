@@ -24,7 +24,7 @@ require("dotenv").config();
 const app = express();
 app.use(
   cors({
-    origin: process.env.AKASHLYTICS_CORS_WEBSITE_URLS?.split(",") || "http://localhost:3000",
+    origin: process.env.AKASHLYTICS_CORS_WEBSITE_URLS?.split(",") || "http://localhost:4000",
     optionsSuccessStatus: 200
   })
 );
