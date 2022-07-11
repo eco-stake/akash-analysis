@@ -24,7 +24,7 @@ require("dotenv").config();
 const app = express();
 app.use(
   cors({
-    origin: process.env.AKASHLYTICS_CORS_WEBSITE_URLS?.split(",") || "http://localhost:4000",
+    origin: process.env.AKASHLYTICS_CORS_WEBSITE_URLS?.split(",") || ["http://localhost:3000", "http://localhost:3001"],
     optionsSuccessStatus: 200
   })
 );
@@ -277,7 +277,7 @@ async function waitForInitMiddleware(req, res, next) {
 async function initApp() {
   try {
     if (executionMode === ExecutionMode.DoNotSync) {
-      await marketDataProvider.syncAtInterval();
+      await marketDataProvider.fetchLatestData();
       return;
     }
 

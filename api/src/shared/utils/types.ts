@@ -1,5 +1,5 @@
 import base64js from "base64-js";
-const { AuthInfo, TxBody, TxRaw } = require("cosmjs-types/cosmos/tx/v1beta1/tx");
+import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 export function fromBase64(base64String) {
   if (!base64String.match(/^[a-zA-Z0-9+/]*={0,2}$/)) {

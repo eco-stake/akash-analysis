@@ -145,8 +145,6 @@ class StatsProcessor {
 
     if (!this.cacheInitialized) {
       await this.initCache();
-    } else {
-      console.log("Cache already filled");
     }
 
     console.log("Querying unprocessed messages...");
