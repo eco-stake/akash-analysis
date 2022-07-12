@@ -1,5 +1,5 @@
 import * as uuid from "uuid";
-import { IIndexer } from "./indexer";
+import { Indexer } from "./indexer";
 import { Block, Message, Proposal, ProposalParameterChange, sequelize } from "@src/db/schema";
 import { IGenesis, IGenesisProposal } from "@src/akash/genesisTypes";
 import { coinToUAkt } from "@src/shared/utils/math";
@@ -8,26 +8,20 @@ import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/para
 import { SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
 import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
 import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
+import * as benchmark from "@src/shared/utils/benchmark";
 
-export class ProposalIndexer implements IIndexer {
-  name: string;
+export class ProposalIndexer extends Indexer {
   msgHandlers: { [key: string]: (msgSubmitProposal: any, height: number, blockGroupTransaction, msg: Message) => Promise<void> };
 
   constructor() {
-    this.name = "Proposal Indexer";
+    super();
+    this.name = "ProposalIndexer";
     this.msgHandlers = {
       "/cosmos.gov.v1beta1.MsgSubmitProposal": createProposalFromMsg
     };
   }
 
-  hasHandlerForType(type: string): boolean {
-    return Object.keys(this.msgHandlers).includes(type);
-  }
-
-  getBlockProcessedProperty(block: Block) {
-    return block.isProcessed;
-  }
-
+  @benchmark.measureMethodAsync
   async recreateTables() {
     await Proposal.drop();
     await ProposalParameterChange.drop();
@@ -35,6 +29,7 @@ export class ProposalIndexer implements IIndexer {
     await Proposal.sync({ force: true });
   }
 
+  @benchmark.measureMethodAsync
   async seed(genesis: IGenesis) {
     const proposals = genesis.app_state.gov.proposals;
 
@@ -50,7 +45,7 @@ export class ProposalIndexer implements IIndexer {
   }
 }
 
-export async function createProposalFromMsg(msgSubmitProposal: MsgSubmitProposal, height: number, blockGroupTransaction, msg: Message) {
+async function createProposalFromMsg(msgSubmitProposal: MsgSubmitProposal, height: number, blockGroupTransaction, msg: Message) {
   const proposalId = ((await Proposal.max("id", { transaction: blockGroupTransaction })) as number) + 1;
 
   if (msgSubmitProposal.initialDeposit.length > 1) {

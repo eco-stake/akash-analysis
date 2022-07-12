@@ -1,31 +1,12 @@
 import base64js from "base64-js";
-import * as v1beta1 from "../proto/akash/v1beta1";
-import * as v1beta2 from "../proto/akash/v1beta2";
-import * as uuid from "uuid";
 import { sha256 } from "js-sha256";
 import { blockHeightToKey, blocksDb } from "@src/akash/dataStore";
-import {
-  Deployment,
-  Transaction,
-  Message,
-  Block,
-  Bid,
-  Lease,
-  Op,
-  DeploymentGroup,
-  DeploymentGroupResource,
-  sequelize,
-  Provider,
-  ProviderAttribute,
-  ProviderAttributeSignature
-} from "@src/db/schema";
+import { Transaction, Message, Block, Op, sequelize } from "@src/db/schema";
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { MsgSubmitProposal } from "cosmjs-types/cosmos/gov/v1beta1/tx";
-import * as benchmark from "../shared/utils/benchmark";
-import { accountSettle } from "@src/shared/utils/akashPaymentSettle";
 import { lastBlockToSync } from "@src/shared/constants";
-import { decodeMsg, uint8arrayToString } from "@src/shared/utils/protobuf";
-import { indexers } from "@src/indexers/indexer";
+import { decodeMsg } from "@src/shared/utils/protobuf";
+import { indexers } from "@src/indexers";
+import * as benchmark from "@src/shared/utils/benchmark";
 
 export let processingStatus = null;
 
@@ -53,25 +34,7 @@ async function getBlockByHeight(height) {
 }
 
 class StatsProcessor {
-  private totalLeaseCount = 0;
-  private activeProviderCount = 0;
-  private deploymentIdCache: { [key: string]: string } = {};
-  private deploymentGroupIdCache: { [key: string]: string } = {};
   private cacheInitialized: boolean = false;
-
-  private addToDeploymentIdCache(owner: string, dseq: number, id: string) {
-    this.deploymentIdCache[owner + "_" + dseq] = id;
-  }
-  private getDeploymentIdFromCache(owner: string, dseq: number) {
-    return this.deploymentIdCache[owner + "_" + dseq];
-  }
-
-  private addToDeploymentGroupIdCache(owner: string, dseq: number, gseq: number, id: string) {
-    this.deploymentGroupIdCache[owner + "_" + dseq + "_" + gseq] = id;
-  }
-  private getDeploymentGroupIdFromCache(owner: string, dseq: number, gseq: number): string {
-    return this.deploymentGroupIdCache[owner + "_" + dseq + "_" + gseq];
-  }
 
   public async rebuildStatsTables() {
     console.log("Disabling foreign key checks");
@@ -100,22 +63,10 @@ class StatsProcessor {
     );
 
     console.log("Rebuilding stats tables...");
-    await Bid.drop();
-    await Lease.drop();
-    await Provider.drop();
-    await ProviderAttribute.drop();
-    await ProviderAttributeSignature.drop();
-    await DeploymentGroupResource.drop();
-    await DeploymentGroup.drop();
-    await Deployment.drop();
-    await Deployment.sync({ force: true });
-    await DeploymentGroup.sync({ force: true });
-    await DeploymentGroupResource.sync({ force: true });
-    await ProviderAttributeSignature.sync({ force: true });
-    await ProviderAttribute.sync({ force: true });
-    await Provider.sync({ force: true });
-    await Lease.sync({ force: true });
-    await Bid.sync({ force: true });
+
+    for (const indexer of indexers) {
+      await indexer.recreateTables();
+    }
 
     console.log("Enabling foreign key checks");
     await sequelize.query("PRAGMA foreign_keys=0");
@@ -123,38 +74,12 @@ class StatsProcessor {
     await this.processMessages();
   }
 
-  @benchmark.measureMethodAsync
-  public async initCache() {
-    console.log("Fetching deployment id cache...");
-
-    const existingDeployments = await Deployment.findAll({
-      attributes: ["id", "owner", "dseq"]
-    });
-
-    existingDeployments.forEach((d) => this.addToDeploymentIdCache(d.owner, d.dseq, d.id));
-
-    const existingDeploymentGroups = await DeploymentGroup.findAll({
-      attributes: ["id", "owner", "dseq", "gseq"]
-    });
-
-    existingDeploymentGroups.forEach((d) => this.addToDeploymentGroupIdCache(d.owner, d.dseq, d.gseq, d.id));
-
-    this.cacheInitialized = true;
-  }
-
   public async processMessages() {
     processingStatus = "Processing messages";
-
-    if (!this.cacheInitialized) {
-      await this.initCache();
-    }
 
     console.log("Querying unprocessed messages...");
 
     const groupSize = 10_000;
-
-    this.totalLeaseCount = await Lease.count();
-    this.activeProviderCount = await Provider.count();
 
     let previousProcessedBlock = await Block.findOne({
       where: {
@@ -172,6 +97,13 @@ class StatsProcessor {
         isProcessed: false
       }
     });
+
+    if (!this.cacheInitialized) {
+      for (const indexer of indexers) {
+        await indexer.initCache(null, firstUnprocessedHeight);
+      }
+      this.cacheInitialized = true;
+    }
 
     let firstBlockToProcess = firstUnprocessedHeight;
     let lastBlockToProcess = Math.min(lastUnprocessedHeight, firstBlockToProcess + groupSize, lastBlockToSync);
@@ -214,25 +146,17 @@ class StatsProcessor {
 
       const blockGroupTransaction = await sequelize.transaction();
 
-      let totalResources = await this.getTotalResources(blockGroupTransaction, firstBlockToProcess);
-
-      let predictedClosedHeights = await this.getFuturePredictedCloseHeights(firstBlockToProcess, lastBlockToProcess, blockGroupTransaction);
-
       try {
         for (const block of blocks) {
           const getBlockByHeightTimer = benchmark.startTimer("getBlockByHeight");
           const blockData = await getBlockByHeight(blockHeightToKey(block.height));
           getBlockByHeightTimer.end();
 
-          let shouldRefreshPredictedHeights = false;
-
           for (const transaction of block.transactions) {
             for (const msg of transaction.messages) {
               processingStatus = `Processing message ${msg.indexInBlock} of block #${block.height}`;
 
               console.log(`Processing message ${msg.type} - Block #${block.height}`);
-
-              shouldRefreshPredictedHeights = shouldRefreshPredictedHeights || this.checkShouldRefreshPredictedCloseHeight(msg);
 
               const decodeTimer = benchmark.startTimer("decodeTx");
               const tx = blockData.block.data.txs.find((t) => sha256(Buffer.from(t, "base64")).toUpperCase() === transaction.hash);
@@ -251,28 +175,13 @@ class StatsProcessor {
             }
           }
 
-          if (shouldRefreshPredictedHeights) {
-            predictedClosedHeights = await this.getFuturePredictedCloseHeights(firstBlockToProcess, lastBlockToProcess, blockGroupTransaction);
-          }
-
-          if (shouldRefreshPredictedHeights || predictedClosedHeights.includes(block.height)) {
-            totalResources = await this.getTotalResources(blockGroupTransaction, block.height);
+          for (const indexer of indexers) {
+            await indexer.afterEveryBlock(block, previousProcessedBlock, blockGroupTransaction);
           }
 
           await benchmark.measureAsync("blockUpdate", async () => {
-            await block.update(
-              {
-                isProcessed: true,
-                activeProviderCount: this.activeProviderCount,
-                activeLeaseCount: totalResources.count,
-                totalLeaseCount: this.totalLeaseCount,
-                activeCPU: totalResources.cpuSum,
-                activeMemory: totalResources.memorySum,
-                activeStorage: totalResources.storageSum,
-                totalUAktSpent: (previousProcessedBlock?.totalUAktSpent || 0) + totalResources.priceSum
-              },
-              { transaction: blockGroupTransaction }
-            );
+            block.isProcessed = true;
+            await block.save({ transaction: blockGroupTransaction });
           });
           previousProcessedBlock = block;
         }
@@ -320,573 +229,13 @@ class StatsProcessor {
     processingStatus = null;
   }
 
-  @benchmark.measureMethodAsync
-  private async getFuturePredictedCloseHeights(firstBlock: number, lastBlock: number, blockGroupTransaction) {
-    const leases = await Lease.findAll({
-      attributes: ["predictedClosedHeight"],
-      where: {
-        predictedClosedHeight: { [Op.gte]: firstBlock, [Op.lte]: lastBlock }
-      },
-      transaction: blockGroupTransaction
-    });
-
-    return leases.map((x) => x.predictedClosedHeight);
-  }
-
-  private checkShouldRefreshPredictedCloseHeight(msg: Message): boolean {
-    return [
-      // v1beta1
-      "/akash.deployment.v1beta1.MsgCreateDeployment",
-      "/akash.deployment.v1beta1.MsgCloseDeployment",
-      "/akash.market.v1beta1.MsgCreateLease",
-      "/akash.market.v1beta1.MsgCloseLease",
-      "/akash.market.v1beta1.MsgCloseBid",
-      "/akash.deployment.v1beta1.MsgDepositDeployment",
-      "/akash.market.v1beta1.MsgWithdrawLease",
-      // v1beta2
-      "/akash.deployment.v1beta2.MsgCreateDeployment",
-      "/akash.deployment.v1beta2.MsgCloseDeployment",
-      "/akash.market.v1beta2.MsgCreateLease",
-      "/akash.market.v1beta2.MsgCloseLease",
-      "/akash.market.v1beta2.MsgCloseBid",
-      "/akash.deployment.v1beta2.MsgDepositDeployment",
-      "/akash.market.v1beta2.MsgWithdrawLease"
-    ].includes(msg.type);
-  }
-
-  @benchmark.measureMethodAsync
-  private async getTotalResources(blockGroupTransaction, height) {
-    const totalResources = await Lease.findAll({
-      attributes: ["cpuUnits", "memoryQuantity", "storageQuantity", "price"],
-      where: {
-        closedHeight: { [Op.is]: null },
-        predictedClosedHeight: { [Op.gt]: height }
-      },
-      transaction: blockGroupTransaction
-    });
-
-    return {
-      count: totalResources.length,
-      cpuSum: totalResources.map((x) => x.cpuUnits).reduce((a, b) => a + b, 0),
-      memorySum: totalResources.map((x) => x.memoryQuantity).reduce((a, b) => a + b, 0),
-      storageSum: totalResources.map((x) => x.storageQuantity).reduce((a, b) => a + b, 0),
-      priceSum: totalResources.map((x) => x.price).reduce((a, b) => a + b, 0)
-    };
-  }
-
-  private messageHandlers: { [key: string]: (encodedMessage, height: number, blockGroupTransaction, msg: Message) => Promise<void> } = {
-    // Akash v1beta1 types
-    "/akash.deployment.v1beta1.MsgCreateDeployment": this.handleCreateDeployment,
-    "/akash.deployment.v1beta1.MsgCloseDeployment": this.handleCloseDeployment,
-    "/akash.market.v1beta1.MsgCreateLease": this.handleCreateLease,
-    "/akash.market.v1beta1.MsgCloseLease": this.handleCloseLease,
-    "/akash.market.v1beta1.MsgCreateBid": this.handleCreateBid,
-    "/akash.market.v1beta1.MsgCloseBid": this.handleCloseBid,
-    "/akash.deployment.v1beta1.MsgDepositDeployment": this.handleDepositDeployment,
-    "/akash.market.v1beta1.MsgWithdrawLease": this.handleWithdrawLease,
-    "/akash.provider.v1beta1.MsgCreateProvider": this.handleCreateProvider,
-    "/akash.provider.v1beta1.MsgUpdateProvider": this.handleUpdateProvider,
-    "/akash.provider.v1beta1.MsgDeleteProvider": this.handleDeleteProvider,
-    "/akash.audit.v1beta1.MsgSignProviderAttributes": this.handleSignProviderAttributes,
-    "/akash.audit.v1beta1.MsgDeleteProviderAttributes": this.handleDeleteSignProviderAttributes,
-    // Akash v1beta2 types
-    "/akash.deployment.v1beta2.MsgCreateDeployment": this.handleCreateDeploymentV2,
-    "/akash.deployment.v1beta2.MsgCloseDeployment": this.handleCloseDeployment,
-    "/akash.market.v1beta2.MsgCreateLease": this.handleCreateLease,
-    "/akash.market.v1beta2.MsgCloseLease": this.handleCloseLease,
-    "/akash.market.v1beta2.MsgCreateBid": this.handleCreateBidV2,
-    "/akash.market.v1beta2.MsgCloseBid": this.handleCloseBid,
-    "/akash.deployment.v1beta2.MsgDepositDeployment": this.handleDepositDeployment,
-    "/akash.market.v1beta2.MsgWithdrawLease": this.handleWithdrawLease,
-    "/akash.provider.v1beta2.MsgCreateProvider": this.handleCreateProvider,
-    "/akash.provider.v1beta2.MsgUpdateProvider": this.handleUpdateProvider,
-    "/akash.provider.v1beta2.MsgDeleteProvider": this.handleDeleteProvider,
-    "/akash.audit.v1beta2.MsgSignProviderAttributes": this.handleSignProviderAttributes,
-    "/akash.audit.v1beta2.MsgDeleteProviderAttributes": this.handleDeleteSignProviderAttributes
-  };
-
   private async processMessage(msg, encodedMessage, height: number, blockGroupTransaction) {
-    await benchmark.measureAsync(msg.type, async () => {
-      if (msg.type in this.messageHandlers) {
+    for (const indexer of indexers) {
+      if (indexer.hasHandlerForType(msg.type)) {
         const decodedMessage = decodeMsg(msg.type, encodedMessage);
-        await this.messageHandlers[msg.type].bind(this)(decodedMessage, height, blockGroupTransaction, msg);
-      }
-
-      for (const indexer of indexers) {
-        if (indexer.hasHandlerForType(msg.type)) {
-          const decodedMessage = decodeMsg(msg.type, encodedMessage);
-          await indexer.msgHandlers[msg.type](decodedMessage, height, blockGroupTransaction, msg);
-        }
-      }
-    });
-  }
-
-  private async handleCreateDeployment(decodedMessage: v1beta1.MsgCreateDeployment, height: number, blockGroupTransaction, msg: Message) {
-    const created = await Deployment.create(
-      {
-        id: uuid.v4(),
-        owner: decodedMessage.id.owner,
-        dseq: decodedMessage.id.dseq.toNumber(),
-        deposit: parseInt(decodedMessage.deposit.amount),
-        balance: parseInt(decodedMessage.deposit.amount),
-        withdrawnAmount: 0,
-        createdHeight: height,
-        closedHeight: null
-      },
-      { transaction: blockGroupTransaction }
-    );
-
-    msg.relatedDeploymentId = created.id;
-
-    this.addToDeploymentIdCache(decodedMessage.id.owner, decodedMessage.id.dseq.toNumber(), created.id);
-
-    for (const group of decodedMessage.groups) {
-      const createdGroup = await DeploymentGroup.create(
-        {
-          id: uuid.v4(),
-          deploymentId: created.id,
-          owner: created.owner,
-          dseq: created.dseq,
-          gseq: decodedMessage.groups.indexOf(group) + 1
-        },
-        { transaction: blockGroupTransaction }
-      );
-      this.addToDeploymentGroupIdCache(createdGroup.owner, createdGroup.dseq, createdGroup.gseq, createdGroup.id);
-
-      for (const groupResource of group.resources) {
-        await DeploymentGroupResource.create(
-          {
-            deploymentGroupId: createdGroup.id,
-            cpuUnits: parseInt(uint8arrayToString(groupResource.resources.cpu.units.val)),
-            memoryQuantity: parseInt(uint8arrayToString(groupResource.resources.memory.quantity.val)),
-            storageQuantity: parseInt(uint8arrayToString(groupResource.resources.storage.quantity.val)),
-            count: groupResource.count,
-            price: parseFloat(groupResource.price.amount) // TODO: handle denom
-          },
-          { transaction: blockGroupTransaction }
-        );
+        await indexer.processMessage(decodedMessage, height, blockGroupTransaction, msg);
       }
     }
-  }
-
-  private async handleCreateDeploymentV2(decodedMessage: v1beta2.MsgCreateDeployment, height: number, blockGroupTransaction, msg: Message) {
-    const created = await Deployment.create(
-      {
-        id: uuid.v4(),
-        owner: decodedMessage.id.owner,
-        dseq: decodedMessage.id.dseq.toNumber(),
-        deposit: parseInt(decodedMessage.deposit.amount),
-        balance: parseInt(decodedMessage.deposit.amount),
-        withdrawnAmount: 0,
-        createdHeight: height,
-        closedHeight: null
-      },
-      { transaction: blockGroupTransaction }
-    );
-
-    msg.relatedDeploymentId = created.id;
-
-    this.addToDeploymentIdCache(decodedMessage.id.owner, decodedMessage.id.dseq.toNumber(), created.id);
-
-    for (const group of decodedMessage.groups) {
-      const createdGroup = await DeploymentGroup.create(
-        {
-          id: uuid.v4(),
-          deploymentId: created.id,
-          owner: created.owner,
-          dseq: created.dseq,
-          gseq: decodedMessage.groups.indexOf(group) + 1
-        },
-        { transaction: blockGroupTransaction }
-      );
-      this.addToDeploymentGroupIdCache(createdGroup.owner, createdGroup.dseq, createdGroup.gseq, createdGroup.id);
-
-      for (const groupResource of group.resources) {
-        await DeploymentGroupResource.create(
-          {
-            deploymentGroupId: createdGroup.id,
-            cpuUnits: parseInt(uint8arrayToString(groupResource.resources.cpu.units.val)),
-            memoryQuantity: parseInt(uint8arrayToString(groupResource.resources.memory.quantity.val)),
-            storageQuantity: groupResource.resources.storage.map((x) => parseInt(uint8arrayToString(x.quantity.val))).reduce((a, b) => a + b, 0),
-            count: groupResource.count,
-            price: parseFloat(groupResource.price.amount) // TODO: handle denom
-          },
-          { transaction: blockGroupTransaction }
-        );
-      }
-    }
-  }
-
-  private async handleCloseDeployment(decodedMessage: v1beta1.MsgCloseDeployment, height: number, blockGroupTransaction, msg: Message) {
-    const deployment = await Deployment.findOne({
-      where: {
-        id: this.getDeploymentIdFromCache(decodedMessage.id.owner, decodedMessage.id.dseq.toNumber())
-      },
-      include: [{ model: Lease }],
-      transaction: blockGroupTransaction
-    });
-
-    msg.relatedDeploymentId = deployment.id;
-
-    await accountSettle(deployment, height, blockGroupTransaction);
-
-    for (const lease of deployment.leases) {
-      if (!lease.closedHeight) {
-        lease.closedHeight = height;
-        await lease.save({ transaction: blockGroupTransaction });
-      }
-    }
-
-    deployment.closedHeight = height;
-    await deployment.save({ transaction: blockGroupTransaction });
-  }
-
-  private async handleCreateLease(decodedMessage: v1beta1.MsgCreateLease, height: number, blockGroupTransaction, msg: Message) {
-    const bid = await Bid.findOne({
-      where: {
-        owner: decodedMessage.bidId.owner,
-        dseq: decodedMessage.bidId.dseq.toNumber(),
-        gseq: decodedMessage.bidId.gseq,
-        oseq: decodedMessage.bidId.oseq,
-        provider: decodedMessage.bidId.provider
-      },
-      transaction: blockGroupTransaction
-    });
-
-    const deploymentGroupId = this.getDeploymentGroupIdFromCache(decodedMessage.bidId.owner, decodedMessage.bidId.dseq.toNumber(), decodedMessage.bidId.gseq);
-    const deploymentGroups = await DeploymentGroupResource.findAll({
-      attributes: ["count", "cpuUnits", "memoryQuantity", "storageQuantity"],
-      where: {
-        deploymentGroupId: deploymentGroupId
-      },
-      transaction: blockGroupTransaction
-    });
-
-    const deploymentId = this.getDeploymentIdFromCache(decodedMessage.bidId.owner, decodedMessage.bidId.dseq.toNumber());
-
-    const deployment = await Deployment.findOne({
-      where: {
-        id: deploymentId
-      },
-      include: [{ model: Lease }],
-      transaction: blockGroupTransaction
-    });
-
-    const { blockRate } = await accountSettle(deployment, height, blockGroupTransaction);
-
-    const predictedClosedHeight = Math.ceil(height + deployment.balance / (blockRate + bid.price));
-
-    await Lease.create(
-      {
-        id: uuid.v4(),
-        deploymentId: deploymentId,
-        deploymentGroupId: deploymentGroupId,
-        owner: decodedMessage.bidId.owner,
-        dseq: decodedMessage.bidId.dseq.toNumber(),
-        oseq: decodedMessage.bidId.oseq,
-        gseq: decodedMessage.bidId.gseq,
-        providerAddress: decodedMessage.bidId.provider,
-        createdHeight: height,
-        predictedClosedHeight: predictedClosedHeight,
-        price: bid.price,
-
-        // Stats
-        cpuUnits: deploymentGroups.map((x) => x.cpuUnits * x.count).reduce((a, b) => a + b, 0),
-        memoryQuantity: deploymentGroups.map((x) => x.memoryQuantity * x.count).reduce((a, b) => a + b, 0),
-        storageQuantity: deploymentGroups.map((x) => x.storageQuantity * x.count).reduce((a, b) => a + b, 0)
-      },
-      { transaction: blockGroupTransaction }
-    );
-
-    await Lease.update({ predictedClosedHeight: predictedClosedHeight }, { where: { deploymentId: deploymentId }, transaction: blockGroupTransaction });
-
-    msg.relatedDeploymentId = deploymentId;
-
-    this.totalLeaseCount++;
-  }
-
-  private async handleCloseLease(decodedMessage: v1beta1.MsgCloseLease, height: number, blockGroupTransaction, msg: Message) {
-    const deployment = await Deployment.findOne({
-      where: {
-        id: this.getDeploymentIdFromCache(decodedMessage.leaseId.owner, decodedMessage.leaseId.dseq.toNumber())
-      },
-      include: [{ model: Lease }],
-      transaction: blockGroupTransaction
-    });
-
-    const lease = deployment.leases.find(
-      (x) => x.oseq === decodedMessage.leaseId.oseq && x.gseq === decodedMessage.leaseId.gseq && x.providerAddress === decodedMessage.leaseId.provider
-    );
-
-    if (!lease) throw new Error("Lease not found");
-
-    msg.relatedDeploymentId = deployment.id;
-
-    const { blockRate } = await accountSettle(deployment, height, blockGroupTransaction);
-
-    lease.closedHeight = height;
-    await lease.save({ transaction: blockGroupTransaction });
-
-    if (!deployment.leases.some((x) => !x.closedHeight)) {
-      deployment.closedHeight = height;
-      await deployment.save({ transaction: blockGroupTransaction });
-    } else {
-      const predictedClosedHeight = deployment.balance / (blockRate - lease.price);
-      await Lease.update({ predictedClosedHeight: predictedClosedHeight }, { where: { deploymentId: deployment.id }, transaction: blockGroupTransaction });
-    }
-  }
-
-  private async handleCreateBid(decodedMessage: v1beta1.MsgCreateBid, height: number, blockGroupTransaction, msg: Message) {
-    await Bid.create(
-      {
-        owner: decodedMessage.order.owner,
-        dseq: decodedMessage.order.dseq.toNumber(),
-        gseq: decodedMessage.order.gseq,
-        oseq: decodedMessage.order.oseq,
-        provider: decodedMessage.provider,
-        price: parseInt(decodedMessage.price.amount),
-        createdHeight: height
-      },
-      { transaction: blockGroupTransaction }
-    );
-
-    msg.relatedDeploymentId = this.getDeploymentIdFromCache(decodedMessage.order.owner, decodedMessage.order.dseq.toNumber());
-  }
-
-  private async handleCreateBidV2(decodedMessage: v1beta2.MsgCreateBid, height: number, blockGroupTransaction, msg: Message) {
-    await Bid.create(
-      {
-        owner: decodedMessage.order.owner,
-        dseq: decodedMessage.order.dseq.toNumber(),
-        gseq: decodedMessage.order.gseq,
-        oseq: decodedMessage.order.oseq,
-        provider: decodedMessage.provider,
-        price: parseFloat(decodedMessage.price.amount),
-        createdHeight: height
-      },
-      { transaction: blockGroupTransaction }
-    );
-
-    msg.relatedDeploymentId = this.getDeploymentIdFromCache(decodedMessage.order.owner, decodedMessage.order.dseq.toNumber());
-  }
-
-  private async handleCloseBid(decodedMessage: v1beta1.MsgCloseBid, height: number, blockGroupTransaction, msg: Message) {
-    const deployment = await Deployment.findOne({
-      where: {
-        id: this.getDeploymentIdFromCache(decodedMessage.bidId.owner, decodedMessage.bidId.dseq.toNumber())
-      },
-      include: [{ model: Lease }],
-      transaction: blockGroupTransaction
-    });
-
-    msg.relatedDeploymentId = deployment.id;
-
-    const lease = deployment.leases.find(
-      (x) => x.oseq === decodedMessage.bidId.oseq && x.gseq === decodedMessage.bidId.gseq && x.providerAddress === decodedMessage.bidId.provider
-    );
-
-    if (lease) {
-      const { blockRate } = await accountSettle(deployment, height, blockGroupTransaction);
-
-      lease.closedHeight = height;
-      await lease.save({ transaction: blockGroupTransaction });
-
-      if (!deployment.leases.some((x) => !x.closedHeight)) {
-        deployment.closedHeight = height;
-        await deployment.save({ transaction: blockGroupTransaction });
-      } else {
-        const predictedClosedHeight = deployment.balance / (blockRate - lease.price);
-        await Lease.update({ predictedClosedHeight: predictedClosedHeight }, { where: { deploymentId: deployment.id }, transaction: blockGroupTransaction });
-      }
-    }
-
-    await Bid.destroy({
-      where: {
-        owner: decodedMessage.bidId.owner,
-        dseq: decodedMessage.bidId.dseq.toNumber(),
-        gseq: decodedMessage.bidId.gseq,
-        oseq: decodedMessage.bidId.oseq,
-        provider: decodedMessage.bidId.provider
-      },
-      transaction: blockGroupTransaction
-    });
-  }
-
-  private async handleDepositDeployment(decodedMessage: v1beta1.MsgDepositDeployment, height: number, blockGroupTransaction, msg: Message) {
-    const deployment = await Deployment.findOne({
-      where: {
-        id: this.getDeploymentIdFromCache(decodedMessage.id.owner, decodedMessage.id.dseq.toNumber())
-      },
-      include: [
-        {
-          model: Lease
-        }
-      ],
-      transaction: blockGroupTransaction
-    });
-
-    msg.relatedDeploymentId = deployment.id;
-
-    deployment.deposit += parseFloat(decodedMessage.amount.amount);
-    deployment.balance += parseFloat(decodedMessage.amount.amount);
-    await deployment.save({ transaction: blockGroupTransaction });
-
-    const blockRate = deployment.leases
-      .filter((x) => !x.closedHeight)
-      .map((x) => x.price)
-      .reduce((a, b) => a + b, 0);
-
-    for (const lease of deployment.leases) {
-      lease.predictedClosedHeight = Math.ceil((deployment.lastWithdrawHeight || lease.createdHeight) + deployment.balance / blockRate);
-      await lease.save({ transaction: blockGroupTransaction });
-    }
-  }
-
-  private async handleWithdrawLease(decodedMessage: v1beta1.MsgWithdrawLease, height: number, blockGroupTransaction, msg: Message) {
-    const owner = decodedMessage.bidId.owner;
-    const dseq = decodedMessage.bidId.dseq.toNumber();
-    const gseq = decodedMessage.bidId.gseq;
-    const oseq = decodedMessage.bidId.oseq;
-    const provider = decodedMessage.bidId.provider;
-
-    const deployment = await Deployment.findOne({
-      where: {
-        owner: owner,
-        dseq: dseq
-      },
-      include: [{ model: Lease }],
-      transaction: blockGroupTransaction
-    });
-
-    if (!deployment) throw new Error(`Deployment not found for owner: ${owner} and dseq: ${dseq}`);
-
-    const lease = deployment.leases.find((x) => x.gseq === gseq && x.oseq === oseq && x.providerAddress === provider);
-
-    if (!lease) throw new Error(`Lease not found for gseq: ${gseq}, oseq: ${oseq} and provider: ${provider}`);
-
-    await accountSettle(deployment, height, blockGroupTransaction);
-
-    msg.relatedDeploymentId = deployment.id;
-  }
-
-  private async handleCreateProvider(decodedMessage: v1beta1.MsgCreateProvider, height: number, blockGroupTransaction, msg: Message) {
-    await Provider.create(
-      {
-        owner: decodedMessage.owner,
-        hostUri: decodedMessage.hostUri,
-        createdHeight: height,
-        email: decodedMessage.info?.email,
-        website: decodedMessage.info?.website
-      },
-      { transaction: blockGroupTransaction }
-    );
-
-    await ProviderAttribute.bulkCreate(
-      decodedMessage.attributes.map((attribute) => ({
-        provider: decodedMessage.owner,
-        key: attribute.key,
-        value: attribute.value
-      })),
-      { transaction: blockGroupTransaction }
-    );
-
-    this.activeProviderCount++;
-  }
-
-  private async handleUpdateProvider(decodedMessage: v1beta1.MsgUpdateProvider, height: number, blockGroupTransaction, msg: Message) {
-    await Provider.update(
-      {
-        hostUri: decodedMessage.hostUri,
-        createdHeight: height,
-        email: decodedMessage.info?.email,
-        website: decodedMessage.info?.website
-      },
-      {
-        where: {
-          owner: decodedMessage.owner
-        },
-        transaction: blockGroupTransaction
-      }
-    );
-
-    await ProviderAttribute.destroy({
-      where: {
-        provider: decodedMessage.owner
-      },
-      transaction: blockGroupTransaction
-    });
-    await ProviderAttribute.bulkCreate(
-      decodedMessage.attributes.map((attribute) => ({
-        provider: decodedMessage.owner,
-        key: attribute.key,
-        value: attribute.value
-      })),
-      { transaction: blockGroupTransaction }
-    );
-  }
-
-  private async handleDeleteProvider(decodedMessage: v1beta1.MsgDeleteProvider, height: number, blockGroupTransaction, msg: Message) {
-    await Provider.update(
-      {
-        deletedHeight: height
-      },
-      {
-        where: { owner: decodedMessage.owner },
-        transaction: blockGroupTransaction
-      }
-    );
-
-    this.activeProviderCount--;
-  }
-
-  private async handleSignProviderAttributes(decodedMessage: v1beta1.MsgSignProviderAttributes, height: number, blockGroupTransaction, msg: Message) {
-    const provider = await Provider.findOne({ where: { owner: decodedMessage.owner }, transaction: blockGroupTransaction });
-
-    if (!provider) {
-      console.warn(`Provider ${decodedMessage.owner} not found`);
-      return;
-    }
-
-    for (const attribute of decodedMessage.attributes) {
-      const existingAttributeSignature = await ProviderAttributeSignature.findOne({
-        where: {
-          provider: decodedMessage.owner,
-          auditor: decodedMessage.auditor,
-          key: attribute.key
-        },
-        transaction: blockGroupTransaction
-      });
-
-      if (existingAttributeSignature) {
-        await existingAttributeSignature.update(
-          {
-            value: attribute.value
-          },
-          { transaction: blockGroupTransaction }
-        );
-      } else {
-        await ProviderAttributeSignature.create(
-          {
-            provider: decodedMessage.owner,
-            auditor: decodedMessage.auditor,
-            key: attribute.key,
-            value: attribute.value
-          },
-          { transaction: blockGroupTransaction }
-        );
-      }
-    }
-  }
-
-  private async handleDeleteSignProviderAttributes(decodedMessage: v1beta1.MsgDeleteProviderAttributes, height: number, blockGroupTransaction, msg: Message) {
-    await ProviderAttributeSignature.destroy({
-      where: {
-        provider: decodedMessage.owner,
-        auditor: decodedMessage.auditor,
-        key: { [Op.in]: decodedMessage.keys }
-      },
-      transaction: blockGroupTransaction
-    });
   }
 }
 

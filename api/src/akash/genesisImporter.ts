@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { indexers } from "../indexers/indexer";
+import { indexers } from "../indexers";
 import { IGenesis } from "./genesisTypes";
 
 export async function importGenesis() {
