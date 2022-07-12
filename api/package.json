@@ -29,6 +29,7 @@
     "@octokit/rest": "^18.12.0",
     "@sentry/node": "^7.5.1",
     "@sentry/tracing": "^7.5.1",
+    "@types/node-fetch": "^2.6.2",
     "cors": "^2.8.5",
     "cosmjs-types": "^0.2.1",
     "date-fns": "^2.23.0",

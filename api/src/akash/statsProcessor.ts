@@ -3,7 +3,7 @@ import * as v1beta1 from "../proto/akash/v1beta1";
 import * as v1beta2 from "../proto/akash/v1beta2";
 import * as uuid from "uuid";
 import { sha256 } from "js-sha256";
-import { blockHeightToKey, blocksDb, txsDb } from "@src/akash/dataStore";
+import { blockHeightToKey, blocksDb } from "@src/akash/dataStore";
 import {
   Deployment,
   Transaction,
@@ -17,9 +17,7 @@ import {
   sequelize,
   Provider,
   ProviderAttribute,
-  ProviderAttributeSignature,
-  Proposal,
-  ProposalParameterChange
+  ProviderAttributeSignature
 } from "@src/db/schema";
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { MsgSubmitProposal } from "cosmjs-types/cosmos/gov/v1beta1/tx";
@@ -27,7 +25,7 @@ import * as benchmark from "../shared/utils/benchmark";
 import { accountSettle } from "@src/shared/utils/akashPaymentSettle";
 import { lastBlockToSync } from "@src/shared/constants";
 import { decodeMsg, uint8arrayToString } from "@src/shared/utils/protobuf";
-import { createProposalFromMsg } from "./handlers/proposal";
+import { indexers } from "@src/indexers/indexer";
 
 export let processingStatus = null;
 
@@ -110,10 +108,6 @@ class StatsProcessor {
     await DeploymentGroupResource.drop();
     await DeploymentGroup.drop();
     await Deployment.drop();
-    await Proposal.drop();
-    await ProposalParameterChange.drop();
-    await ProposalParameterChange.sync({ force: true });
-    await Proposal.sync({ force: true });
     await Deployment.sync({ force: true });
     await DeploymentGroup.sync({ force: true });
     await DeploymentGroupResource.sync({ force: true });
@@ -204,7 +198,6 @@ class StatsProcessor {
                 model: Message,
                 required: false,
                 where: {
-                  isInterestingType: true,
                   isProcessed: false
                 }
               }
@@ -381,13 +374,7 @@ class StatsProcessor {
     };
   }
 
-  public hasMessageHandlerFor(messageType: string): boolean {
-    return Object.keys(this.messageHandlers).includes(messageType);
-  }
-
   private messageHandlers: { [key: string]: (encodedMessage, height: number, blockGroupTransaction, msg: Message) => Promise<void> } = {
-    // Cosmos types
-    "/cosmos.gov.v1beta1.MsgSubmitProposal": this.handleSubmitProposal,
     // Akash v1beta1 types
     "/akash.deployment.v1beta1.MsgCreateDeployment": this.handleCreateDeployment,
     "/akash.deployment.v1beta1.MsgCloseDeployment": this.handleCloseDeployment,
@@ -419,18 +406,19 @@ class StatsProcessor {
   };
 
   private async processMessage(msg, encodedMessage, height: number, blockGroupTransaction) {
-    if (!Object.keys(this.messageHandlers).includes(msg.type)) {
-      throw Error("No handler for message of type: " + msg.type);
-    }
-
     await benchmark.measureAsync(msg.type, async () => {
-      const decodedMessage = decodeMsg(msg.type, encodedMessage);
-      await this.messageHandlers[msg.type].bind(this)(decodedMessage, height, blockGroupTransaction, msg);
-    });
-  }
+      if (msg.type in this.messageHandlers) {
+        const decodedMessage = decodeMsg(msg.type, encodedMessage);
+        await this.messageHandlers[msg.type].bind(this)(decodedMessage, height, blockGroupTransaction, msg);
+      }
 
-  private async handleSubmitProposal(decodedMessage: MsgSubmitProposal, height: number, blockGroupTransaction, msg: Message) {
-    await createProposalFromMsg(decodedMessage, height, blockGroupTransaction, msg.id);
+      for (const indexer of indexers) {
+        if (indexer.hasHandlerForType(msg.type)) {
+          const decodedMessage = decodeMsg(msg.type, encodedMessage);
+          await indexer.msgHandlers[msg.type](decodedMessage, height, blockGroupTransaction, msg);
+        }
+      }
+    });
   }
 
   private async handleCreateDeployment(decodedMessage: v1beta1.MsgCreateDeployment, height: number, blockGroupTransaction, msg: Message) {

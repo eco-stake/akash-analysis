@@ -11,8 +11,8 @@ export enum ExecutionMode {
   RebuildAll
 }
 
-export const executionMode: ExecutionMode = isProd ? ExecutionMode.DownloadAndSync : ExecutionMode.SyncOnly;
-export const lastBlockToSync = Number.POSITIVE_INFINITY;
+export const executionMode: ExecutionMode = isProd ? ExecutionMode.DownloadAndSync : ExecutionMode.RebuildAll;
+export const lastBlockToSync = 100_000;//Number.POSITIVE_INFINITY;
 
 export const dataFolderPath = "./data";
 

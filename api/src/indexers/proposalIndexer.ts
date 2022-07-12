@@ -1,5 +1,7 @@
 import * as uuid from "uuid";
-import { Proposal, ProposalParameterChange } from "@src/db/schema";
+import { IIndexer } from "./indexer";
+import { Block, Message, Proposal, ProposalParameterChange, sequelize } from "@src/db/schema";
+import { IGenesis, IGenesisProposal } from "@src/akash/genesisTypes";
 import { coinToUAkt } from "@src/shared/utils/math";
 import { MsgSubmitProposal } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/params";
@@ -7,27 +9,48 @@ import { SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upg
 import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
 import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 
-interface GenesisProposal {
-  content: ParameterChangeProposal | SoftwareUpgradeProposal | CommunityPoolSpendProposal | TextProposal;
-  deposit_end_time: string;
-  final_tally_result: {
-    abstain: string;
-    no: string;
-    no_with_veto: string;
-    yes: string;
-  };
-  proposal_id: string;
-  status: string;
-  submit_time: string;
-  total_deposit: {
-    amount: string;
-    denom: string;
-  }[];
-  voting_end_time: string;
-  voting_start_time: string;
+export class ProposalIndexer implements IIndexer {
+  name: string;
+  msgHandlers: { [key: string]: (msgSubmitProposal: any, height: number, blockGroupTransaction, msg: Message) => Promise<void> };
+
+  constructor() {
+    this.name = "Proposal Indexer";
+    this.msgHandlers = {
+      "/cosmos.gov.v1beta1.MsgSubmitProposal": createProposalFromMsg
+    };
+  }
+
+  hasHandlerForType(type: string): boolean {
+    return Object.keys(this.msgHandlers).includes(type);
+  }
+
+  getBlockProcessedProperty(block: Block) {
+    return block.isProcessed;
+  }
+
+  async recreateTables() {
+    await Proposal.drop();
+    await ProposalParameterChange.drop();
+    await ProposalParameterChange.sync({ force: true });
+    await Proposal.sync({ force: true });
+  }
+
+  async seed(genesis: IGenesis) {
+    const proposals = genesis.app_state.gov.proposals;
+
+    const dbTransaction = await sequelize.transaction();
+
+    for (const proposal of proposals) {
+      console.log("Creating proposal #" + proposal.proposal_id);
+
+      await createProposalFromGenesis(proposal, dbTransaction);
+    }
+
+    await dbTransaction.commit();
+  }
 }
 
-export async function createProposalFromMsg(msgSubmitProposal: MsgSubmitProposal, height: number, blockGroupTransaction, msgId: string) {
+export async function createProposalFromMsg(msgSubmitProposal: MsgSubmitProposal, height: number, blockGroupTransaction, msg: Message) {
   const proposalId = ((await Proposal.max("id", { transaction: blockGroupTransaction })) as number) + 1;
 
   if (msgSubmitProposal.initialDeposit.length > 1) {
@@ -36,7 +59,7 @@ export async function createProposalFromMsg(msgSubmitProposal: MsgSubmitProposal
 
   let proposal = Proposal.build({
     id: proposalId,
-    messageId: msgId,
+    messageId: msg.id,
     proposer: msgSubmitProposal.proposer,
     type: msgSubmitProposal.content.typeUrl,
     submittedHeight: height,
@@ -75,7 +98,7 @@ export async function createProposalFromMsg(msgSubmitProposal: MsgSubmitProposal
   }
 }
 
-export async function createProposalFromGenesis(genesisProposal: GenesisProposal, dbTransaction) {
+export async function createProposalFromGenesis(genesisProposal: IGenesisProposal, dbTransaction) {
   let proposal = Proposal.build({
     id: parseInt(genesisProposal.proposal_id),
     type: genesisProposal.content["@type"]

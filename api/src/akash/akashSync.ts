@@ -127,13 +127,11 @@ async function insertBlocks(startHeight, endHeight) {
       const hash = sha256(Buffer.from(tx, "base64")).toUpperCase();
       const txId = uuid.v4();
 
-      let hasInterestingTypes = false;
       const decodedTx = decodeTxRaw(fromBase64(tx));
       const msgs = decodedTx.body.messages;
 
       for (let msgIndex = 0; msgIndex < msgs.length; ++msgIndex) {
         const msg = msgs[msgIndex];
-        const isInterestingType = statsProcessor.hasMessageHandlerFor(msg.typeUrl);
 
         msgsToAdd.push({
           id: uuid.v4(),
@@ -143,13 +141,8 @@ async function insertBlocks(startHeight, endHeight) {
           index: msgIndex,
           height: i,
           indexInBlock: msgIndexInBlock++,
-          isInterestingType: isInterestingType,
           data: Buffer.from(msg.value)
         });
-
-        if (isInterestingType) {
-          hasInterestingTypes = true;
-        }
       }
 
       txsToAdd.push({
@@ -158,8 +151,7 @@ async function insertBlocks(startHeight, endHeight) {
         height: i,
         index: txIndex,
         fee: decodedTx.authInfo.fee.amount.length > 0 ? parseInt(decodedTx.authInfo.fee.amount[0].amount) : 0,
-        memo: decodedTx.body.memo,
-        hasInterestingTypes: hasInterestingTypes
+        memo: decodedTx.body.memo
       });
     }
 

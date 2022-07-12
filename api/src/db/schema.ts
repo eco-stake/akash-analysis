@@ -465,7 +465,6 @@ export class Transaction extends Model {
   public memo: string;
   public isProcessed!: boolean;
   public downloaded!: boolean;
-  public hasInterestingType!: boolean;
   public hasDownloadError!: boolean;
   public hasProcessingError!: boolean;
   public log?: string;
@@ -490,7 +489,6 @@ Transaction.init(
     memo: { type: DataTypes.STRING, allowNull: false },
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     downloaded: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    hasInterestingTypes: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     hasDownloadError: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     hasProcessingError: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     log: { type: DataTypes.STRING, allowNull: true }
@@ -514,9 +512,7 @@ export class Message extends Model {
   public typeGroup!: string;
   public index!: number;
   public indexInBlock!: number;
-  public isInterestingType!: boolean;
   public isProcessed!: boolean;
-  public shouldProcess!: boolean;
   public relatedDeploymentId?: string;
   public data: Uint8Array;
 
@@ -545,9 +541,7 @@ Message.init(
     typeCategory: { type: DataTypes.STRING, allowNull: true },
     index: { type: DataTypes.INTEGER, allowNull: false },
     indexInBlock: { type: DataTypes.INTEGER, allowNull: false },
-    isInterestingType: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    shouldProcess: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     relatedDeploymentId: { type: DataTypes.STRING, allowNull: true },
     data: { type: DataTypes.BLOB, allowNull: false }
   },
@@ -558,7 +552,7 @@ Message.init(
       { unique: false, fields: ["txId"] },
       { unique: false, fields: ["relatedDeploymentId"] },
       { unique: false, fields: ["height"] },
-      { unique: false, fields: ["txId", "isProcessed", "isInterestingType"] }
+      { unique: false, fields: ["txId", "isProcessed"] }
     ],
     sequelize
   }
