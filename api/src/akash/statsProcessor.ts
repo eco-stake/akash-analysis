@@ -5,8 +5,9 @@ import { Transaction, Message, Block, Op, sequelize } from "@src/db/schema";
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { lastBlockToSync } from "@src/shared/constants";
 import { decodeMsg } from "@src/shared/utils/protobuf";
-import { indexers, indexersMsgTypes } from "@src/indexers";
+import { activeIndexers, indexersMsgTypes } from "@src/indexers";
 import * as benchmark from "@src/shared/utils/benchmark";
+import { getGenesis } from "./genesisImporter";
 
 export let processingStatus = null;
 
@@ -64,8 +65,10 @@ class StatsProcessor {
 
     console.log("Rebuilding stats tables...");
 
-    for (const indexer of indexers) {
+    const genesis = await getGenesis();
+    for (const indexer of activeIndexers) {
       await indexer.recreateTables();
+      await indexer.seed(genesis);
     }
 
     console.log("Enabling foreign key checks");
@@ -99,7 +102,7 @@ class StatsProcessor {
     });
 
     if (!this.cacheInitialized) {
-      for (const indexer of indexers) {
+      for (const indexer of activeIndexers) {
         await indexer.initCache(null, firstUnprocessedHeight);
       }
       this.cacheInitialized = true;
@@ -176,7 +179,7 @@ class StatsProcessor {
             }
           }
 
-          for (const indexer of indexers) {
+          for (const indexer of activeIndexers) {
             await indexer.afterEveryBlock(block, previousProcessedBlock, blockGroupTransaction);
           }
 
@@ -231,7 +234,7 @@ class StatsProcessor {
   }
 
   private async processMessage(msg, encodedMessage, height: number, blockGroupTransaction) {
-    for (const indexer of indexers) {
+    for (const indexer of activeIndexers) {
       if (indexer.hasHandlerForType(msg.type)) {
         const decodedMessage = decodeMsg(msg.type, encodedMessage);
         await indexer.processMessage(decodedMessage, height, blockGroupTransaction, msg);

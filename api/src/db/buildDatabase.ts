@@ -5,6 +5,7 @@ import { download } from "@src/shared/utils/download";
 import { bytesToHumanReadableSize } from "@src/shared/utils/files";
 import { Block, Transaction, Message, sequelize, sqliteDatabasePath, Day } from "./schema";
 import { createExtractorFromFile } from "node-unrar-js";
+import { getGenesis } from "@src/akash/genesisImporter";
 
 /**
  * Initiate database schema
@@ -48,8 +49,10 @@ export const initDatabase = async () => {
   }
 
   if (executionMode === ExecutionMode.RebuildAll) {
+    const genesis = await getGenesis();
     for (const indexer of indexers) {
       await indexer.recreateTables();
+      await indexer.seed(genesis);
     }
   }
 

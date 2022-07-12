@@ -47,6 +47,7 @@ export class AkashStatsIndexer extends Indexer {
   constructor() {
     super();
     this.name = "AkashStatsIndexer";
+    this.shouldSync = true;
     this.msgHandlers = {
       // Akash v1beta1 types
       "/akash.deployment.v1beta1.MsgCreateDeployment": this.handleCreateDeployment,

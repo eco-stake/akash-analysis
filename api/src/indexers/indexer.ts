@@ -4,6 +4,7 @@ import * as benchmark from "@src/shared/utils/benchmark";
 
 export abstract class Indexer {
   name: string;
+  shouldSync: boolean;
   msgHandlers: { [key: string]: (msgSubmitProposal: any, height: number, blockGroupTransaction, msg: Message) => Promise<void> };
 
   public initCache(dbTransaction, firstBlockHeight: number): Promise<void> {

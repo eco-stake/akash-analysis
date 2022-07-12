@@ -2,5 +2,6 @@ import { AkashStatsIndexer } from "./akashStatsIndexer";
 import { Indexer } from "./indexer";
 import { ProposalIndexer } from "./proposalIndexer";
 
-export const indexers: Indexer[] = [new ProposalIndexer(), new AkashStatsIndexer()];
-export const indexersMsgTypes: string[] = indexers.reduce((previous, current) => previous.concat(Object.keys(current.msgHandlers)), []);
+export const indexers: Indexer[] = [new AkashStatsIndexer(), new ProposalIndexer()];
+export const activeIndexers = indexers.filter(x => x.shouldSync);
+export const indexersMsgTypes: string[] = activeIndexers.reduce((previous, current) => previous.concat(Object.keys(current.msgHandlers)), []);
