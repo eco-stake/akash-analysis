@@ -1,6 +1,6 @@
 import React from "react";
 import { useMediaQueryContext } from "@src/context/MediaQueryProvider";
-import { FormattedNumber } from "react-intl";
+import { FormattedNumber, FormattedRelativeTime } from "react-intl";
 import { DashboardData, SnapshotsUrlParam } from "@src/types";
 import Paper from "@mui/material/Paper";
 import { makeStyles } from "tss-react/mui";
@@ -12,6 +12,13 @@ import { percIncrease, uaktToAKT } from "@src/utils/mathHelpers";
 import { HumanReadableBytes } from "../shared/HumanReadableBytes";
 import Grid from "@mui/material/Grid";
 import { cx } from "@emotion/css";
+import TableContainer from "@mui/material/TableContainer";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import { toUTC } from "@src/utils/dateUtils";
 
 interface IDashboardProps {
   dashboardData: DashboardData;
@@ -82,8 +89,6 @@ const useStyles = makeStyles()(theme => ({
 export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardData }) => {
   const { classes } = useStyles();
   const mediaQuery = useMediaQueryContext();
-
-  let tileClassName = "col-lg-3";
 
   return (
     <>
@@ -298,6 +303,38 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
           />
         </Grid>
       </Grid>
+
+      <TableContainer sx={{ mb: 4 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell width="5%">Height</TableCell>
+              <TableCell align="center" width="10%">
+                Proposer
+              </TableCell>
+              <TableCell align="center" width="45%">
+                Txs
+              </TableCell>
+              <TableCell align="center" width="10%">
+                Time
+              </TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {dashboardData.latestBlocks.map(block => (
+              <TableRow key={block.height}>
+                <TableCell align="center">{block.height}</TableCell>
+                <TableCell align="center">{block.proposer}</TableCell>
+                <TableCell align="center">{block.transactionCount}</TableCell>
+                <TableCell align="center">
+                  <FormattedRelativeTime value={new Date(block.date).getTime() - toUTC(new Date()).getTime()} numeric="auto" updateIntervalInSeconds={1} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </>
   );
 };

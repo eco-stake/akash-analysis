@@ -5,6 +5,25 @@ import { averageBlockCountInAMonth, averageBlockTime } from "@src/shared/constan
 import { round } from "@src/shared/utils/math";
 import { add } from "date-fns";
 
+export async function getLatestBlocks() {
+  const latestBlocks = await Block.findAll({
+    order: [["height", "DESC"]],
+    limit: 5,
+    include: [
+      {
+        model: Transaction
+      }
+    ]
+  });
+
+  return latestBlocks.map((block) => ({
+    height: block.height,
+    proposer: block.proposer,
+    transactionCount: block.transactions.length,
+    date: block.datetime
+  }));
+}
+
 export async function getBlock(height: number) {
   const latestBlock = await Block.findOne({
     order: [["height", "DESC"]]

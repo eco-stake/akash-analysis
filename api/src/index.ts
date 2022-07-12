@@ -17,7 +17,7 @@ import { fetchGithubReleases } from "./providers/githubProvider";
 import { getNetworkCapacity, getProviders, syncProvidersInfo } from "./providers/providerStatusProvider";
 import { getTemplateGallery } from "./providers/templateReposProvider";
 import { Scheduler } from "./scheduler";
-import { getBlock, getDeployment, getTransaction } from "./db/explorerProvider";
+import { getBlock, getDeployment, getLatestBlocks, getTransaction } from "./db/explorerProvider";
 
 require("dotenv").config();
 
@@ -163,7 +163,9 @@ apiRouter.get("/getDashboardData", waitForInitMiddleware, async (req, res) => {
     const dashboardData = await getDashboardData();
     const marketData = marketDataProvider.getAktMarketData();
     const networkCapacity = await getNetworkCapacity();
-    res.send({ ...dashboardData, marketData, networkCapacity });
+    const latestBlocks = await getLatestBlocks();
+
+    res.send({ ...dashboardData, marketData, networkCapacity, latestBlocks });
   } catch (err) {
     console.error(err);
   }
