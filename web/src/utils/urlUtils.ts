@@ -1,8 +1,9 @@
 export class UrlService {
   static dashboard = () => "/";
+  static blocks = () => "/blocks";
 }
 
-function appendSearchParams(params) {
+export function appendSearchParams(params) {
   const urlParams = new URLSearchParams("");
   Object.keys(params).forEach(p => {
     if (params[p]) {

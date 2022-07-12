@@ -1,72 +1,8 @@
 import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute } from "./schema";
 import { msgToJSON } from "@src/shared/utils/protobuf";
 import { getAktMarketData } from "@src/providers/marketDataProvider";
-import { averageBlockCountInAMonth, averageBlockTime } from "@src/shared/constants";
+import { averageBlockCountInAMonth } from "@src/shared/constants";
 import { round } from "@src/shared/utils/math";
-import { add } from "date-fns";
-
-export async function getLatestBlocks() {
-  const latestBlocks = await Block.findAll({
-    order: [["height", "DESC"]],
-    limit: 5,
-    include: [
-      {
-        model: Transaction
-      }
-    ]
-  });
-
-  return latestBlocks.map((block) => ({
-    height: block.height,
-    proposer: block.proposer,
-    transactionCount: block.transactions.length,
-    date: block.datetime
-  }));
-}
-
-export async function getBlock(height: number) {
-  const latestBlock = await Block.findOne({
-    order: [["height", "DESC"]]
-  });
-
-  if (height > latestBlock.height) {
-    return getFutureBlockEstimate(height, latestBlock);
-  }
-
-  const block = await Block.findOne({
-    where: {
-      height: height
-    },
-    include: [
-      {
-        model: Transaction
-      }
-    ]
-  });
-
-  if (!block) return null;
-
-  return {
-    height: block.height,
-    datetime: block.datetime,
-    hash: block.hash,
-    gasUsed: block.transactions.map((tx) => tx.gasUsed).reduce((a, b) => a + b, 0),
-    gasWanted: block.transactions.map((tx) => tx.gasWanted).reduce((a, b) => a + b, 0),
-    transactions: block.transactions.map((tx) => ({
-      hash: tx.hash,
-      isSuccess: !tx.hasProcessingError,
-      error: tx.hasProcessingError ? tx.log : null,
-      fee: tx.fee
-    }))
-  };
-}
-
-async function getFutureBlockEstimate(height: number, latestBlock: Block) {
-  return {
-    height: height,
-    expectedDate: add(latestBlock.datetime, { seconds: (height - latestBlock.height) * averageBlockTime })
-  };
-}
 
 export async function getTransaction(hash) {
   const tx = await Transaction.findOne({

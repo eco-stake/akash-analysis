@@ -17,7 +17,8 @@ import { fetchGithubReleases } from "./providers/githubProvider";
 import { getNetworkCapacity, getProviders, syncProvidersInfo } from "./providers/providerStatusProvider";
 import { getTemplateGallery } from "./providers/templateReposProvider";
 import { Scheduler } from "./scheduler";
-import { getBlock, getDeployment, getLatestBlocks, getTransaction } from "./db/explorerProvider";
+import { getDeployment, getTransaction } from "./db/explorerProvider";
+import { getBlock, getBlocks } from "./db/blocksProvider";
 
 require("dotenv").config();
 
@@ -79,6 +80,22 @@ apiRouter.get("/templates", cache(60 * 5), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send("Failed to fetch templates");
+  }
+});
+
+apiRouter.get("/blocks", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit.toString());
+    const blocks = await getBlocks(limit || 20);
+
+    if (blocks) {
+      res.send(blocks);
+    } else {
+      res.status(400).send("Error fetching blocks.");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
   }
 });
 
@@ -163,7 +180,7 @@ apiRouter.get("/getDashboardData", waitForInitMiddleware, async (req, res) => {
     const dashboardData = await getDashboardData();
     const marketData = marketDataProvider.getAktMarketData();
     const networkCapacity = await getNetworkCapacity();
-    const latestBlocks = await getLatestBlocks();
+    const latestBlocks = await getBlocks(5);
 
     res.send({ ...dashboardData, marketData, networkCapacity, latestBlocks });
   } catch (err) {

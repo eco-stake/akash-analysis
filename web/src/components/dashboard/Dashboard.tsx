@@ -19,6 +19,9 @@ import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import { toUTC } from "@src/utils/dateUtils";
+import Button from "@mui/material/Button";
+import Link from "next/link";
+import { UrlService } from "@src/utils/urlUtils";
 
 interface IDashboardProps {
   dashboardData: DashboardData;
@@ -335,6 +338,14 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Box sx={{ mb: 4 }}>
+        <Link href={UrlService.blocks()} passHref>
+          <Button variant="contained" color="secondary">
+            Show more
+          </Button>
+        </Link>
+      </Box>
     </>
   );
 };

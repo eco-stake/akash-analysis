@@ -1,4 +1,4 @@
-export interface LatestBlock {
+export interface Block {
   date: string;
   height: number;
   proposer: string;
