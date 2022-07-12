@@ -1,26 +1,10 @@
+import fs from "fs";
+import { indexers } from "@src/indexers";
 import { dataFolderPath, executionMode, ExecutionMode } from "@src/shared/constants";
 import { download } from "@src/shared/utils/download";
 import { bytesToHumanReadableSize } from "@src/shared/utils/files";
+import { Block, Transaction, Message, sequelize, sqliteDatabasePath, Day } from "./schema";
 import { createExtractorFromFile } from "node-unrar-js";
-import fs from "fs";
-import {
-  Bid,
-  Block,
-  Transaction,
-  Deployment,
-  DeploymentGroup,
-  DeploymentGroupResource,
-  Lease,
-  Message,
-  sequelize,
-  sqliteDatabasePath,
-  Day,
-  Provider,
-  ProviderAttribute,
-  ProviderAttributeSignature,
-  Proposal,
-  ProposalParameterChange
-} from "./schema";
 
 /**
  * Initiate database schema
@@ -64,37 +48,15 @@ export const initDatabase = async () => {
   }
 
   if (executionMode === ExecutionMode.RebuildAll) {
-    await ProposalParameterChange.drop();
-    await Proposal.drop();
-    await Bid.drop();
-    await Lease.drop();
-    await DeploymentGroupResource.drop();
-    await DeploymentGroup.drop();
-    await Deployment.drop();
-    await Provider.drop();
-    await ProviderAttribute.drop();
-    await ProviderAttributeSignature.drop();
-    await Message.drop();
-    await Transaction.drop();
-    await Block.drop();
-    await Day.drop();
+    for (const indexer of indexers) {
+      await indexer.recreateTables();
+    }
   }
 
   await Day.sync();
   await Block.sync();
   await Transaction.sync();
   await Message.sync();
-
-  await Deployment.sync({ force: false });
-  await DeploymentGroup.sync({ force: false });
-  await DeploymentGroupResource.sync({ force: false });
-  await Lease.sync({ force: false });
-  await Bid.sync({ force: false });
-  await Provider.sync({ force: false });
-  await ProviderAttribute.sync({ force: false });
-  await ProviderAttributeSignature.sync({ force: false });
-  await Proposal.sync({ force: false });
-  await ProposalParameterChange.sync({ force: true });
 };
 
 export async function getDbSize() {

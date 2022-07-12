@@ -20,8 +20,15 @@ export abstract class Indexer {
       await this.msgHandlers[msg.type].bind(this)(decodedMessage, height, blockGroupTransaction, msg);
     });
   }
-  recreateTables(): Promise<void> {
+  dropTables(): Promise<void> {
     return Promise.resolve();
+  }
+  createTables(): Promise<void> {
+    return Promise.resolve();
+  }
+  async recreateTables(): Promise<void> {
+    await this.dropTables();
+    await this.createTables();
   }
   seed(genesis: IGenesis): Promise<void> {
     return Promise.resolve();

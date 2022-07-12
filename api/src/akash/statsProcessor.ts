@@ -5,7 +5,7 @@ import { Transaction, Message, Block, Op, sequelize } from "@src/db/schema";
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { lastBlockToSync } from "@src/shared/constants";
 import { decodeMsg } from "@src/shared/utils/protobuf";
-import { indexers } from "@src/indexers";
+import { indexers, indexersMsgTypes } from "@src/indexers";
 import * as benchmark from "@src/shared/utils/benchmark";
 
 export let processingStatus = null;
@@ -130,7 +130,8 @@ class StatsProcessor {
                 model: Message,
                 required: false,
                 where: {
-                  isProcessed: false
+                  isProcessed: false,
+                  type: { [Op.in]: indexersMsgTypes }
                 }
               }
             ]

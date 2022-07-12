@@ -48,6 +48,7 @@ export class AkashStatsIndexer extends Indexer {
     super();
     this.name = "AkashStatsIndexer";
     this.msgHandlers = {
+      // Akash v1beta1 types
       "/akash.deployment.v1beta1.MsgCreateDeployment": this.handleCreateDeployment,
       "/akash.deployment.v1beta1.MsgCloseDeployment": this.handleCloseDeployment,
       "/akash.market.v1beta1.MsgCreateLease": this.handleCreateLease,
@@ -83,7 +84,7 @@ export class AkashStatsIndexer extends Indexer {
   }
 
   @benchmark.measureMethodAsync
-  async recreateTables() {
+  async dropTables(): Promise<void> {
     await Bid.drop();
     await Lease.drop();
     await Provider.drop();
@@ -92,14 +93,17 @@ export class AkashStatsIndexer extends Indexer {
     await DeploymentGroupResource.drop();
     await DeploymentGroup.drop();
     await Deployment.drop();
-    await Deployment.sync({ force: true });
-    await DeploymentGroup.sync({ force: true });
-    await DeploymentGroupResource.sync({ force: true });
-    await ProviderAttributeSignature.sync({ force: true });
-    await ProviderAttribute.sync({ force: true });
-    await Provider.sync({ force: true });
-    await Lease.sync({ force: true });
-    await Bid.sync({ force: true });
+  }
+
+  async createTables(): Promise<void> {
+    await Deployment.sync({ force: false });
+    await DeploymentGroup.sync({ force: false });
+    await DeploymentGroupResource.sync({ force: false });
+    await ProviderAttributeSignature.sync({ force: false });
+    await ProviderAttribute.sync({ force: false });
+    await Provider.sync({ force: false });
+    await Lease.sync({ force: false });
+    await Bid.sync({ force: false });
   }
 
   async initCache(dbTransaction, firstBlockHeight: number) {
@@ -291,7 +295,12 @@ export class AkashStatsIndexer extends Indexer {
     }
   }
 
-  private async handleCloseDeployment(decodedMessage: v1beta1.MsgCloseDeployment, height: number, blockGroupTransaction, msg: Message) {
+  private async handleCloseDeployment(
+    decodedMessage: v1beta1.MsgCloseDeployment | v1beta2.MsgCloseDeployment,
+    height: number,
+    blockGroupTransaction,
+    msg: Message
+  ) {
     const deployment = await Deployment.findOne({
       where: {
         id: this.getDeploymentIdFromCache(decodedMessage.id.owner, decodedMessage.id.dseq.toNumber())
@@ -315,7 +324,7 @@ export class AkashStatsIndexer extends Indexer {
     await deployment.save({ transaction: blockGroupTransaction });
   }
 
-  private async handleCreateLease(decodedMessage: v1beta1.MsgCreateLease, height: number, blockGroupTransaction, msg: Message) {
+  private async handleCreateLease(decodedMessage: v1beta1.MsgCreateLease | v1beta2.MsgCreateLease, height: number, blockGroupTransaction, msg: Message) {
     const bid = await Bid.findOne({
       where: {
         owner: decodedMessage.bidId.owner,
@@ -379,7 +388,7 @@ export class AkashStatsIndexer extends Indexer {
     this.totalLeaseCount++;
   }
 
-  private async handleCloseLease(decodedMessage: v1beta1.MsgCloseLease, height: number, blockGroupTransaction, msg: Message) {
+  private async handleCloseLease(decodedMessage: v1beta1.MsgCloseLease | v1beta1.MsgCloseLease, height: number, blockGroupTransaction, msg: Message) {
     const deployment = await Deployment.findOne({
       where: {
         id: this.getDeploymentIdFromCache(decodedMessage.leaseId.owner, decodedMessage.leaseId.dseq.toNumber())
@@ -444,7 +453,7 @@ export class AkashStatsIndexer extends Indexer {
     msg.relatedDeploymentId = this.getDeploymentIdFromCache(decodedMessage.order.owner, decodedMessage.order.dseq.toNumber());
   }
 
-  private async handleCloseBid(decodedMessage: v1beta1.MsgCloseBid, height: number, blockGroupTransaction, msg: Message) {
+  private async handleCloseBid(decodedMessage: v1beta1.MsgCloseBid | v1beta2.MsgCloseBid, height: number, blockGroupTransaction, msg: Message) {
     const deployment = await Deployment.findOne({
       where: {
         id: this.getDeploymentIdFromCache(decodedMessage.bidId.owner, decodedMessage.bidId.dseq.toNumber())
@@ -486,7 +495,12 @@ export class AkashStatsIndexer extends Indexer {
     });
   }
 
-  private async handleDepositDeployment(decodedMessage: v1beta1.MsgDepositDeployment, height: number, blockGroupTransaction, msg: Message) {
+  private async handleDepositDeployment(
+    decodedMessage: v1beta1.MsgDepositDeployment | v1beta2.MsgDepositDeployment,
+    height: number,
+    blockGroupTransaction,
+    msg: Message
+  ) {
     const deployment = await Deployment.findOne({
       where: {
         id: this.getDeploymentIdFromCache(decodedMessage.id.owner, decodedMessage.id.dseq.toNumber())
@@ -516,7 +530,7 @@ export class AkashStatsIndexer extends Indexer {
     }
   }
 
-  private async handleWithdrawLease(decodedMessage: v1beta1.MsgWithdrawLease, height: number, blockGroupTransaction, msg: Message) {
+  private async handleWithdrawLease(decodedMessage: v1beta1.MsgWithdrawLease | v1beta2.MsgWithdrawLease, height: number, blockGroupTransaction, msg: Message) {
     const owner = decodedMessage.bidId.owner;
     const dseq = decodedMessage.bidId.dseq.toNumber();
     const gseq = decodedMessage.bidId.gseq;
@@ -543,7 +557,12 @@ export class AkashStatsIndexer extends Indexer {
     msg.relatedDeploymentId = deployment.id;
   }
 
-  private async handleCreateProvider(decodedMessage: v1beta1.MsgCreateProvider, height: number, blockGroupTransaction, msg: Message) {
+  private async handleCreateProvider(
+    decodedMessage: v1beta1.MsgCreateProvider | v1beta2.MsgCreateProvider,
+    height: number,
+    blockGroupTransaction,
+    msg: Message
+  ) {
     await Provider.create(
       {
         owner: decodedMessage.owner,
@@ -567,7 +586,12 @@ export class AkashStatsIndexer extends Indexer {
     this.activeProviderCount++;
   }
 
-  private async handleUpdateProvider(decodedMessage: v1beta1.MsgUpdateProvider, height: number, blockGroupTransaction, msg: Message) {
+  private async handleUpdateProvider(
+    decodedMessage: v1beta1.MsgUpdateProvider | v1beta2.MsgUpdateProvider,
+    height: number,
+    blockGroupTransaction,
+    msg: Message
+  ) {
     await Provider.update(
       {
         hostUri: decodedMessage.hostUri,
@@ -599,7 +623,12 @@ export class AkashStatsIndexer extends Indexer {
     );
   }
 
-  private async handleDeleteProvider(decodedMessage: v1beta1.MsgDeleteProvider, height: number, blockGroupTransaction, msg: Message) {
+  private async handleDeleteProvider(
+    decodedMessage: v1beta1.MsgDeleteProvider | v1beta2.MsgDeleteProvider,
+    height: number,
+    blockGroupTransaction,
+    msg: Message
+  ) {
     await Provider.update(
       {
         deletedHeight: height
@@ -613,7 +642,12 @@ export class AkashStatsIndexer extends Indexer {
     this.activeProviderCount--;
   }
 
-  private async handleSignProviderAttributes(decodedMessage: v1beta1.MsgSignProviderAttributes, height: number, blockGroupTransaction, msg: Message) {
+  private async handleSignProviderAttributes(
+    decodedMessage: v1beta1.MsgSignProviderAttributes | v1beta2.MsgSignProviderAttributes,
+    height: number,
+    blockGroupTransaction,
+    msg: Message
+  ) {
     const provider = await Provider.findOne({ where: { owner: decodedMessage.owner }, transaction: blockGroupTransaction });
 
     if (!provider) {
@@ -652,7 +686,12 @@ export class AkashStatsIndexer extends Indexer {
     }
   }
 
-  private async handleDeleteSignProviderAttributes(decodedMessage: v1beta1.MsgDeleteProviderAttributes, height: number, blockGroupTransaction, msg: Message) {
+  private async handleDeleteSignProviderAttributes(
+    decodedMessage: v1beta1.MsgDeleteProviderAttributes | v1beta2.MsgDeleteProviderAttributes,
+    height: number,
+    blockGroupTransaction,
+    msg: Message
+  ) {
     await ProviderAttributeSignature.destroy({
       where: {
         provider: decodedMessage.owner,

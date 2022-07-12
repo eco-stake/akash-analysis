@@ -22,11 +22,15 @@ export class ProposalIndexer extends Indexer {
   }
 
   @benchmark.measureMethodAsync
-  async recreateTables() {
+  async dropTables(): Promise<void> {
     await Proposal.drop();
     await ProposalParameterChange.drop();
-    await ProposalParameterChange.sync({ force: true });
-    await Proposal.sync({ force: true });
+  }
+  
+  @benchmark.measureMethodAsync
+  async createTables(): Promise<void> {
+    await ProposalParameterChange.sync({ force: false });
+    await Proposal.sync({ force: false });
   }
 
   @benchmark.measureMethodAsync
