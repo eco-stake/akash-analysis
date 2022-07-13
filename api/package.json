@@ -7,6 +7,8 @@
   "main": "server.js",
   "scripts": {
     "start": "webpack --config webpack.dev.js --watch",
+    "rebuild-all": "webpack --config webpack.dev.js && node ./dist/server.js --rebuild-all",
+    "rebuild-stats": "webpack --config webpack.dev.js && node ./dist/server.js --rebuild-stats",
     "build": "webpack --config webpack.prod.js",
     "test": "jest",
     "postinstall": "patch-package"
@@ -42,6 +44,7 @@
     "level": "^8.0.0",
     "markdown-to-text": "^0.1.1",
     "memory-cache": "^0.2.0",
+    "minimist": "^1.2.6",
     "node-fetch": "^2.6.1",
     "node-unrar-js": "^2.0.0",
     "protobufjs": "^6.11.2",

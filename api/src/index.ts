@@ -18,7 +18,6 @@ import { getNetworkCapacity, getProviders, syncProvidersInfo } from "./providers
 import { getTemplateGallery } from "./providers/templateReposProvider";
 import { Scheduler } from "./scheduler";
 import { getBlock, getDeployment, getTransaction } from "./db/explorerProvider";
-import { importGenesis } from "./akash/genesisImporter";
 
 require("dotenv").config();
 
@@ -251,9 +250,11 @@ app.use("/web3-index", web3IndexRouter);
 // the rest of your app
 app.use(Sentry.Handlers.errorHandler());
 
-app.listen(PORT, () => {
-  console.log("server started at http://localhost:" + PORT);
-});
+if (executionMode !== ExecutionMode.RebuildAll && executionMode !== ExecutionMode.RebuildStats) {
+  app.listen(PORT, () => {
+    console.log("server started at http://localhost:" + PORT);
+  });
+}
 
 let initDatabaseTask = null;
 async function waitForInitMiddleware(req, res, next) {
@@ -290,7 +291,6 @@ async function initApp() {
       await statsProcessor.rebuildStatsTables();
     } else if (executionMode === ExecutionMode.RebuildAll) {
       console.time("Rebuilding all");
-      await importGenesis();
       await syncBlocks();
       console.timeEnd("Rebuilding all");
     } else if (executionMode === ExecutionMode.DownloadAndSync || executionMode === ExecutionMode.SyncOnly) {

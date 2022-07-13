@@ -1,3 +1,7 @@
+import minimist from "minimist";
+
+const args = minimist(process.argv.slice(2));
+
 export const averageBlockTime = 6.174;
 export const averageDaysInMonth = 30.437;
 export const averageBlockCountInAMonth = (averageDaysInMonth * 24 * 60 * 60) / averageBlockTime;
@@ -11,8 +15,17 @@ export enum ExecutionMode {
   RebuildAll
 }
 
-export const executionMode: ExecutionMode = isProd ? ExecutionMode.DownloadAndSync : ExecutionMode.RebuildAll;
-export const lastBlockToSync = 100_000;//Number.POSITIVE_INFINITY;
+let executionMode: ExecutionMode = isProd ? ExecutionMode.DownloadAndSync : ExecutionMode.SyncOnly;
+let lastBlockToSync = args["max-height"] || Number.POSITIVE_INFINITY;
+
+if (args["rebuild-all"]) {
+  executionMode = ExecutionMode.RebuildAll;
+} else if (args["rebuild-stats"]) {
+  executionMode = ExecutionMode.RebuildStats;
+}
+
+export { executionMode, lastBlockToSync };
+console.log("Test");
 
 export const dataFolderPath = "./data";
 

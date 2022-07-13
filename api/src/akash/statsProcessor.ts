@@ -74,7 +74,9 @@ class StatsProcessor {
     console.log("Enabling foreign key checks");
     await sequelize.query("PRAGMA foreign_keys=0");
 
+    console.time("Processing messages");
     await this.processMessages();
+    console.timeEnd("Processing messages");
   }
 
   public async processMessages() {

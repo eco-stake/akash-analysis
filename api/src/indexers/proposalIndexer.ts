@@ -16,7 +16,6 @@ export class ProposalIndexer extends Indexer {
   constructor() {
     super();
     this.name = "ProposalIndexer";
-    this.shouldSync = true;
     this.msgHandlers = {
       "/cosmos.gov.v1beta1.MsgSubmitProposal": createProposalFromMsg
     };
