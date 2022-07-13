@@ -19,7 +19,7 @@ export const BlockRow: React.FunctionComponent<Props> = ({ block }) => {
   const theme = useTheme();
 
   return (
-    <TableRow key={block.height}>
+    <TableRow>
       <TableCell align="center">
         <Link href={UrlService.block(block.height)}>
           <a>{block.height}</a>
@@ -38,7 +38,7 @@ export const BlockRow: React.FunctionComponent<Props> = ({ block }) => {
       </TableCell>
       <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
         <FormattedRelativeTime
-          value={(new Date(block.date).getTime() - new Date().getTime()) / 1000}
+          value={(new Date(block.datetime).getTime() - new Date().getTime()) / 1000}
           numeric="auto"
           unit="second"
           updateIntervalInSeconds={7}

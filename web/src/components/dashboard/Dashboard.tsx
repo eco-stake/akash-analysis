@@ -1,6 +1,6 @@
 import React from "react";
 import { useMediaQueryContext } from "@src/context/MediaQueryProvider";
-import { FormattedNumber, FormattedRelativeTime } from "react-intl";
+import { FormattedNumber } from "react-intl";
 import { DashboardData, SnapshotsUrlParam } from "@src/types";
 import Paper from "@mui/material/Paper";
 import { makeStyles } from "tss-react/mui";
@@ -18,7 +18,6 @@ import TableBody from "@mui/material/TableBody";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
-import { toUTC } from "@src/utils/dateUtils";
 import Button from "@mui/material/Button";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";

@@ -17,7 +17,7 @@ export async function getBlocks(limit: number) {
     height: block.height,
     proposer: block.proposer,
     transactionCount: block.transactions.length,
-    date: block.datetime
+    datetime: block.datetime
   }));
 }
 

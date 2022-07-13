@@ -2,6 +2,8 @@ export class UrlService {
   static dashboard = () => "/";
   static blocks = () => "/blocks";
   static block = (height: number) => `/blocks/${height}`;
+  static transactions = () => "/transactions";
+  static transaction = (hash: string) => `/transactions/${hash}`;
 }
 
 export function appendSearchParams(params) {

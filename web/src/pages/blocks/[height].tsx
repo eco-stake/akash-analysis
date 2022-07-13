@@ -10,12 +10,22 @@ import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
 import Error from "@src/components/shared/Error";
-import { Block } from "@src/types";
+import { BlockDetail } from "@src/types";
+import { FormattedDate, FormattedRelativeTime } from "react-intl";
+import TableContainer from "@mui/material/TableContainer";
+import TableBody from "@mui/material/TableBody";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import Table from "@mui/material/Table";
+import Link from "next/link";
+import { UrlService } from "@src/utils/urlUtils";
+import { TransactionRow } from "@src/components/shared/TransactionRow";
 
 type Props = {
   errors?: string;
   height: string;
-  block: Block;
+  block: BlockDetail;
 };
 
 const useStyles = makeStyles()(theme => ({
@@ -28,10 +38,28 @@ const useStyles = makeStyles()(theme => ({
     fontSize: "2rem",
     fontWeight: "bold",
     marginLeft: ".5rem",
-    marginBottom: "2px"
+    marginBottom: "1rem"
   },
   titleSmall: {
     fontSize: "1.1rem"
+  },
+  blockInfoRow: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: "1rem",
+    "&:last-child": {
+      marginBottom: 0
+    }
+  },
+  label: {
+    fontWeight: "bold",
+    maxWidth: "10rem",
+    flex: "1 1 0px",
+    flexBasis: 0
+  },
+  value: {
+    wordBreak: "break-all",
+    overflowWrap: "anywhere"
   }
 }));
 
@@ -42,16 +70,77 @@ const BlocksPage: React.FunctionComponent<Props> = ({ block, errors }) => {
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
 
+  console.log(block.transactions);
+
   return (
     <Layout title="Blocks" appendGenericTitle>
       <PageContainer>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-          <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-            Details for Block #{block.height}
-          </Typography>
-        </Box>
+        <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
+          Details for Block #{block.height}
+        </Typography>
 
-        <Paper sx={{ padding: 2 }}>TODO</Paper>
+        <Paper sx={{ padding: 2 }}>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Height</div>
+            <div className={classes.value}>{block.height}</div>
+          </div>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Block Time</div>
+            <div className={classes.value}>
+              <FormattedRelativeTime
+                value={(new Date(block.datetime).getTime() - new Date().getTime()) / 1000}
+                numeric="auto"
+                unit="second"
+                updateIntervalInSeconds={7}
+              />
+              &nbsp;(
+              <FormattedDate value={block.datetime} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" second="2-digit" />)
+            </div>
+          </div>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Block Hash</div>
+            <div className={classes.value}>{block.hash}</div>
+          </div>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}># of Transactions</div>
+            <div className={classes.value}>{block.transactions.length}</div>
+          </div>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Gas wanted / used</div>
+            <div className={classes.value}>
+              {block.gasUsed} / {block.gasWanted}
+            </div>
+          </div>
+        </Paper>
+
+        <Box sx={{ mt: "1rem" }}>
+          <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
+            Transactions
+          </Typography>
+
+          <Paper sx={{ padding: 2 }}>
+            <TableContainer sx={{ mb: 4 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Tx Hash</TableCell>
+                    <TableCell align="center">Type</TableCell>
+                    <TableCell align="center">Result</TableCell>
+                    <TableCell align="center">Amount</TableCell>
+                    <TableCell align="center">Fee</TableCell>
+                    <TableCell align="center">Height</TableCell>
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {block.transactions.map(transaction => (
+                    <TransactionRow key={transaction.hash} transaction={transaction} block={block} />
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Box>
       </PageContainer>
     </Layout>
   );
