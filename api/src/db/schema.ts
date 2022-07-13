@@ -381,6 +381,7 @@ export class ProposalVote extends Model {
   public voter: string;
   public option: number;
   public msgId: string;
+  public isFinal: boolean;
 }
 
 ProposalVote.init(
@@ -389,7 +390,8 @@ ProposalVote.init(
     proposalId: { type: DataTypes.INTEGER, allowNull: false },
     voter: { type: DataTypes.STRING, allowNull: false },
     option: { type: DataTypes.INTEGER, allowNull: false },
-    msgId: { type: DataTypes.STRING, allowNull: false }
+    msgId: { type: DataTypes.STRING, allowNull: false },
+    isFinal: { type: DataTypes.BOOLEAN, allowNull: false }
   },
   {
     tableName: "proposalVote",

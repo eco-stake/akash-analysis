@@ -222,10 +222,27 @@ export async function handleMsgVote(msgVote: MsgVote, height: number, blockGroup
     throw new Error("Proposal not found");
   }
 
-  await ProposalVote.create({
-    proposalId: msgVote.proposalId.toNumber(),
-    voter: msgVote.voter,
-    option: msgVote.option,
-    msgId: msg.id
-  });
+  await ProposalVote.update(
+    {
+      isFinal: false
+    },
+    {
+      where: {
+        proposalId: msgVote.proposalId.toNumber(),
+        voter: msgVote.voter
+      },
+      transaction: blockGroupTransaction
+    }
+  );
+
+  await ProposalVote.create(
+    {
+      proposalId: msgVote.proposalId.toNumber(),
+      voter: msgVote.voter,
+      option: msgVote.option,
+      msgId: msg.id,
+      isFinal: true
+    },
+    { transaction: blockGroupTransaction }
+  );
 }
