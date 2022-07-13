@@ -1,6 +1,7 @@
 export class UrlService {
   static dashboard = () => "/";
   static blocks = () => "/blocks";
+  static block = (height: number) => `/blocks/${height}`;
 }
 
 export function appendSearchParams(params) {

@@ -20,6 +20,7 @@ import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
 import RequestPageIcon from "@mui/icons-material/RequestPage";
 import { KeplrWalletStatus } from "@src/components/layout/KeplrWalletStatus";
 import { UrlService } from "@src/utils/urlUtils";
+import ViewInArIcon from "@mui/icons-material/ViewInAr";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -74,12 +75,12 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
       title: "Dashboard",
       icon: props => <DashboardIcon {...props} />,
       url: UrlService.dashboard()
+    },
+    {
+      title: "Blocks",
+      icon: props => <ViewInArIcon {...props} />,
+      url: UrlService.blocks()
     }
-    // {
-    //   title: "Dashboard",
-    //   icon: props => <DashboardIcon {...props} />,
-    //   url: UrlService.dashboard()
-    // },
   ];
 
   const drawer = (

@@ -22,6 +22,7 @@ import { toUTC } from "@src/utils/dateUtils";
 import Button from "@mui/material/Button";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
+import { BlockRow } from "../shared/BlockRow";
 
 interface IDashboardProps {
   dashboardData: DashboardData;
@@ -308,6 +309,10 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
       </Grid>
 
       <TableContainer sx={{ mb: 4 }}>
+        <Typography variant="h1" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })} sx={{ mb: 1 }}>
+          Blocks
+        </Typography>
+
         <Table>
           <TableHead>
             <TableRow>
@@ -326,14 +331,7 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
           <TableBody>
             {dashboardData.latestBlocks.map(block => (
-              <TableRow key={block.height}>
-                <TableCell align="center">{block.height}</TableCell>
-                <TableCell align="center">{block.proposer}</TableCell>
-                <TableCell align="center">{block.transactionCount}</TableCell>
-                <TableCell align="center">
-                  <FormattedRelativeTime value={new Date(block.date).getTime() - toUTC(new Date()).getTime()} numeric="auto" updateIntervalInSeconds={1} />
-                </TableCell>
-              </TableRow>
+              <BlockRow key={block.height} block={block} />
             ))}
           </TableBody>
         </Table>

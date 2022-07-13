@@ -16,6 +16,9 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import { FormattedRelativeTime } from "react-intl";
 import { toUTC } from "@src/utils/dateUtils";
+import Link from "next/link";
+import { UrlService } from "@src/utils/urlUtils";
+import { BlockRow } from "@src/components/shared/BlockRow";
 
 type Props = {
   errors?: string;
@@ -65,7 +68,7 @@ const BlocksPage: React.FunctionComponent<Props> = ({}) => {
                     Proposer
                   </TableCell>
                   <TableCell align="center" width="45%">
-                    Txs
+                    Transactions
                   </TableCell>
                   <TableCell align="center" width="10%">
                     Time
@@ -75,14 +78,7 @@ const BlocksPage: React.FunctionComponent<Props> = ({}) => {
 
               <TableBody>
                 {blocks?.map(block => (
-                  <TableRow key={block.height}>
-                    <TableCell align="center">{block.height}</TableCell>
-                    <TableCell align="center">{block.proposer}</TableCell>
-                    <TableCell align="center">{block.transactionCount}</TableCell>
-                    <TableCell align="center">
-                      <FormattedRelativeTime value={new Date(block.date).getTime() - toUTC(new Date()).getTime()} numeric="auto" updateIntervalInSeconds={1} />
-                    </TableCell>
-                  </TableRow>
+                  <BlockRow key={block.height} block={block} />
                 ))}
               </TableBody>
             </Table>
