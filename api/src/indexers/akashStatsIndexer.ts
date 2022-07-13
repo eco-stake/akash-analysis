@@ -106,9 +106,9 @@ export class AkashStatsIndexer extends Indexer {
     await Bid.sync({ force: false });
   }
 
-  async initCache(dbTransaction, firstBlockHeight: number) {
-    this.totalResources = await this.getTotalResources(dbTransaction, firstBlockHeight);
-    this.predictedClosedHeights = await this.getFuturePredictedCloseHeights(firstBlockHeight, dbTransaction);
+  async initCache(firstBlockHeight: number) {
+    this.totalResources = await this.getTotalResources(null, firstBlockHeight);
+    this.predictedClosedHeights = await this.getFuturePredictedCloseHeights(firstBlockHeight, null);
 
     console.log("Fetching deployment id cache...");
 

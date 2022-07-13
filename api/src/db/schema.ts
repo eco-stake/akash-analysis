@@ -308,6 +308,7 @@ export class Proposal extends Model {
   public description: string;
   public submittedHeight?: number;
   public initialDeposit?: number;
+  public totalDeposit: number;
 
   // CommunityPoolSpendProposal
   public recipient?: string;
@@ -329,6 +330,7 @@ Proposal.init(
     description: { type: DataTypes.STRING, allowNull: false },
     submittedHeight: { type: DataTypes.INTEGER, allowNull: true },
     initialDeposit: { type: DataTypes.BIGINT, allowNull: true },
+    totalDeposit: { type: DataTypes.BIGINT, allowNull: false },
 
     // CommunityPoolSpendProposal
     recipient: { type: DataTypes.STRING, allowNull: true },
@@ -342,6 +344,60 @@ Proposal.init(
   {
     tableName: "proposal",
     modelName: "proposal",
+    sequelize
+  }
+);
+
+export class ProposalDeposit extends Model {
+  public id: string;
+  public proposalId: number;
+  public depositor: string;
+  public amount: number;
+  public msgId: string;
+}
+
+ProposalDeposit.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: UUIDV4, primaryKey: true, allowNull: false },
+    proposalId: { type: DataTypes.INTEGER, allowNull: false },
+    depositor: { type: DataTypes.STRING, allowNull: false },
+    amount: { type: DataTypes.BIGINT, allowNull: false },
+    msgId: { type: DataTypes.STRING, allowNull: false }
+  },
+  {
+    tableName: "proposalDeposit",
+    modelName: "proposalDeposit",
+    indexes: [
+      { unique: false, fields: ["proposalId"] },
+      { unique: false, fields: ["depositor"] }
+    ],
+    sequelize
+  }
+);
+
+export class ProposalVote extends Model {
+  public id: string;
+  public proposalId: number;
+  public voter: string;
+  public option: number;
+  public msgId: string;
+}
+
+ProposalVote.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: UUIDV4, primaryKey: true, allowNull: false },
+    proposalId: { type: DataTypes.INTEGER, allowNull: false },
+    voter: { type: DataTypes.STRING, allowNull: false },
+    option: { type: DataTypes.INTEGER, allowNull: false },
+    msgId: { type: DataTypes.STRING, allowNull: false }
+  },
+  {
+    tableName: "proposalVote",
+    modelName: "proposalVote",
+    indexes: [
+      { unique: false, fields: ["proposalId"] },
+      { unique: false, fields: ["voter"] }
+    ],
     sequelize
   }
 );

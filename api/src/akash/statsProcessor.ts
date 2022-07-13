@@ -105,7 +105,7 @@ class StatsProcessor {
 
     if (!this.cacheInitialized) {
       for (const indexer of activeIndexers) {
-        await indexer.initCache(null, firstUnprocessedHeight);
+        await indexer.initCache(firstUnprocessedHeight);
       }
       this.cacheInitialized = true;
     }

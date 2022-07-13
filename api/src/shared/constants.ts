@@ -25,7 +25,6 @@ if (args["rebuild-all"]) {
 }
 
 export { executionMode, lastBlockToSync };
-console.log("Test");
 
 export const dataFolderPath = "./data";
 

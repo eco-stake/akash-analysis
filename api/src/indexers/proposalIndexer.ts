@@ -1,9 +1,9 @@
 import * as uuid from "uuid";
 import { Indexer } from "./indexer";
-import { Block, Message, Proposal, ProposalParameterChange, sequelize } from "@src/db/schema";
+import { Block, Message, Proposal, ProposalDeposit, ProposalParameterChange, ProposalVote, sequelize } from "@src/db/schema";
 import { IGenesis, IGenesisProposal } from "@src/akash/genesisTypes";
 import { coinToUAkt } from "@src/shared/utils/math";
-import { MsgSubmitProposal } from "cosmjs-types/cosmos/gov/v1beta1/tx";
+import { MsgDeposit, MsgSubmitProposal, MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/params";
 import { SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
 import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
@@ -17,7 +17,9 @@ export class ProposalIndexer extends Indexer {
     super();
     this.name = "ProposalIndexer";
     this.msgHandlers = {
-      "/cosmos.gov.v1beta1.MsgSubmitProposal": createProposalFromMsg
+      "/cosmos.gov.v1beta1.MsgSubmitProposal": createProposalFromMsg,
+      "/cosmos.gov.v1beta1.MsgDeposit": handleMsgDeposit,
+      "/cosmos.gov.v1beta1.MsgVote": handleMsgVote
     };
   }
 
@@ -25,12 +27,16 @@ export class ProposalIndexer extends Indexer {
   async dropTables(): Promise<void> {
     await Proposal.drop();
     await ProposalParameterChange.drop();
+    await ProposalDeposit.drop();
+    await ProposalVote.drop();
   }
-  
+
   @benchmark.measureMethodAsync
   async createTables(): Promise<void> {
-    await ProposalParameterChange.sync({ force: false });
     await Proposal.sync({ force: false });
+    await ProposalParameterChange.sync({ force: false });
+    await ProposalDeposit.sync({ force: false });
+    await ProposalVote.sync({ force: false });
   }
 
   @benchmark.measureMethodAsync
@@ -62,7 +68,8 @@ async function createProposalFromMsg(msgSubmitProposal: MsgSubmitProposal, heigh
     proposer: msgSubmitProposal.proposer,
     type: msgSubmitProposal.content.typeUrl,
     submittedHeight: height,
-    initialDeposit: coinToUAkt(msgSubmitProposal.initialDeposit[0])
+    initialDeposit: coinToUAkt(msgSubmitProposal.initialDeposit[0]),
+    totalDeposit: 0
   });
 
   let proposalParameterChanges: ProposalParameterChange[] = [];
@@ -98,9 +105,14 @@ async function createProposalFromMsg(msgSubmitProposal: MsgSubmitProposal, heigh
 }
 
 export async function createProposalFromGenesis(genesisProposal: IGenesisProposal, dbTransaction) {
+  if (genesisProposal.total_deposit.length > 1) {
+    throw new Error("Initial deposit with more than one coin is not supported");
+  }
+
   let proposal = Proposal.build({
     id: parseInt(genesisProposal.proposal_id),
-    type: genesisProposal.content["@type"]
+    type: genesisProposal.content["@type"],
+    totalDeposit: coinToUAkt(genesisProposal.total_deposit[0])
   });
 
   let proposalParameterChanges: ProposalParameterChange[] = [];
@@ -176,4 +188,44 @@ async function processParameterChangeProposal(proposal: Proposal, parameterChang
       { transaction: dbTransaction }
     );
   }
+}
+
+export async function handleMsgDeposit(msgDeposit: MsgDeposit, height: number, blockGroupTransaction, msg: Message) {
+  const proposal = await Proposal.findOne({
+    where: {
+      id: msgDeposit.proposalId.toNumber()
+    },
+    transaction: blockGroupTransaction
+  });
+
+  if (!proposal) {
+    throw new Error("Proposal not found");
+  }
+
+  if (msgDeposit.amount.length > 1) {
+    throw new Error("Deposit with more than one coin is not supported");
+  }
+
+  proposal.totalDeposit += coinToUAkt(msgDeposit.amount[0]);
+  await proposal.save({ transaction: blockGroupTransaction });
+}
+
+export async function handleMsgVote(msgVote: MsgVote, height: number, blockGroupTransaction, msg: Message) {
+  const proposal = await Proposal.findOne({
+    where: {
+      id: msgVote.proposalId.toNumber()
+    },
+    transaction: blockGroupTransaction
+  });
+
+  if (!proposal) {
+    throw new Error("Proposal not found");
+  }
+
+  await ProposalVote.create({
+    proposalId: msgVote.proposalId.toNumber(),
+    voter: msgVote.voter,
+    option: msgVote.option,
+    msgId: msg.id
+  });
 }

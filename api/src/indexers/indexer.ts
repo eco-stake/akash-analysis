@@ -6,7 +6,7 @@ export abstract class Indexer {
   name: string;
   msgHandlers: { [key: string]: (msgSubmitProposal: any, height: number, blockGroupTransaction, msg: Message) => Promise<void> };
 
-  public initCache(dbTransaction, firstBlockHeight: number): Promise<void> {
+  public initCache(firstBlockHeight: number): Promise<void> {
     return Promise.resolve();
   }
   hasHandlerForType(type: string): boolean {
