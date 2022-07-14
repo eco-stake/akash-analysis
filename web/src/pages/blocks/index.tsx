@@ -14,11 +14,8 @@ import TableBody from "@mui/material/TableBody";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
-import { FormattedRelativeTime } from "react-intl";
-import { toUTC } from "@src/utils/dateUtils";
-import Link from "next/link";
-import { UrlService } from "@src/utils/urlUtils";
 import { BlockRow } from "@src/components/shared/BlockRow";
+import CircularProgress from "@mui/material/CircularProgress";
 
 type Props = {
   errors?: string;
@@ -45,7 +42,7 @@ const BlocksPage: React.FunctionComponent<Props> = ({}) => {
   const { classes } = useStyles();
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
-  const { data: blocks } = useBlocks(20, {
+  const { data: blocks, isLoading } = useBlocks(20, {
     refetchInterval: 7000
   });
 
@@ -59,30 +56,36 @@ const BlocksPage: React.FunctionComponent<Props> = ({}) => {
         </Box>
 
         <Paper sx={{ padding: 2 }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell width="5%">Height</TableCell>
-                  <TableCell align="center" width="10%">
-                    Proposer
-                  </TableCell>
-                  <TableCell align="center" width="45%">
-                    Transactions
-                  </TableCell>
-                  <TableCell align="center" width="10%">
-                    Time
-                  </TableCell>
-                </TableRow>
-              </TableHead>
+          {isLoading ? (
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+              <CircularProgress sx={{ color: theme.palette.secondary.main }} />
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell width="5%">Height</TableCell>
+                    <TableCell align="center" width="10%">
+                      Proposer
+                    </TableCell>
+                    <TableCell align="center" width="45%">
+                      Transactions
+                    </TableCell>
+                    <TableCell align="center" width="10%">
+                      Time
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
 
-              <TableBody>
-                {blocks?.map(block => (
-                  <BlockRow key={block.height} block={block} />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                <TableBody>
+                  {blocks?.map(block => (
+                    <BlockRow key={block.height} block={block} />
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Paper>
       </PageContainer>
     </Layout>

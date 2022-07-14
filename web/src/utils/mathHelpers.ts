@@ -18,9 +18,9 @@ export function nFormatter(num: number, digits: number) {
   return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
 }
 
-export function udenomToDemom(_amount: string | number, precision = 3) {
+export function udenomToDemom(_amount: string | number, precision = 3, decimals: number = 1_000_000) {
   const amount = typeof _amount === "string" ? parseInt(_amount) : _amount;
-  return roundDecimal(amount / 1_000_000, precision);
+  return roundDecimal(amount / decimals, precision);
 }
 
 export function randomInteger(min: number, max: number) {

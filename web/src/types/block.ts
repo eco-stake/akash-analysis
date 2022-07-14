@@ -19,4 +19,10 @@ export interface BlockTransaction {
   isSuccess: boolean;
   error: string;
   fee: number;
+  messages: TransactionMessage[];
+}
+
+export interface TransactionMessage {
+  id: string;
+  type: string;
 }

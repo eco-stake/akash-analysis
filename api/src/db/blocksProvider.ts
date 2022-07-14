@@ -1,6 +1,7 @@
-import { Block, Transaction } from "./schema";
+import { Block, Message, Transaction } from "./schema";
 import { averageBlockTime } from "@src/shared/constants";
 import { add } from "date-fns";
+import { msgToJSON } from "@src/shared/utils/protobuf";
 
 export async function getBlocks(limit: number) {
   const latestBlocks = await Block.findAll({
@@ -36,7 +37,8 @@ export async function getBlock(height: number) {
     },
     include: [
       {
-        model: Transaction
+        model: Transaction,
+        include: [Message]
       }
     ]
   });
@@ -53,7 +55,12 @@ export async function getBlock(height: number) {
       hash: tx.hash,
       isSuccess: !tx.hasProcessingError,
       error: tx.hasProcessingError ? tx.log : null,
-      fee: tx.fee
+      fee: tx.fee,
+      messages: tx.messages.map((message) => ({
+        id: message.id,
+        type: message.type,
+        data: msgToJSON(message.type, message.data)
+      }))
     }))
   };
 }

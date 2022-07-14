@@ -70,8 +70,6 @@ const BlocksPage: React.FunctionComponent<Props> = ({ block, errors }) => {
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
 
-  console.log(block.transactions);
-
   return (
     <Layout title="Blocks" appendGenericTitle>
       <PageContainer>
@@ -123,8 +121,10 @@ const BlocksPage: React.FunctionComponent<Props> = ({ block, errors }) => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Tx Hash</TableCell>
-                    <TableCell align="center">Type</TableCell>
+                    <TableCell width="5%">Tx Hash</TableCell>
+                    <TableCell align="center" width="10%">
+                      Type
+                    </TableCell>
                     <TableCell align="center">Result</TableCell>
                     <TableCell align="center">Amount</TableCell>
                     <TableCell align="center">Fee</TableCell>
