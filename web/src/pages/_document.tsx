@@ -20,6 +20,8 @@ export default class MyDocument extends Document {
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
           <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;500;700;900&display=swap" rel="stylesheet" />
+
           {/* Inject MUI styles first to match with the prepend: true configuration. */}
           {(this.props as any).emotionStyleTags}
         </Head>
@@ -34,7 +36,7 @@ export default class MyDocument extends Document {
 
 // `getInitialProps` belongs to `_document` (instead of `_app`),
 // it's compatible with static-site generation (SSG).
-MyDocument.getInitialProps = async (ctx) => {
+MyDocument.getInitialProps = async ctx => {
   // Resolution order
   //
   // On the server:
@@ -76,7 +78,7 @@ MyDocument.getInitialProps = async (ctx) => {
   // This is important. It prevents emotion to render invalid HTML.
   // See https://github.com/mui/material-ui/issues/26561#issuecomment-855286153
   const emotionStyles = extractCriticalToChunks(initialProps.html);
-  const emotionStyleTags = emotionStyles.styles.map((style) => (
+  const emotionStyleTags = emotionStyles.styles.map(style => (
     <style
       data-emotion={`${style.key} ${style.ids.join(" ")}`}
       key={style.key}

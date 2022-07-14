@@ -28,7 +28,6 @@ interface IStatsCardProps {
 const useStyles = makeStyles()(theme => ({
   root: {
     position: "relative",
-    background: akashRedGradient,
     height: "100%",
     flexGrow: 1,
     borderRadius: "1rem",
@@ -42,7 +41,7 @@ const useStyles = makeStyles()(theme => ({
     height: "auto"
   },
   number: {
-    fontSize: "1.8rem",
+    fontSize: "1.5rem",
     fontWeight: "bold"
   },
   cardHeader: { width: "100%", padding: "1rem", textAlign: "center" },
@@ -86,10 +85,8 @@ const useStyles = makeStyles()(theme => ({
 
 const CustomTooltip = styled(({ className, ...props }: TooltipProps) => <Tooltip {...props} classes={{ popper: className }} />)(({ theme }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: theme.palette.common.white,
-    color: "rgba(0, 0, 0, 0.87)",
     boxShadow: theme.shadows[1],
-    fontSize: 11
+    fontSize: "1rem"
   }
 }));
 
