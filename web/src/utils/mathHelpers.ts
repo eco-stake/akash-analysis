@@ -1,3 +1,5 @@
+import { Coin } from "@src/types";
+
 export function nFormatter(num: number, digits: number) {
   const lookup = [
     { value: 1, symbol: "" },
@@ -38,6 +40,12 @@ export function ceilDecimal(value: number) {
 
 export function uaktToAKT(amount: number, precision = 2) {
   return roundDecimal(amount / 1000000, precision);
+}
+
+export function coinsToAmount(coins: Coin[], denom: string, precision: number) {
+  const currentCoin = coins.find(c => c.denom === denom);
+  if (!currentCoin) return 0;
+  else return udenomToDemom(currentCoin.amount, precision);
 }
 
 export function percIncrease(a: number, b: number) {

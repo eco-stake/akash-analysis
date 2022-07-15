@@ -11,16 +11,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { cx } from "@emotion/css";
 import { useRouter } from "next/router";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import { drawerWidth } from "@src/utils/constants";
 import getConfig from "next/config";
 import { makeStyles } from "tss-react/mui";
-import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
-import RequestPageIcon from "@mui/icons-material/RequestPage";
 import { KeplrWalletStatus } from "@src/components/layout/KeplrWalletStatus";
 import { UrlService } from "@src/utils/urlUtils";
 import ViewInArIcon from "@mui/icons-material/ViewInAr";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -80,6 +77,11 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
       title: "Blocks",
       icon: props => <ViewInArIcon {...props} />,
       url: UrlService.blocks()
+    },
+    {
+      title: "Transactions",
+      icon: props => <ReceiptIcon {...props} />,
+      url: UrlService.transactions()
     }
   ];
 

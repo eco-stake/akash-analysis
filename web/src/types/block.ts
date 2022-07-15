@@ -1,3 +1,5 @@
+import { TransactionMessage } from "./transaction";
+
 export interface Block {
   datetime: string;
   height: number;
@@ -20,9 +22,4 @@ export interface BlockTransaction {
   error: string;
   fee: number;
   messages: TransactionMessage[];
-}
-
-export interface TransactionMessage {
-  id: string;
-  type: string;
 }

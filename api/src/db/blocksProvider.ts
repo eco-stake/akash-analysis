@@ -4,9 +4,10 @@ import { add } from "date-fns";
 import { msgToJSON } from "@src/shared/utils/protobuf";
 
 export async function getBlocks(limit: number) {
-  const latestBlocks = await Block.findAll({
+  const _limit = Math.min(limit, 100);
+  const blocks = await Block.findAll({
     order: [["height", "DESC"]],
-    limit,
+    limit: _limit,
     include: [
       {
         model: Transaction
@@ -14,7 +15,7 @@ export async function getBlocks(limit: number) {
     ]
   });
 
-  return latestBlocks.map((block) => ({
+  return blocks.map((block) => ({
     height: block.height,
     proposer: block.proposer,
     transactionCount: block.transactions.length,
@@ -38,7 +39,8 @@ export async function getBlock(height: number) {
     include: [
       {
         model: Transaction,
-        include: [Message]
+        include: [Message],
+        order: ["index", "ASC"]
       }
     ]
   });

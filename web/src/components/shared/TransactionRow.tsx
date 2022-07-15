@@ -15,13 +15,13 @@ import Box from "@mui/material/Box";
 
 type Props = {
   errors?: string;
-  block: BlockDetail;
+  blockHeight: number;
   transaction: BlockTransaction;
 };
 
 const useStyles = makeStyles()(theme => ({}));
 
-export const TransactionRow: React.FunctionComponent<Props> = ({ transaction, block }) => {
+export const TransactionRow: React.FunctionComponent<Props> = ({ transaction, blockHeight }) => {
   const { classes } = useStyles();
   const theme = useTheme();
   const txHash = useSplitText(transaction.hash, 6, 6);
@@ -47,8 +47,8 @@ export const TransactionRow: React.FunctionComponent<Props> = ({ transaction, bl
         </Box>
       </TableCell>
       <TableCell align="center">
-        <Link href={UrlService.block(block.height)}>
-          <a>{block.height}</a>
+        <Link href={UrlService.block(blockHeight)}>
+          <a>{blockHeight}</a>
         </Link>
       </TableCell>
     </TableRow>

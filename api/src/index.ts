@@ -17,8 +17,9 @@ import { fetchGithubReleases } from "./providers/githubProvider";
 import { getNetworkCapacity, getProviders, syncProvidersInfo } from "./providers/providerStatusProvider";
 import { getTemplateGallery } from "./providers/templateReposProvider";
 import { Scheduler } from "./scheduler";
-import { getDeployment, getTransaction } from "./db/explorerProvider";
+import { getDeployment } from "./db/explorerProvider";
 import { getBlock, getBlocks } from "./db/blocksProvider";
+import { getTransaction, getTransactions } from "./db/transactionsProvider";
 
 require("dotenv").config();
 
@@ -85,7 +86,7 @@ apiRouter.get("/templates", cache(60 * 5), async (req, res) => {
 
 apiRouter.get("/blocks", async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit.toString());
+    const limit = parseInt(req.query.limit?.toString());
     const blocks = await getBlocks(limit || 20);
 
     if (blocks) {
@@ -116,7 +117,23 @@ apiRouter.get("/blocks/:height", async (req, res) => {
   }
 });
 
-apiRouter.get("/transaction/:hash", async (req, res) => {
+apiRouter.get("/transactions", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit?.toString());
+    const transactions = await getTransactions(limit || 20);
+
+    if (transactions) {
+      res.send(transactions);
+    } else {
+      res.status(400).send("Error fetching blocks.");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/transactions/:hash", async (req, res) => {
   try {
     const txInfo = await getTransaction(req.params.hash);
 

@@ -10,7 +10,7 @@ import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
 import Error from "@src/components/shared/Error";
-import { BlockDetail } from "@src/types";
+import { BlockDetail, TransactionDetail } from "@src/types";
 import { FormattedDate, FormattedRelativeTime } from "react-intl";
 import TableContainer from "@mui/material/TableContainer";
 import TableBody from "@mui/material/TableBody";
@@ -18,12 +18,17 @@ import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import Table from "@mui/material/Table";
+import Link from "next/link";
+import { UrlService } from "@src/utils/urlUtils";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
+import { useSplitText } from "@src/hooks/useShortText";
+import { udenomToDemom } from "@src/utils/mathHelpers";
+import { TxMessageRow } from "@src/components/shared/TxMessageRow";
 
 type Props = {
   errors?: string;
-  height: string;
-  block: BlockDetail;
+  hash: string;
+  transaction: TransactionDetail;
 };
 
 const useStyles = makeStyles()(theme => ({
@@ -51,7 +56,7 @@ const useStyles = makeStyles()(theme => ({
   },
   label: {
     fontWeight: "bold",
-    maxWidth: "10rem",
+    maxWidth: "15rem",
     flex: "1 1 0px",
     flexBasis: 0
   },
@@ -61,82 +66,83 @@ const useStyles = makeStyles()(theme => ({
   }
 }));
 
-const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
+const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, errors, hash }) => {
   if (errors) return <Error errors={errors} />;
 
   const { classes } = useStyles();
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
+  const splittedTxHash = useSplitText(hash, 6, 6);
 
   return (
-    <Layout title={`Block #${block.height}`} appendGenericTitle>
+    <Layout title={`Tx ${splittedTxHash}`} appendGenericTitle>
       <PageContainer>
         <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          Details for Block #{block.height}
+          Transaction Details
         </Typography>
 
         <Paper sx={{ padding: 2 }}>
           <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Height</div>
-            <div className={classes.value}>{block.height}</div>
+            <div className={classes.label}>Hash</div>
+            <div className={classes.value}>{transaction.hash}</div>
+          </div>
+
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Status</div>
+            <div className={classes.value}>{transaction.isSuccess ? "Success" : "Failed"}</div>
           </div>
           <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Block Time</div>
+            <div className={classes.label}>Height</div>
+            <div className={classes.value}>
+              <Link href={UrlService.block(transaction.height)}>
+                <a>{transaction.height}</a>
+              </Link>
+            </div>
+          </div>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Status</div>
             <div className={classes.value}>
               <FormattedRelativeTime
-                value={(new Date(block.datetime).getTime() - new Date().getTime()) / 1000}
+                value={(new Date(transaction.datetime).getTime() - new Date().getTime()) / 1000}
                 numeric="auto"
                 unit="second"
                 updateIntervalInSeconds={7}
               />
               &nbsp;(
-              <FormattedDate value={block.datetime} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" second="2-digit" />)
+              <FormattedDate value={transaction.datetime} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" second="2-digit" />)
             </div>
           </div>
+
           <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Block Hash</div>
-            <div className={classes.value}>{block.hash}</div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}># of Transactions</div>
-            <div className={classes.value}>{block.transactions.length}</div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Gas wanted / used</div>
+            <div className={classes.label}>Fee</div>
             <div className={classes.value}>
-              {block.gasUsed} / {block.gasWanted}
+              {udenomToDemom(transaction.fee, 6)}&nbsp;
+              <Box component="span" sx={{ color: theme.palette.secondary.main }}>
+                AKT
+              </Box>
             </div>
+          </div>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Gas (used/wanted)</div>
+            <div className={classes.value}>
+              {transaction.gasUsed}/{transaction.gasWanted}
+            </div>
+          </div>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Memo</div>
+            <div className={classes.value}>{transaction.memo}</div>
           </div>
         </Paper>
 
         <Box sx={{ mt: "1rem" }}>
           <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
-            Transactions
+            Messages
           </Typography>
 
-          <Paper sx={{ padding: 2 }}>
-            <TableContainer sx={{ mb: 4 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell width="5%">Tx Hash</TableCell>
-                    <TableCell align="center" width="10%">
-                      Type
-                    </TableCell>
-                    <TableCell align="center">Result</TableCell>
-                    <TableCell align="center">Amount</TableCell>
-                    <TableCell align="center">Fee</TableCell>
-                    <TableCell align="center">Height</TableCell>
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {block.transactions.map(transaction => (
-                    <TransactionRow key={transaction.hash} transaction={transaction} blockHeight={block.height} />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+          <Paper sx={{ padding: 0 }}>
+            {transaction.messages.map(msg => (
+              <TxMessageRow key={msg.id} message={msg} />
+            ))}
           </Paper>
         </Box>
       </PageContainer>
@@ -144,20 +150,21 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
   );
 };
 
-export default BlockDetailPage;
+export default TransactionDetailPage;
 
 export async function getServerSideProps({ params }) {
-  const block = await fetchBlockData(params?.height);
+  const transaction = await fetchTransactionData(params?.hash);
 
   return {
     props: {
-      height: params?.height,
-      block
+      hash: params?.hash,
+      transaction
     }
   };
 }
 
-async function fetchBlockData(height: string) {
-  const response = await axios.get(`${BASE_API_URL}/api/blocks/${height}`);
+async function fetchTransactionData(hash: string) {
+  console.log(`${BASE_API_URL}/api/transactions/${hash}`);
+  const response = await axios.get(`${BASE_API_URL}/api/transactions/${hash}`);
   return response.data;
 }
