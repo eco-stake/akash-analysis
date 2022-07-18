@@ -35,6 +35,7 @@ import { MsgConnectionOpenTry } from "./generic/MsgConnectionOpenTry";
 import { MsgConnectionOpenAck } from "./generic/MsgConnectionOpenAck";
 import { MsgConnectionOpenConfirm } from "./generic/MsgConnectionOpenConfirm";
 import { MsgTransfer } from "./generic/MsgTransfer";
+import { MsgSend } from "./generic/MsgSend";
 // v1beta1
 import { MsgCloseBid } from "./akash/v1beta1/MsgCloseBid";
 import { MsgCloseDeployment } from "./akash/v1beta1/MsgCloseDeployment";
@@ -111,6 +112,8 @@ type TxMessageProps = {
 };
 const TxMessage: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   switch (message.type) {
+    case "/cosmos.bank.v1beta1.MsgSend": // 9E0552141F53CDB5C535C73755C1D873B9781FB545E2F13A4DC6D0A76908A588
+      return <MsgSend message={message} />;
     case "/cosmos.bank.v1beta1.MsgMultiSend": // 50AAE52BA7086C49A3D7ECEAAEDF76998129BB628DD3E4BFBB4EC52873FB885E
       return <MsgMultiSend message={message} />;
     case "/cosmos.distribution.v1beta1.MsgFundCommunityPool": // 7B5B2A574EF2C6396588686266F07CC9EDF00423DC4E273825C42429A88B2C2F
