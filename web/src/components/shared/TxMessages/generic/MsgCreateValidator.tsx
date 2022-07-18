@@ -11,7 +11,6 @@ type TxMessageProps = {
 export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   // ###################
   // TODO minSelftDelegation as a coin
-  // TODO value as array like others
   // TODO commissions DecCoin
   // ###################
   return (
@@ -46,7 +45,7 @@ export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ me
         label="Value"
         value={
           <>
-            {coinsToAmount([message?.data?.value], "uakt", 6)}&nbsp;
+            {coinsToAmount(message?.data?.value, "uakt", 6)}&nbsp;
             <AKTLabel />
           </>
         }

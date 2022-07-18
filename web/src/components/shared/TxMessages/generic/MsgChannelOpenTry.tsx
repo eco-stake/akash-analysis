@@ -1,5 +1,6 @@
 import { TransactionMessage } from "@src/types";
 import Link from "next/link";
+import { DynamicReactJson } from "../../DynamicJsonView";
 import { MessageLabelValue } from "../MessageLabelValue";
 
 type TxMessageProps = {
@@ -14,7 +15,7 @@ export const MsgChannelOpenTry: React.FunctionComponent<TxMessageProps> = ({ mes
       <MessageLabelValue label="State" value={message?.data?.channel?.state} />
       <MessageLabelValue label="Ordering" value={message?.data?.channel?.ordering} />
       <MessageLabelValue label="Channel Id" value={message?.data?.channel?.counterparty?.channelId} />
-      <MessageLabelValue label="Connection Hops" value={JSON.stringify(message?.data?.channel?.connectionHops)} />
+      <MessageLabelValue label="Connection Hops" value={<DynamicReactJson src={JSON.parse(JSON.stringify(message?.data?.channel?.connectionHops))} />} />
       <MessageLabelValue label="Version" value={message?.data?.channel?.version} />
       <MessageLabelValue label="Counterparty Version" value={message?.data?.counterpartyVersion} />
       <MessageLabelValue label="Proof Init" value={message?.data?.proofInit} />

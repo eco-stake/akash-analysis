@@ -1,14 +1,8 @@
-import { useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import { TransactionMessage } from "@src/types";
 import Box from "@mui/material/Box";
+import { DynamicReactJson } from "../DynamicJsonView";
 import { useFriendlyMessageType } from "@src/hooks/useFriendlyMessageType";
-import { coinsToAmount } from "@src/utils/mathHelpers";
-import Link from "next/link";
-import Typography from "@mui/material/Typography";
-import { AKTLabel } from "../AKTLabel";
-import ReactJson from "react-json-view";
-import dynamic from "next/dynamic";
 import { MsgMultiSend } from "./generic/MsgMultiSend";
 import { MsgFundCommunityPool } from "./generic/MsgFundCommunityPool";
 import { MsgSetWithdrawAddress } from "./generic/MsgSetWithdrawAddress";
@@ -41,30 +35,52 @@ import { MsgConnectionOpenTry } from "./generic/MsgConnectionOpenTry";
 import { MsgConnectionOpenAck } from "./generic/MsgConnectionOpenAck";
 import { MsgConnectionOpenConfirm } from "./generic/MsgConnectionOpenConfirm";
 import { MsgTransfer } from "./generic/MsgTransfer";
+// v1beta1
+import { MsgCloseBid } from "./akash/v1beta1/MsgCloseBid";
+import { MsgCloseDeployment } from "./akash/v1beta1/MsgCloseDeployment";
+import { MsgCloseGroup } from "./akash/v1beta1/MsgCloseGroup";
+import { MsgCloseLease } from "./akash/v1beta1/MsgCloseLease";
+import { MsgCreateBid } from "./akash/v1beta1/MsgCreateBid";
+import { MsgCreateCertificate } from "./akash/v1beta1/MsgCreateCertificate";
+import { MsgCreateDeployment } from "./akash/v1beta1/MsgCreateDeployment";
+import { MsgCreateLease } from "./akash/v1beta1/MsgCreateLease";
+import { MsgCreateProvider } from "./akash/v1beta1/MsgCreateProvider";
+import { MsgDeleteProvider } from "./akash/v1beta1/MsgDeleteProvider";
+import { MsgDeleteProviderAttributes } from "./akash/v1beta1/MsgDeleteProviderAttributes";
+import { MsgDepositDeployment } from "./akash/v1beta1/MsgDepositDeployment";
+import { MsgPauseGroup } from "./akash/v1beta1/MsgPauseGroup";
+import { MsgRevokeCertificate } from "./akash/v1beta1/MsgRevokeCertificate";
+import { MsgSignProviderAttributes } from "./akash/v1beta1/MsgSignProviderAttributes";
+import { MsgStartGroup } from "./akash/v1beta1/MsgStartGroup";
+import { MsgUpdateDeployment } from "./akash/v1beta1/MsgUpdateDeployment";
+import { MsgUpdateProvider } from "./akash/v1beta1/MsgUpdateProvider";
+import { MsgWithdrawLease } from "./akash/v1beta1/MsgWithdrawLease";
+// v1beta2
+import { MsgCloseBid as MsgCloseBid_v2 } from "./akash/v1beta2/MsgCloseBid";
+import { MsgCloseDeployment as MsgCloseDeployment_v2 } from "./akash/v1beta2/MsgCloseDeployment";
+import { MsgCloseGroup as MsgCloseGroup_v2 } from "./akash/v1beta2/MsgCloseGroup";
+import { MsgCloseLease as MsgCloseLease_v2 } from "./akash/v1beta2/MsgCloseLease";
+import { MsgCreateBid as MsgCreateBid_v2 } from "./akash/v1beta2/MsgCreateBid";
+import { MsgCreateCertificate as MsgCreateCertificate_v2 } from "./akash/v1beta2/MsgCreateCertificate";
+import { MsgCreateDeployment as MsgCreateDeployment_v2 } from "./akash/v1beta2/MsgCreateDeployment";
+import { MsgCreateLease as MsgCreateLease_v2 } from "./akash/v1beta2/MsgCreateLease";
+import { MsgCreateProvider as MsgCreateProvider_v2 } from "./akash/v1beta2/MsgCreateProvider";
+import { MsgDeleteProvider as MsgDeleteProvider_v2 } from "./akash/v1beta2/MsgDeleteProvider";
+import { MsgDeleteProviderAttributes as MsgDeleteProviderAttributes_v2 } from "./akash/v1beta1/MsgDeleteProviderAttributes";
+import { MsgDepositDeployment as MsgDepositDeployment_v2 } from "./akash/v1beta2/MsgDepositDeployment";
+import { MsgPauseGroup as MsgPauseGroup_v2 } from "./akash/v1beta2/MsgPauseGroup";
+import { MsgRevokeCertificate as MsgRevokeCertificate_v2 } from "./akash/v1beta2/MsgRevokeCertificate";
+import { MsgSignProviderAttributes as MsgSignProviderAttributes_v2 } from "./akash/v1beta2/MsgSignProviderAttributes";
+import { MsgStartGroup as MsgStartGroup_v2 } from "./akash/v1beta2/MsgStartGroup";
+import { MsgUpdateDeployment as MsgUpdateDeployment_v2 } from "./akash/v1beta2/MsgUpdateDeployment";
+import { MsgWithdrawLease as MsgWithdrawLease_v2 } from "./akash/v1beta2/MsgWithdrawLease";
+import { MsgUpdateProvider as MsgUpdateProvider_v2 } from "./akash/v1beta2/MsgUpdateProvider";
 
 type Props = {
   message: TransactionMessage;
 };
 
 const useStyles = makeStyles()(theme => ({
-  blockInfoRow: {
-    display: "flex",
-    marginBottom: "1rem",
-    lineHeight: "1.25rem",
-    "&:last-child": {
-      marginBottom: 0
-    }
-  },
-  label: {
-    fontWeight: "bold",
-    width: "15rem",
-    flexShrink: 0
-  },
-  value: {
-    wordBreak: "break-all",
-    overflowWrap: "anywhere",
-    flexGrow: 1
-  },
   messageType: {
     padding: "1rem",
     marginBottom: theme.spacing(3),
@@ -165,115 +181,82 @@ const TxMessage: React.FunctionComponent<TxMessageProps> = ({ message }) => {
     // *******************
 
     case "/akash.market.v1beta1.MsgCloseBid": // 7EB791286425C17E17FACAC37C0ED99EE99A5594EFED133C8695F132F5EBB770
-      return <></>;
+      return <MsgCloseBid message={message} />;
     case "/akash.deployment.v1beta1.MsgCloseDeployment": // BD2A62990B5065AA321A428604827603206EBEC8091384C4C699E95194292548
-      return <></>;
+      return <MsgCloseDeployment message={message} />;
     case "/akash.deployment.v1beta1.MsgCloseGroup": // 20F3A3C841CE190E13F6D96D792FCF785E4ECBC3D18DA39E69D473C098023D7B
-      return <></>;
+      return <MsgCloseGroup message={message} />;
     case "/akash.market.v1beta1.MsgCloseLease": // D1BF1CA2384323AE4E53CA4D592C299C6DAB9DFABA9B0A3063897C4A8C1B8BDD
-      return <></>;
+      return <MsgCloseLease message={message} />;
     case "/akash.market.v1beta1.MsgCreateBid": // A1513A7671DEB65A52E729C7A2557A84A50CE103118431ACF1B1B47D4946F57A
-      return <></>;
+      return <MsgCreateBid message={message} />;
     case "/akash.cert.v1beta1.MsgCreateCertificate": // 4F38155867112CC6AEF70BAF6AD8BE97D41C0BA317FF8B1F3F54C7CC62640E4F
-      return <></>;
+      return <MsgCreateCertificate message={message} />;
     case "/akash.deployment.v1beta1.MsgCreateDeployment": // F4E652D5E28E40C533CD5B4E557DBA476A7C1E1A8323052992462C0C3AA67FA9
-      // {
-      //   groups: []
-      // }
-      return <></>;
+      return <MsgCreateDeployment message={message} />;
     case "/akash.market.v1beta1.MsgCreateLease": // AB7CE62D6FE9448FE82FDCBCCDCAF63AEC628B9176EA48122C26B188508FB56D
-      return <></>;
+      return <MsgCreateLease message={message} />;
     case "/akash.provider.v1beta1.MsgCreateProvider": // 1F82F736F1C4E1A8CBB6F6FBC8468AB625259072B379CA5A697B4DEBCE04A536
-      // {
-      //   attributes: []
-      // }
-      return <></>;
+      return <MsgCreateProvider message={message} />;
     case "/akash.provider.v1beta1.MsgDeleteProvider":
-      return <></>;
+      return <MsgDeleteProvider message={message} />;
     case "/akash.audit.v1beta1.MsgDeleteProviderAttributes": // 88554C32AF45F4AE961BEDB45B236A59D18E5C559355984CB6D334986B4FEC06
-      // {
-      //   keys: []
-      // }
-      return <></>;
+      return <MsgDeleteProviderAttributes message={message} />;
     case "/akash.deployment.v1beta1.MsgDepositDeployment": // 799C4904CC094FCDF8F538A35B16307C801F516356A2DD7912C2C7F7EC436507
-      return <></>;
+      return <MsgDepositDeployment message={message} />;
     case "/akash.deployment.v1beta1.MsgPauseGroup": // AE8751F67C2D1380550308A7F9B68177F204D0BA6DE638C1898469ACB3C83FA4
-      return <></>;
+      return <MsgPauseGroup message={message} />;
     case "/akash.cert.v1beta1.MsgRevokeCertificate": // B9FBFACBA724AA27865BA2968E876FBA362BDEBB398C9CB023E1C01877850FDE
-      return <></>;
+      return <MsgRevokeCertificate message={message} />;
     case "/akash.audit.v1beta1.MsgSignProviderAttributes": // 547650D65F7B4972EA2C40C721F10EEFFFC579395FCE1F987F4192DECC5837A9
-      // {
-      //   attributes: []
-      // }
-      return <></>;
+      return <MsgSignProviderAttributes message={message} />;
     case "/akash.deployment.v1beta1.MsgStartGroup": // CEE408E69BD8D692C85216A1993D3236CC688A363B838B3993FCFCAF4F7FCC92
-      return <></>;
+      return <MsgStartGroup message={message} />;
     case "/akash.deployment.v1beta1.MsgUpdateDeployment": // 4913B4D05FC438E245A304F44100B8AA898DE7835ABBDC13A381C0B07581A0BB
-      // {
-      //   groups: []
-      // }
-      return <></>;
+      return <MsgUpdateDeployment message={message} />;
     case "/akash.provider.v1beta1.MsgUpdateProvider": // 93E029FC179ED84E3390C1796AD5C83E60EAC8D4421D00538B23EF296ED6985B
-      // {
-      //   attributes: []
-      // }
-      return <></>;
-    case "/akash.market.v1beta1.MsgWithdrawLease": // F5DC09219E604843E55C49B8B66E1DAD9EF417EF8AD8207BB696CF3863985446
-      return <></>;
+      return <MsgUpdateProvider message={message} />;
+    case "/akash.market.v1beta1.MsgWithdrawLease": // B79D9B64BFFA5C1880253758281C8F3D20222EA5094BBC2D522BE820ABBFE7C1
+      return <MsgWithdrawLease message={message} />;
     case "/akash.market.v1beta2.MsgCloseBid": // 7EB791286425C17E17FACAC37C0ED99EE99A5594EFED133C8695F132F5EBB770
-      return <></>;
+      return <MsgCloseBid_v2 message={message} />;
     case "/akash.deployment.v1beta2.MsgCloseDeployment": // BD2A62990B5065AA321A428604827603206EBEC8091384C4C699E95194292548
-      return <></>;
+      return <MsgCloseDeployment_v2 message={message} />;
     case "/akash.deployment.v1beta2.MsgCloseGroup": // 20F3A3C841CE190E13F6D96D792FCF785E4ECBC3D18DA39E69D473C098023D7B
-      return <></>;
+      return <MsgCloseGroup_v2 message={message} />;
     case "/akash.market.v1beta2.MsgCloseLease": // D1BF1CA2384323AE4E53CA4D592C299C6DAB9DFABA9B0A3063897C4A8C1B8BDD
-      return <></>;
+      return <MsgCloseLease_v2 message={message} />;
     case "/akash.market.v1beta2.MsgCreateBid": // A1513A7671DEB65A52E729C7A2557A84A50CE103118431ACF1B1B47D4946F57A
-      return <></>;
+      return <MsgCreateBid_v2 message={message} />;
     case "/akash.cert.v1beta2.MsgCreateCertificate": // 4F38155867112CC6AEF70BAF6AD8BE97D41C0BA317FF8B1F3F54C7CC62640E4F
-      return <></>;
-    case "/akash.deployment.v1beta2.MsgCreateDeployment": // F4E652D5E28E40C533CD5B4E557DBA476A7C1E1A8323052992462C0C3AA67FA9
-      // {
-      //   groups: []
-      // }
-      return <></>;
-    case "/akash.market.v1beta2.MsgCreateLease": // AB7CE62D6FE9448FE82FDCBCCDCAF63AEC628B9176EA48122C26B188508FB56D
-      return <></>;
-    case "/akash.provider.v1beta2.MsgCreateProvider": // 1F82F736F1C4E1A8CBB6F6FBC8468AB625259072B379CA5A697B4DEBCE04A536
-      // {
-      //   attributes: []
-      // }
-      return <></>;
+      return <MsgCreateCertificate_v2 message={message} />;
+    case "/akash.deployment.v1beta2.MsgCreateDeployment": // FA9BB5E1FBEDF2655C984A7A3126A6317A73C861C5127F52EA1B876E8CD4933C
+      return <MsgCreateDeployment_v2 message={message} />;
+    case "/akash.market.v1beta2.MsgCreateLease": // EA0CB8F0D56734594270EBB5A3C7849D7660D3B34DC1B7F6C6775B9D5ECA8785
+      return <MsgCreateLease_v2 message={message} />;
+    case "/akash.provider.v1beta2.MsgCreateProvider": // 996DD0F90F09E4ABE9583E0DCEF4F1A29D8F63711C0C83111E9EFAA9F3D5B66B
+      return <MsgCreateProvider_v2 message={message} />;
     case "/akash.provider.v1beta2.MsgDeleteProvider":
-      return <></>;
-    case "/akash.audit.v1beta2.MsgDeleteProviderAttributes": // 88554C32AF45F4AE961BEDB45B236A59D18E5C559355984CB6D334986B4FEC06
-      // {
-      //   keys: []
-      // }
-      return <></>;
+      return <MsgDeleteProvider_v2 message={message} />;
+    case "/akash.audit.v1beta2.MsgDeleteProviderAttributes": // 0E708A727028E976954B41C2B3E52D08246082EF6031C9BE629D9F8C7E037F70
+      return <MsgDeleteProviderAttributes_v2 message={message} />;
     case "/akash.deployment.v1beta2.MsgDepositDeployment": // 799C4904CC094FCDF8F538A35B16307C801F516356A2DD7912C2C7F7EC436507
-      return <></>;
+      return <MsgDepositDeployment_v2 message={message} />;
     case "/akash.deployment.v1beta2.MsgPauseGroup": // AE8751F67C2D1380550308A7F9B68177F204D0BA6DE638C1898469ACB3C83FA4
-      return <></>;
+      return <MsgPauseGroup_v2 message={message} />;
     case "/akash.cert.v1beta2.MsgRevokeCertificate": // B9FBFACBA724AA27865BA2968E876FBA362BDEBB398C9CB023E1C01877850FDE
-      return <></>;
+      return <MsgRevokeCertificate_v2 message={message} />;
     case "/akash.audit.v1beta2.MsgSignProviderAttributes": // 547650D65F7B4972EA2C40C721F10EEFFFC579395FCE1F987F4192DECC5837A9
-      // {
-      //   attributes: []
-      // }
-      return <></>;
-    case "/akash.deployment.v1beta2.MsgStartGroup": // CEE408E69BD8D692C85216A1993D3236CC688A363B838B3993FCFCAF4F7FCC92
-      return <></>;
-    case "/akash.deployment.v1beta2.MsgUpdateDeployment": // 4913B4D05FC438E245A304F44100B8AA898DE7835ABBDC13A381C0B07581A0BB
-      return <></>;
-    case "/akash.provider.v1beta2.MsgUpdateProvider": // 93E029FC179ED84E3390C1796AD5C83E60EAC8D4421D00538B23EF296ED6985B
-      // {
-      //   attributes: []
-      // }
-      return <></>;
-    case "/akash.market.v1beta2.MsgWithdrawLease": // B79D9B64BFFA5C1880253758281C8F3D20222EA5094BBC2D522BE820ABBFE7C1
-      return <></>;
+      return <MsgSignProviderAttributes_v2 message={message} />;
+    case "/akash.deployment.v1beta2.MsgStartGroup": // 542FB75797D6647B17BC529FF1C6D092A8E1B210EED31966F76D2A03C8EB3E79
+      return <MsgStartGroup_v2 message={message} />;
+    case "/akash.deployment.v1beta2.MsgUpdateDeployment": // 434C6D26B60E64AC9E1563A3F12F2A59C4C3134570044FBA5A46FDB30A34752C
+      return <MsgUpdateDeployment_v2 message={message} />;
+    case "/akash.provider.v1beta2.MsgUpdateProvider": // 81872E0273B71511F3F2B2F2971156EDAE8C0BDEE1FDF136C538A0E3C933D0DA
+      return <MsgUpdateProvider_v2 message={message} />;
+    case "/akash.market.v1beta2.MsgWithdrawLease": // F5DC09219E604843E55C49B8B66E1DAD9EF417EF8AD8207BB696CF3863985446
+      return <MsgWithdrawLease_v2 message={message} />;
     default:
-      return <>{JSON.stringify(message.data)}</>;
+      return <DynamicReactJson src={JSON.parse(JSON.stringify(message?.data))} />;
   }
 };

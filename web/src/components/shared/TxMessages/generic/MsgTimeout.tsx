@@ -1,10 +1,8 @@
 import { useTheme } from "@mui/material/styles";
 import { TransactionMessage } from "@src/types";
-import dynamic from "next/dynamic";
 import Link from "next/link";
+import { DynamicReactJson } from "../../DynamicJsonView";
 import { MessageLabelValue } from "../MessageLabelValue";
-
-const DynamicReactJson = dynamic(import("react-json-view"), { ssr: false });
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -22,17 +20,7 @@ export const MsgTimeout: React.FunctionComponent<TxMessageProps> = ({ message })
       <MessageLabelValue label="Source Channel" value={message?.data?.packet?.sourceChannel} />
       <MessageLabelValue label="Destination Port" value={message?.data?.packet?.destinationPort} />
       <MessageLabelValue label="Destination Channel" value={message?.data?.packet?.destinationChannel} />
-      <MessageLabelValue
-        label="Data"
-        value={
-          <>
-            <DynamicReactJson
-              src={JSON.parse(Buffer.from(message?.data?.packet?.data, "base64").toString())}
-              theme={theme.palette.mode === "dark" ? "brewer" : "apathy:inverted"}
-            />
-          </>
-        }
-      />
+      <MessageLabelValue label="Data" value={<DynamicReactJson src={JSON.parse(Buffer.from(message?.data?.packet?.data, "base64").toString())} />} />
       <MessageLabelValue label="Timeout Revision Number" value={message?.data?.packet?.timeoutHeight?.revisionNumber} />
       <MessageLabelValue label="Timeout Revision Height" value={message?.data?.packet?.timeoutHeight?.revisionHeight} />
       <MessageLabelValue label="Timeout Timestamp" value={message?.data?.packet?.timeoutTimestamp} />

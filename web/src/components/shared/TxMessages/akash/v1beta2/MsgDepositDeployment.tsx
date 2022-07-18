@@ -1,45 +1,42 @@
+import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { TransactionMessage } from "@src/types";
 import { coinsToAmount } from "@src/utils/mathHelpers";
 import Link from "next/link";
-import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { MessageLabelValue } from "../../MessageLabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
 };
 
-export const MsgBeginRedelegate: React.FunctionComponent<TxMessageProps> = ({ message }) => {
-  // ###################
-  // TODO Missing Auto claim reward
-  // ###################
+export const MsgDepositDeployment: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   return (
     <>
       <MessageLabelValue
-        label="Delegator Address"
+        label="Owner"
         value={
           <Link href="TODO">
-            <a>{message?.data?.delegatorAddress}</a>
+            <a>{message?.data?.id?.owner}</a>
           </Link>
         }
       />
       <MessageLabelValue
-        label="Source Validator Address"
+        label="dseq"
         value={
           <Link href="TODO">
-            <a>{message?.data?.validatorSrcAddress}</a>
+            <a>{message?.data?.id?.dseq}</a>
           </Link>
         }
       />
       <MessageLabelValue
-        label="Destination Validator Address"
+        label="Depositor"
         value={
           <Link href="TODO">
-            <a>{message?.data?.validatorDstAddress}</a>
+            <a>{message?.data?.depositor}</a>
           </Link>
         }
       />
       <MessageLabelValue
-        label="Amount"
+        label="Deposit"
         value={
           <>
             {coinsToAmount(message?.data?.amount, "uakt", 6)}&nbsp;

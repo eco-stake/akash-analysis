@@ -42,8 +42,8 @@ export function uaktToAKT(amount: number, precision = 2) {
   return roundDecimal(amount / 1000000, precision);
 }
 
-export function coinsToAmount(coins: Coin[], denom: string, precision: number) {
-  const currentCoin = coins.find(c => c.denom === denom);
+export function coinsToAmount(coins: Coin[] | Coin, denom: string, precision: number) {
+  const currentCoin = (coins as any).length !== undefined ? (coins as Coin[]).find(c => c.denom === denom) : (coins as Coin);
   if (!currentCoin) return 0;
   else return udenomToDemom(currentCoin.amount, precision);
 }

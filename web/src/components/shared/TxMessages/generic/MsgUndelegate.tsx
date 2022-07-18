@@ -34,7 +34,7 @@ export const MsgUndelegate: React.FunctionComponent<TxMessageProps> = ({ message
         label="Amount"
         value={
           <>
-            {coinsToAmount([message?.data?.amount], "uakt", 6)}&nbsp;
+            {coinsToAmount(message?.data?.amount, "uakt", 6)}&nbsp;
             <AKTLabel />
           </>
         }
@@ -43,7 +43,7 @@ export const MsgUndelegate: React.FunctionComponent<TxMessageProps> = ({ message
         label="Auto Claim Reward"
         value={
           <>
-            {coinsToAmount([message?.data?.amount], "uakt", 6)}&nbsp;
+            {coinsToAmount(message?.data?.amount, "uakt", 6)}&nbsp;
             <AKTLabel />
           </>
         }

@@ -11,7 +11,6 @@ type TxMessageProps = {
 export const MsgTransfer: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   // ###################
   // TODO missing sequence
-  // TODO amount as array like others?
   // ###################
   return (
     <>
@@ -38,7 +37,7 @@ export const MsgTransfer: React.FunctionComponent<TxMessageProps> = ({ message }
         label="Amount"
         value={
           <>
-            {coinsToAmount([message?.data?.token], "uakt", 6)}&nbsp;
+            {coinsToAmount(message?.data?.token, "uakt", 6)}&nbsp;
             <AKTLabel />
           </>
         }

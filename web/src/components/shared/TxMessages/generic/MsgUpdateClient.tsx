@@ -24,7 +24,7 @@ export const MsgUpdateClient: React.FunctionComponent<TxMessageProps> = ({ messa
       <MessageLabelValue label="Block" value={message?.data?.channel?.state} />
       <MessageLabelValue label="App" value={message?.data?.channel?.ordering} />
       <MessageLabelValue label="Chain Id" value={message?.data?.channel?.counterparty?.channelId} />
-      <MessageLabelValue label="Height" value={JSON.stringify(message?.data?.channel?.connectionHops)} />
+      <MessageLabelValue label="Height" value={message?.data?.height} />
       <MessageLabelValue label="Time" value={message?.data?.channel?.version} />
       <MessageLabelValue label="Hash" value={message?.data?.channel?.version} />
       <MessageLabelValue label="Total" value={message?.data?.channel?.version} />

@@ -1,5 +1,6 @@
 import { TransactionMessage } from "@src/types";
 import Link from "next/link";
+import { DynamicReactJson } from "../../DynamicJsonView";
 import { MessageLabelValue } from "../MessageLabelValue";
 
 type TxMessageProps = {
@@ -16,7 +17,7 @@ export const MsgConnectionOpenAck: React.FunctionComponent<TxMessageProps> = ({ 
       <MessageLabelValue label="Connection Id" value={message?.data?.connectionId} />
       <MessageLabelValue label="Counterparty Connection Id" value={message?.data?.counterpartyConnectionId} />
       <MessageLabelValue label="Identifier" value={message?.data?.version?.identifier} />
-      <MessageLabelValue label="Features" value={JSON.stringify(message?.data?.version?.features)} />
+      <MessageLabelValue label="Features" value={<DynamicReactJson src={JSON.parse(JSON.stringify(message?.data?.version?.features))} />} />
       <MessageLabelValue label="Chain Id" value={"TODO"} />
       <MessageLabelValue label="Numerator" value={"TODO"} />
       <MessageLabelValue label="Denominator" value={"TODO"} />
