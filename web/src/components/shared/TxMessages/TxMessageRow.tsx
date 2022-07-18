@@ -6,6 +6,41 @@ import { useFriendlyMessageType } from "@src/hooks/useFriendlyMessageType";
 import { coinsToAmount } from "@src/utils/mathHelpers";
 import Link from "next/link";
 import Typography from "@mui/material/Typography";
+import { AKTLabel } from "../AKTLabel";
+import ReactJson from "react-json-view";
+import dynamic from "next/dynamic";
+import { MsgMultiSend } from "./generic/MsgMultiSend";
+import { MsgFundCommunityPool } from "./generic/MsgFundCommunityPool";
+import { MsgSetWithdrawAddress } from "./generic/MsgSetWithdrawAddress";
+import { MsgWithdrawDelegatorReward } from "./generic/MsgWithdrawDelegatorReward";
+import { MsgWithdrawValidatorCommission } from "./generic/MsgWithdrawValidatorCommission";
+import { MsgDeposit } from "./generic/MsgDeposit";
+import { MsgSubmitProposal } from "./generic/MsgSubmitProposal";
+import { MsgVote } from "./generic/MsgVote";
+import { MsgBeginRedelegate } from "./generic/MsgBeginRedelegate";
+import { MsgCreateValidator } from "./generic/MsgCreateValidator";
+import { MsgDelegate } from "./generic/MsgDelegate";
+import { MsgEditValidator } from "./generic/MsgEditValidator";
+import { MsgUndelegate } from "./generic/MsgUndelegate";
+import { MsgChannelOpenInit } from "./generic/MsgChannelOpenInit";
+import { MsgChannelOpenTry } from "./generic/MsgChannelOpenTry";
+import { MsgChannelOpenAck } from "./generic/MsgChannelOpenAck";
+import { MsgChannelOpenConfirm } from "./generic/MsgChannelOpenConfirm";
+import { MsgChannelCloseInit } from "./generic/MsgChannelCloseInit";
+import { MsgChannelCloseConfirm } from "./generic/MsgChannelCloseConfirm";
+import { MsgRecvPacket } from "./generic/MsgRecvPacket";
+import { MsgTimeout } from "./generic/MsgTimeout";
+import { MsgTimeoutOnClose } from "./generic/MsgTimeoutOnClose";
+import { MsgAcknowledgement } from "./generic/MsgAcknowledgement";
+import { MsgCreateClient } from "./generic/MsgCreateClient";
+import { MsgUpdateClient } from "./generic/MsgUpdateClient";
+import { MsgUpgradeClient } from "./generic/MsgUpgradeClient";
+import { MsgSubmitMisbehaviour } from "./generic/MsgSubmitMisbehaviour";
+import { MsgConnectionOpenInit } from "./generic/MsgConnectionOpenInit";
+import { MsgConnectionOpenTry } from "./generic/MsgConnectionOpenTry";
+import { MsgConnectionOpenAck } from "./generic/MsgConnectionOpenAck";
+import { MsgConnectionOpenConfirm } from "./generic/MsgConnectionOpenConfirm";
+import { MsgTransfer } from "./generic/MsgTransfer";
 
 type Props = {
   message: TransactionMessage;
@@ -15,19 +50,20 @@ const useStyles = makeStyles()(theme => ({
   blockInfoRow: {
     display: "flex",
     marginBottom: "1rem",
+    lineHeight: "1.25rem",
     "&:last-child": {
       marginBottom: 0
     }
   },
   label: {
     fontWeight: "bold",
-    maxWidth: "15rem",
-    flex: "1 1 0px",
-    flexBasis: 0
+    width: "15rem",
+    flexShrink: 0
   },
   value: {
     wordBreak: "break-all",
-    overflowWrap: "anywhere"
+    overflowWrap: "anywhere",
+    flexGrow: 1
   },
   messageType: {
     padding: "1rem",
@@ -54,139 +90,80 @@ export const TxMessageRow: React.FunctionComponent<Props> = ({ message }) => {
   );
 };
 
-type MessageLabelValueProps = {
-  label: string;
-  value: any;
-};
-const MessageLabelValue: React.FunctionComponent<MessageLabelValueProps> = ({ label, value }) => {
-  const { classes } = useStyles();
-
-  return (
-    <div className={classes.blockInfoRow}>
-      <div className={classes.label}>{label}</div>
-      <div className={classes.value}>{value}</div>
-    </div>
-  );
-};
-
 type TxMessageProps = {
   message: TransactionMessage;
 };
 const TxMessage: React.FunctionComponent<TxMessageProps> = ({ message }) => {
-  const theme = useTheme();
-
   switch (message.type) {
     case "/cosmos.bank.v1beta1.MsgMultiSend": // 50AAE52BA7086C49A3D7ECEAAEDF76998129BB628DD3E4BFBB4EC52873FB885E
-      const senders = message.data?.inputs.map(input => (
-        <div key={input.address}>
-          <Link href="TODO">
-            <a>{input.address}</a>
-          </Link>
-          &nbsp;
-          <Typography variant="caption">
-            ({coinsToAmount(input.coins, "uakt", 6)}&nbsp;
-            <Box component="span" sx={{ color: theme.palette.secondary.main }}>
-              AKT
-            </Box>
-            )
-          </Typography>
-        </div>
-      ));
-      const receivers = message.data?.outputs.map(input => (
-        <div key={input.address}>
-          <Link href="TODO">
-            <a>{input.address}</a>
-          </Link>
-          &nbsp;
-          <Typography variant="caption">
-            ({coinsToAmount(input.coins, "uakt", 6)}&nbsp;
-            <Box component="span" sx={{ color: theme.palette.secondary.main }}>
-              AKT
-            </Box>
-            )
-          </Typography>
-        </div>
-      ));
-      return (
-        <>
-          <MessageLabelValue label="Senders" value={senders} />
-          <MessageLabelValue label="Receivers" value={receivers} />
-        </>
-      );
+      return <MsgMultiSend message={message} />;
     case "/cosmos.distribution.v1beta1.MsgFundCommunityPool": // 7B5B2A574EF2C6396588686266F07CC9EDF00423DC4E273825C42429A88B2C2F
-      // {
-      //   amount: []
-      // }
-      return <></>;
+      return <MsgFundCommunityPool message={message} />;
     case "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress": // EBFC70654B794185D50756EAF876E9B9F62D9BEF14DE8E27CB6F2A436B28B517
-      return <></>;
+      return <MsgSetWithdrawAddress message={message} />;
     case "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward": // 8024548CD2EFF13659EB80002CA3731E2F635B8C1C9E2DFE0C7220F529743235
-      return <></>;
+      return <MsgWithdrawDelegatorReward message={message} />;
     case "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission": // 9493A5A0E829050B4894D613345BD4E4021105519548D17D22A072C4B53F70E7
-      return <></>;
+      return <MsgWithdrawValidatorCommission message={message} />;
     case "/cosmos.gov.v1beta1.MsgDeposit": // 98ED75B6F160CB6EC5EC6FA3A8352AAD1D090D470B2B9694E227726339E435C5
-      // {
-      //   amount: []
-      // }
-      return <></>;
+      return <MsgDeposit message={message} />;
     case "/cosmos.gov.v1beta1.MsgSubmitProposal": // 81006C190ED97B43E3F586BF2876723998C21AB676B11893D0532D48A353FD2F
-      // {
-      //   initialDeposit: []
-      // }
-      return <></>;
+      return <MsgSubmitProposal message={message} />;
     case "/cosmos.gov.v1beta1.MsgVote": // BA99265B00E346F8A3DA1BEC9EE08D957755361C4EAE5D704A95B6224579040E
-      return <></>;
+      return <MsgVote message={message} />;
     case "/cosmos.staking.v1beta1.MsgBeginRedelegate": // B405A028719C2102E57A81C0796BA763EA4E02850164CD87871FF74B070ADF0C
-      return <></>;
+      return <MsgBeginRedelegate message={message} />;
     case "/cosmos.staking.v1beta1.MsgCreateValidator": // FD062F7AA2C73C11D0762BCF6A96658D4CA6AA6BAAF8D0F8B17B7744D6E3B3F5
-      return <></>;
+      return <MsgCreateValidator message={message} />;
     case "/cosmos.staking.v1beta1.MsgDelegate": // D50D12D264563D3CB0F9D6D80879A1BE85FD9AEBD4ADE8126176556A0C2C0EFE
-      return <></>;
+      return <MsgDelegate message={message} />;
     case "/cosmos.staking.v1beta1.MsgEditValidator": // 6E9D20C623F27710365C3F5F5F31F5D8160C277E0D64BD6028888CB2F82C633F
-      return <></>;
+      return <MsgEditValidator message={message} />;
     case "/cosmos.staking.v1beta1.MsgUndelegate": // D377D7F397173C765D288093B1F03EF22F6457844D76A44FD0486193E826C894
-      return <></>;
+      return <MsgUndelegate message={message} />;
     case "/ibc.core.channel.v1.MsgChannelOpenInit": // 3DB7A2B95EDE93CDD426164943F1EA3F6403275B512FDD300EE62C3840D4DB2C
-      return <></>;
+      return <MsgChannelOpenInit message={message} />;
     case "/ibc.core.channel.v1.MsgChannelOpenTry": // E89080A7032F675278B997CB9C9DCCF2A8F6501A11450FD90E4A25BA3EE59C90
-      return <></>;
+      return <MsgChannelOpenTry message={message} />;
     case "/ibc.core.channel.v1.MsgChannelOpenAck": // 7FDCA742547DC91FEDFA20798F7036D30ECA1497DA774CABD1D37DFF65291E23
-      return <></>;
+      return <MsgChannelOpenAck message={message} />;
     case "/ibc.core.channel.v1.MsgChannelOpenConfirm": // 24F851EA290C99D05B2A6E47473ADB2029275D592E2AC4420950475B0F929B1A
-      return <></>;
-    case "/ibc.core.channel.v1.MsgChannelCloseInit":
-      return <></>;
-    case "/ibc.core.channel.v1.MsgChannelCloseConfirm":
-      return <></>;
+      return <MsgChannelOpenConfirm message={message} />;
+    case "/ibc.core.channel.v1.MsgChannelCloseInit": // No TX
+      return <MsgChannelCloseInit message={message} />;
+    case "/ibc.core.channel.v1.MsgChannelCloseConfirm": // No TX
+      return <MsgChannelCloseConfirm message={message} />;
     case "/ibc.core.channel.v1.MsgRecvPacket": // 63B341F12A4009DBABC275500B6BC3086C84681C42EC122ED4B6DCCC3502AA2A
-      return <></>;
+      return <MsgRecvPacket message={message} />;
     case "/ibc.core.channel.v1.MsgTimeout": // F44F7036BEE538584E8AA8D19D8FA670B718AA16355ADBFF25F43402814B0B67
-      return <></>;
-    case "/ibc.core.channel.v1.MsgTimeoutOnClose":
-      return <></>;
+      return <MsgTimeout message={message} />;
+    case "/ibc.core.channel.v1.MsgTimeoutOnClose": // No TX
+      return <MsgTimeoutOnClose message={message} />;
     case "/ibc.core.channel.v1.MsgAcknowledgement": // 0DACE8966B9075C029B3F87900F8360C425F38505FA15F9E78AC20DB830E8B54
-      return <></>;
+      return <MsgAcknowledgement message={message} />;
     case "/ibc.core.client.v1.MsgCreateClient": // 825ECB50EB0FAFBE72EC900FE9E98015348FBCBCC7DBC8179D656E83393B78AF
-      return <></>;
+      return <MsgCreateClient message={message} />;
     case "/ibc.core.client.v1.MsgUpdateClient": // 5AC2730C38F2767BCA6812DA056401E7A8057AEB54312605DB2D2070C884FCC9
-      return <></>;
+      return <MsgUpdateClient message={message} />;
     case "/ibc.core.client.v1.MsgUpgradeClient": // D58610C22DDA260E97C99AAE955DAC4751F5EC3128B28C85BA3B3E66AA557AD2
-      return <></>;
-    case "/ibc.core.client.v1.MsgSubmitMisbehaviour":
-      return <></>;
+      return <MsgUpgradeClient message={message} />;
+    case "/ibc.core.client.v1.MsgSubmitMisbehaviour": // No TX
+      return <MsgSubmitMisbehaviour message={message} />;
     case "/ibc.core.connection.v1.MsgConnectionOpenInit": // 7E707AFAC58A97ED919654C1768EED5D5D53C19FEDF50608174E888DB3BBA9D2
-      return <></>;
+      return <MsgConnectionOpenInit message={message} />;
     case "/ibc.core.connection.v1.MsgConnectionOpenTry": // 05439B33446FC851B51B292A2199229B11DDCEB635A6731A4938B41476C01171
-      // {
-      //   counterpartyVersions: []
-      // }
-      return <></>;
+      return <MsgConnectionOpenTry message={message} />;
     case "/ibc.core.connection.v1.MsgConnectionOpenAck": // 8C768F08B7A2DED485EDC4ADEDA67867A6674EDFF1E8C98D6D914BB89ACFCEE9
-      return <></>;
+      return <MsgConnectionOpenAck message={message} />;
     case "/ibc.core.connection.v1.MsgConnectionOpenConfirm": // 2F6212C5827DD87B784ADCF4B4530B002EE2A815B67C9D2868DBE508EA94ED13
-      return <></>;
+      return <MsgConnectionOpenConfirm message={message} />;
     case "/ibc.applications.transfer.v1.MsgTransfer": // DCBD6E451A7EF0B20EA26219E9D856F130D05FC38F4DA8AE2320EB59F0FF0FB8
-      return <></>;
+      return <MsgTransfer message={message} />;
+
+    // *******************
+    // AKASH TYPES
+    // *******************
+
     case "/akash.market.v1beta1.MsgCloseBid": // 7EB791286425C17E17FACAC37C0ED99EE99A5594EFED133C8695F132F5EBB770
       return <></>;
     case "/akash.deployment.v1beta1.MsgCloseDeployment": // BD2A62990B5065AA321A428604827603206EBEC8091384C4C699E95194292548

@@ -23,7 +23,7 @@ import { UrlService } from "@src/utils/urlUtils";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
 import { useSplitText } from "@src/hooks/useShortText";
 import { udenomToDemom } from "@src/utils/mathHelpers";
-import { TxMessageRow } from "@src/components/shared/TxMessageRow";
+import { TxMessageRow } from "@src/components/shared/TxMessages/TxMessageRow";
 
 type Props = {
   errors?: string;
@@ -139,11 +139,11 @@ const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, er
             Messages
           </Typography>
 
-          <Paper sx={{ padding: 0 }}>
-            {transaction.messages.map(msg => (
-              <TxMessageRow key={msg.id} message={msg} />
-            ))}
-          </Paper>
+          {transaction.messages.map(msg => (
+            <Paper key={msg.id} sx={{ padding: 0, mb: 2 }}>
+              <TxMessageRow message={msg} />
+            </Paper>
+          ))}
         </Box>
       </PageContainer>
     </Layout>
