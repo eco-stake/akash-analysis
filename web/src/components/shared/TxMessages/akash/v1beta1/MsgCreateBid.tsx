@@ -27,7 +27,14 @@ export const MsgCreateBid: React.FunctionComponent<TxMessageProps> = ({ message 
           </Link>
         }
       />
-      <MessageLabelValue label="dseq" value={message?.data?.order?.dseq} />
+      <MessageLabelValue
+        label="dseq"
+        value={
+          <Link href="TODO">
+            <a>{message?.data?.order?.dseq}</a>
+          </Link>
+        }
+      />
       <MessageLabelValue label="gseq" value={message?.data?.order?.dseq} />
       <MessageLabelValue label="oseq" value={message?.data?.order?.dseq} />
       <MessageLabelValue

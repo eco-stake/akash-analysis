@@ -25,7 +25,14 @@ export const MsgCloseBid: React.FunctionComponent<TxMessageProps> = ({ message }
           </Link>
         }
       />
-      <MessageLabelValue label="dseq" value={message?.data?.bidId?.dseq} />
+      <MessageLabelValue
+        label="dseq"
+        value={
+          <Link href="TODO">
+            <a>{message?.data?.bidId?.dseq}</a>
+          </Link>
+        }
+      />
       <MessageLabelValue label="gseq" value={message?.data?.bidId?.gseq} />
       <MessageLabelValue label="oseq" value={message?.data?.bidId?.oseq} />
     </>

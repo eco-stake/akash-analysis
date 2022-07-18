@@ -17,7 +17,14 @@ export const MsgCloseDeployment: React.FunctionComponent<TxMessageProps> = ({ me
           </Link>
         }
       />
-      <MessageLabelValue label="dseq" value={message?.data?.id?.dseq} />
+      <MessageLabelValue
+        label="dseq"
+        value={
+          <Link href="TODO">
+            <a>{message?.data?.id?.dseq}</a>
+          </Link>
+        }
+      />
     </>
   );
 };
