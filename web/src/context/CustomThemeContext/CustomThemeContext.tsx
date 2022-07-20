@@ -12,7 +12,7 @@ type ContextType = {
   toggleMode: () => void;
 };
 
-const ColorModeProviderContext = React.createContext<ContextType>({ mode: "", toggleMode: null });
+const CustomThemeProviderContext = React.createContext<ContextType>({ mode: "", toggleMode: null });
 
 const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
   palette: {
@@ -41,22 +41,14 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
           background: {
             default: customColors.dark,
             paper: customColors.darkLight
+          },
+          text: {
+            primary: grey[200]
           }
         })
   },
   typography: {
-    fontFamily: [
-      "-apple-system",
-      "BlinkMacSystemFont",
-      '"Segoe UI"',
-      "Roboto",
-      '"Helvetica Neue"',
-      "Arial",
-      "sans-serif",
-      '"Apple Color Emoji"',
-      '"Segoe UI Emoji"',
-      '"Segoe UI Symbol"'
-    ].join(",")
+    fontFamily: ["Inter", "sans-serif"].join(",")
   },
   breakpoints: {
     values: {
@@ -141,7 +133,7 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
 const darkTheme = createTheme(getDesignTokens("dark"));
 const lightTheme = createTheme(getDesignTokens("light"));
 
-export const ColorModeProvider = ({ children }) => {
+export const CustomThemeProvider = ({ children }) => {
   const [isMounted, setIsMounted] = useState(false);
   const { darkModeActive, switchToDarkMode, switchToLightMode } = useDarkMode();
   const mode = darkModeActive ? "dark" : "light";
@@ -162,17 +154,17 @@ export const ColorModeProvider = ({ children }) => {
   const theme = React.useMemo(() => (darkModeActive ? darkTheme : lightTheme), [darkModeActive]);
 
   return (
-    <ColorModeProviderContext.Provider value={{ mode, toggleMode }}>
+    <CustomThemeProviderContext.Provider value={{ mode, toggleMode }}>
       <ThemeProvider theme={theme}>
         <MediaQueryProvider>
           <CssBaseline enableColorScheme />
           {isMounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
         </MediaQueryProvider>
       </ThemeProvider>
-    </ColorModeProviderContext.Provider>
+    </CustomThemeProviderContext.Provider>
   );
 };
 
 export const useColorMode = () => {
-  return { ...React.useContext(ColorModeProviderContext) };
+  return { ...React.useContext(CustomThemeProviderContext) };
 };

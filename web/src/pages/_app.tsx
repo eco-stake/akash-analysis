@@ -4,7 +4,7 @@ import NProgress from "nprogress"; //nprogress module
 import "nprogress/nprogress.css"; //styles of nprogress
 import { CacheProvider, EmotionCache } from "@emotion/react";
 import createEmotionCache from "@src/utils/createEmotionCache";
-import { ColorModeProvider } from "@src/context/ColorModeContext";
+import { ColorModeProvider } from "@src/context/CustomThemeContext";
 import { CustomSnackbarProvider } from "@src/context/CustomSnackbarProvider";
 import { AppProps } from "next/app";
 import withDarkMode from "next-dark-mode";

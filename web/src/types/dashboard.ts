@@ -1,3 +1,5 @@
+import { Block } from "./block";
+
 export interface RevenueAmount {
   akt: number;
   uakt: number;
@@ -46,6 +48,7 @@ export interface DashboardData {
   now: DashboardBlockStats;
   compare: DashboardBlockStats;
   networkCapacity: NetworkCapacity;
+  latestBlocks: Block[];
 }
 
 export interface SnapshotData {

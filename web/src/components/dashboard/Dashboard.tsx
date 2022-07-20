@@ -12,6 +12,16 @@ import { percIncrease, uaktToAKT } from "@src/utils/mathHelpers";
 import { HumanReadableBytes } from "../shared/HumanReadableBytes";
 import Grid from "@mui/material/Grid";
 import { cx } from "@emotion/css";
+import TableContainer from "@mui/material/TableContainer";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import Button from "@mui/material/Button";
+import Link from "next/link";
+import { UrlService } from "@src/utils/urlUtils";
+import { BlockRow } from "../shared/BlockRow";
 
 interface IDashboardProps {
   dashboardData: DashboardData;
@@ -82,8 +92,6 @@ const useStyles = makeStyles()(theme => ({
 export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardData }) => {
   const { classes } = useStyles();
   const mediaQuery = useMediaQueryContext();
-
-  let tileClassName = "col-lg-3";
 
   return (
     <>
@@ -298,6 +306,43 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
           />
         </Grid>
       </Grid>
+
+      <TableContainer sx={{ mb: 4 }}>
+        <Typography variant="h1" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })} sx={{ mb: 1 }}>
+          Blocks
+        </Typography>
+
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell width="5%">Height</TableCell>
+              <TableCell align="center" width="10%">
+                Proposer
+              </TableCell>
+              <TableCell align="center" width="45%">
+                Txs
+              </TableCell>
+              <TableCell align="center" width="10%">
+                Time
+              </TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {dashboardData.latestBlocks.map(block => (
+              <BlockRow key={block.height} block={block} />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Box sx={{ mb: 4 }}>
+        <Link href={UrlService.blocks()} passHref>
+          <Button variant="contained" color="secondary">
+            Show more
+          </Button>
+        </Link>
+      </Box>
     </>
   );
 };

@@ -34,7 +34,7 @@ const useStyles = makeStyles()(theme => ({
 
 const IndexPage: React.FunctionComponent<Props> = ({}) => {
   const { classes } = useStyles();
-  const { data: dashboardData, status } = useDashboardData();
+  const { data: dashboardData } = useDashboardData();
   const mediaQuery = useMediaQueryContext();
 
   return (

@@ -17,7 +17,9 @@ import { fetchGithubReleases } from "./providers/githubProvider";
 import { getNetworkCapacity, getProviders, syncProvidersInfo } from "./providers/providerStatusProvider";
 import { getTemplateGallery } from "./providers/templateReposProvider";
 import { Scheduler } from "./scheduler";
-import { getBlock, getDeployment, getTransaction } from "./db/explorerProvider";
+import { getDeployment } from "./db/explorerProvider";
+import { getBlock, getBlocks } from "./db/blocksProvider";
+import { getTransaction, getTransactions } from "./db/transactionsProvider";
 
 require("dotenv").config();
 
@@ -82,7 +84,24 @@ apiRouter.get("/templates", cache(60 * 5), async (req, res) => {
   }
 });
 
-apiRouter.get("/block/:height", async (req, res) => {
+apiRouter.get("/blocks", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit?.toString());
+    const blocks = await getBlocks(limit || 20);
+
+    if (blocks) {
+      res.send(blocks);
+    } else {
+      res.status(400).send("Error fetching blocks.");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/blocks/:height", async (req, res) => {
+  console.log("hello");
   try {
     const heightInt = parseInt(req.params.height);
     const blockInfo = await getBlock(heightInt);
@@ -98,7 +117,23 @@ apiRouter.get("/block/:height", async (req, res) => {
   }
 });
 
-apiRouter.get("/transaction/:hash", async (req, res) => {
+apiRouter.get("/transactions", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit?.toString());
+    const transactions = await getTransactions(limit || 20);
+
+    if (transactions) {
+      res.send(transactions);
+    } else {
+      res.status(400).send("Error fetching blocks.");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/transactions/:hash", async (req, res) => {
   try {
     const txInfo = await getTransaction(req.params.hash);
 
@@ -163,7 +198,9 @@ apiRouter.get("/getDashboardData", waitForInitMiddleware, async (req, res) => {
     const dashboardData = await getDashboardData();
     const marketData = marketDataProvider.getAktMarketData();
     const networkCapacity = await getNetworkCapacity();
-    res.send({ ...dashboardData, marketData, networkCapacity });
+    const latestBlocks = await getBlocks(5);
+
+    res.send({ ...dashboardData, marketData, networkCapacity, latestBlocks });
   } catch (err) {
     console.error(err);
   }
