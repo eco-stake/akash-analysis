@@ -106,3 +106,54 @@ export async function getValidator(address: string) {
     website: data.validator.description.website
   };
 }
+
+export async function getProposals() {
+  const response = await fetch(`${apiNodeUrl}/cosmos/gov/v1beta1/proposals?pagination.limit=1000`);
+  const data = await response.json();
+
+  const proposals = data.proposals.map((x) => ({
+    id: parseInt(x.proposal_id),
+    title: x.content.title,
+    status: x.status,
+    submitTime: x.submit_time,
+    votingStartTime: x.voting_start_time,
+    votingEndTime: x.voting_end_time,
+    totalDeposit: parseInt(x.total_deposit[0].amount)
+  }));
+
+  const sortedProposals = proposals.sort((a, b) => b.id - a.id);
+
+  return sortedProposals;
+}
+
+export async function getProposal(id: number) {
+  const response = await fetch(`${apiNodeUrl}/cosmos/gov/v1beta1/proposals/${id}`);
+  const data = await response.json();
+
+  return {
+    id: parseInt(data.proposal.proposal_id),
+    title: data.proposal.content.title,
+    description: data.proposal.content.description,
+    status: data.proposal.status,
+    submitTime: data.proposal.submit_time,
+    votingStartTime: data.proposal.voting_start_time,
+    votingEndTime: data.proposal.voting_end_time,
+    totalDeposit: parseInt(data.proposal.total_deposit[0].amount),
+    finalTally: {
+      yes: parseInt(data.proposal.final_tally_result.yes),
+      abstain: parseInt(data.proposal.final_tally_result.abstain),
+      no: parseInt(data.proposal.final_tally_result.no),
+      noWithVeto: parseInt(data.proposal.final_tally_result.no_with_veto),
+      total:
+        parseInt(data.proposal.final_tally_result.yes) +
+        parseInt(data.proposal.final_tally_result.abstain) +
+        parseInt(data.proposal.final_tally_result.no) +
+        parseInt(data.proposal.final_tally_result.no_with_veto)
+    },
+    paramChanges: (data.proposal.content.changes || []).map((change) => ({
+      subspace: change.subspace,
+      key: change.key,
+      value: JSON.parse(change.value)
+    }))
+  };
+}

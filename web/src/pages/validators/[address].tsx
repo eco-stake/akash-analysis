@@ -9,7 +9,7 @@ import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
 import Error from "@src/components/shared/Error";
-import { udenomToDemom } from "@src/utils/mathHelpers";
+import { udenomToDenom } from "@src/utils/mathHelpers";
 import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { ValidatorDetail } from "@src/types/validator";
 import { FormattedNumber } from "react-intl";
@@ -104,7 +104,7 @@ const ValidatorDetailPage: React.FunctionComponent<Props> = ({ address, validato
           <div className={classes.validatorInfoRow}>
             <div className={classes.label}>Voting Power</div>
             <div className={classes.value}>
-              <FormattedNumber value={udenomToDemom(validator.votingPower)} maximumFractionDigits={0} />
+              <FormattedNumber value={udenomToDenom(validator.votingPower)} maximumFractionDigits={0} />
               &nbsp;
               <AKTLabel />
             </div>

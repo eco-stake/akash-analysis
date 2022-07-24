@@ -5,4 +5,5 @@ export class QueryKeys {
   static getBlocksKey = (limit: number) => ["BLOCKS", limit];
   static getTransactionsKey = (limit: number) => ["TRANSACTIONS", limit];
   static getValidatorsKey = () => ["VALIDATORS"];
+  static getProposalsKey = () => ["PROPOSALS"];
 }

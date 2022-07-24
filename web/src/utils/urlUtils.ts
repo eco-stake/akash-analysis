@@ -7,6 +7,8 @@ export class UrlService {
   static address = (address: string) => `/addresses/${address}`;
   static validators = () => "/validators";
   static validator = (address: string) => `/validators/${address}`;
+  static proposals = () => "/proposals";
+  static proposal = (id: number) => `/proposals/${id}`;
 }
 
 export function appendSearchParams(params) {

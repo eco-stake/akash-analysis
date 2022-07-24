@@ -2,7 +2,7 @@ import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import Link from "next/link";
 import { ValidatorSummaryDetail } from "@src/types/validator";
-import { udenomToDemom } from "@src/utils/mathHelpers";
+import { udenomToDenom } from "@src/utils/mathHelpers";
 import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { FormattedNumber } from "react-intl";
 import { UrlService } from "@src/utils/urlUtils";
@@ -22,7 +22,7 @@ export const ValidatorRow: React.FunctionComponent<Props> = ({ validator }) => {
         </Link>
       </TableCell>
       <TableCell>
-        <FormattedNumber value={udenomToDemom(validator.votingPower)} maximumFractionDigits={0} />
+        <FormattedNumber value={udenomToDenom(validator.votingPower)} maximumFractionDigits={0} />
         &nbsp;
         <AKTLabel />
         &nbsp;(

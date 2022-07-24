@@ -17,7 +17,7 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import Table from "@mui/material/Table";
 import { AddressDetail } from "@src/types/address";
-import { udenomToDemom } from "@src/utils/mathHelpers";
+import { udenomToDenom } from "@src/utils/mathHelpers";
 import { AKTLabel } from "@src/components/shared/AKTLabel";
 
 type Props = {
@@ -83,28 +83,28 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
           <div className={classes.addressInfoRow}>
             <div className={classes.label}>Available</div>
             <div className={classes.value}>
-              {udenomToDemom(addressDetail.available)}&nbsp;
+              {udenomToDenom(addressDetail.available)}&nbsp;
               <AKTLabel />
             </div>
           </div>
           <div className={classes.addressInfoRow}>
             <div className={classes.label}>Delegated</div>
             <div className={classes.value}>
-              {udenomToDemom(addressDetail.delegated)}&nbsp;
+              {udenomToDenom(addressDetail.delegated)}&nbsp;
               <AKTLabel />
             </div>
           </div>
           <div className={classes.addressInfoRow}>
             <div className={classes.label}>Rewards</div>
             <div className={classes.value}>
-              {udenomToDemom(addressDetail.rewards)}&nbsp;
+              {udenomToDenom(addressDetail.rewards)}&nbsp;
               <AKTLabel />
             </div>
           </div>
           <div className={classes.addressInfoRow}>
             <div className={classes.label}>Total Balance</div>
             <div className={classes.value}>
-              {udenomToDemom(addressDetail.total)}&nbsp;
+              {udenomToDenom(addressDetail.total)}&nbsp;
               <AKTLabel />
             </div>
           </div>
@@ -162,11 +162,11 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
                         {/* TODO: add link to validator page + name */}
                       </TableCell>
                       <TableCell align="center">
-                        {udenomToDemom(delegation.amount, 6)}&nbsp;
+                        {udenomToDenom(delegation.amount, 6)}&nbsp;
                         <AKTLabel />
                       </TableCell>
                       <TableCell align="center">
-                        {udenomToDemom(delegation.reward, 6)}&nbsp;
+                        {udenomToDenom(delegation.reward, 6)}&nbsp;
                         <AKTLabel />
                       </TableCell>
                     </TableRow>

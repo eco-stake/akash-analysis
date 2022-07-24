@@ -20,7 +20,7 @@ import { Scheduler } from "./scheduler";
 import { getDeployment } from "./db/explorerProvider";
 import { getBlock, getBlocks } from "./db/blocksProvider";
 import { getTransaction, getTransactions } from "./db/transactionsProvider";
-import { getAddressBalance, getValidator, getValidators } from "./providers/apiNodeProvider";
+import { getAddressBalance, getProposal, getProposals, getValidator, getValidators } from "./providers/apiNodeProvider";
 
 require("dotenv").config();
 
@@ -173,6 +173,26 @@ apiRouter.get("/validators/:address", async (req, res) => {
     const validator = await getValidator(req.params.address);
 
     res.send(validator);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/proposals", async (req, res) => {
+  try {
+    const proposals = await getProposals();
+    res.send(proposals);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err?.message || err);
+  }
+});
+
+apiRouter.get("/proposals/:id", async (req, res) => {
+  try {
+    const proposal = await getProposal(parseInt(req.params.id));
+    res.send(proposal);
   } catch (err) {
     console.error(err);
     res.status(500).send(err?.message || err);

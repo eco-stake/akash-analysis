@@ -22,7 +22,7 @@ import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
 import { useSplitText } from "@src/hooks/useShortText";
-import { udenomToDemom } from "@src/utils/mathHelpers";
+import { udenomToDenom } from "@src/utils/mathHelpers";
 import { TxMessageRow } from "@src/components/shared/TxMessages/TxMessageRow";
 
 type Props = {
@@ -116,7 +116,7 @@ const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, er
           <div className={classes.blockInfoRow}>
             <div className={classes.label}>Fee</div>
             <div className={classes.value}>
-              {udenomToDemom(transaction.fee, 6)}&nbsp;
+              {udenomToDenom(transaction.fee, 6)}&nbsp;
               <Box component="span" sx={{ color: theme.palette.secondary.main }}>
                 AKT
               </Box>

@@ -9,7 +9,7 @@ import { useSplitText } from "@src/hooks/useShortText";
 import { useFriendlyMessageType } from "@src/hooks/useFriendlyMessageType";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
-import { udenomToDemom } from "@src/utils/mathHelpers";
+import { udenomToDenom } from "@src/utils/mathHelpers";
 import Box from "@mui/material/Box";
 
 type Props = {
@@ -40,7 +40,7 @@ export const TransactionRow: React.FunctionComponent<Props> = ({ transaction, bl
       <TableCell align="center">{transaction.isSuccess ? "Success" : "Failed"}</TableCell>
       <TableCell align="center">AMOUNT</TableCell>
       <TableCell align="center">
-        {udenomToDemom(transaction.fee, 6)}&nbsp;
+        {udenomToDenom(transaction.fee, 6)}&nbsp;
         <Box component="span" sx={{ color: theme.palette.secondary.main }}>
           AKT
         </Box>

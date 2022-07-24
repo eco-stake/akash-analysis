@@ -19,6 +19,7 @@ import { KeplrWalletStatus } from "@src/components/layout/KeplrWalletStatus";
 import { UrlService } from "@src/utils/urlUtils";
 import ViewInArIcon from "@mui/icons-material/ViewInAr";
 import ReceiptIcon from "@mui/icons-material/Receipt";
+import PollIcon from "@mui/icons-material/Poll";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -88,6 +89,11 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
       title: "Validators",
       icon: props => <DnsIcon {...props} />,
       url: UrlService.validators()
+    },
+    {
+      title: "Proposals",
+      icon: props => <PollIcon {...props} />,
+      url: UrlService.proposals()
     }
   ];
 
@@ -130,9 +136,9 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
       </div>
 
       <Box sx={{ padding: "0 1rem 2rem", width: "100%", textAlign: "center" }}>
-        <Box sx={{ mb: 2 }}>
+        {/* <Box sx={{ mb: 2 }}>
           <KeplrWalletStatus />
-        </Box>
+        </Box> */}
 
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <ColorModeSwitch />

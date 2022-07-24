@@ -7,7 +7,7 @@ import { useKeplr } from "@src/context/KeplrWalletProvider";
 import { FormattedNumber } from "react-intl";
 import React, { ReactNode } from "react";
 import { makeStyles } from "tss-react/mui";
-import { udenomToDemom } from "@src/utils/mathHelpers";
+import { udenomToDenom } from "@src/utils/mathHelpers";
 import { ConnectWalletButton } from "../wallet/ConnectWalletButton";
 
 type Props = {
@@ -42,7 +42,7 @@ export const KeplrWalletStatus: React.FunctionComponent<Props> = ({}) => {
               {walletBalances && (
                 <div className={classes.accountBalances}>
                   <div>
-                    <FormattedNumber value={udenomToDemom(walletBalances.UTODO)} maximumFractionDigits={2} /> $TODO
+                    <FormattedNumber value={udenomToDenom(walletBalances.UTODO)} maximumFractionDigits={2} /> $TODO
                   </div>
                 </div>
               )}
