@@ -1,5 +1,8 @@
 export class UrlService {
   static dashboard = () => "/";
+  static deploy = () => "/deploy";
+  static priceCompare = () => "/price-compare";
+  static faq = () => "/faq";
   static blocks = () => "/blocks";
   static block = (height: number) => `/blocks/${height}`;
   static transactions = () => "/transactions";

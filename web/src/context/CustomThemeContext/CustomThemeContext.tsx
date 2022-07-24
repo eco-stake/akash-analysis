@@ -85,9 +85,10 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
           }
         },
         "*": {
-          margin: 0,
-          padding: 0,
           transition: "background-color .2s ease"
+        },
+        ul: {
+          paddingLeft: "2rem"
         },
         // Nextjs root div
         "#__next": {

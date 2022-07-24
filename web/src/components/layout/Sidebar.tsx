@@ -20,6 +20,9 @@ import { UrlService } from "@src/utils/urlUtils";
 import ViewInArIcon from "@mui/icons-material/ViewInAr";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import PollIcon from "@mui/icons-material/Poll";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import SavingsIcon from '@mui/icons-material/Savings';
+import HelpIcon from '@mui/icons-material/Help';
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -76,6 +79,11 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
       url: UrlService.dashboard()
     },
     {
+      title: "Deploy",
+      icon: props => <CloudUploadIcon {...props} />,
+      url: UrlService.deploy()
+    },
+    {
       title: "Blocks",
       icon: props => <ViewInArIcon {...props} />,
       url: UrlService.blocks()
@@ -94,6 +102,16 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
       title: "Proposals",
       icon: props => <PollIcon {...props} />,
       url: UrlService.proposals()
+    },
+    {
+      title: "Price Compare",
+      icon: props => <SavingsIcon {...props} />,
+      url: UrlService.priceCompare()
+    },
+    {
+      title: "FAQ",
+      icon: props => <HelpIcon {...props} />,
+      url: UrlService.faq()
     }
   ];
 
