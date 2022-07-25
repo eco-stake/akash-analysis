@@ -6,4 +6,5 @@ export class QueryKeys {
   static getTransactionsKey = (limit: number) => ["TRANSACTIONS", limit];
   static getValidatorsKey = () => ["VALIDATORS"];
   static getProposalsKey = () => ["PROPOSALS"];
+  static getGraphsKey = (snapshot: string) => ["GRAPHS", snapshot];
 }

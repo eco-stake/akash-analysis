@@ -14,6 +14,7 @@ import { DiffPercentageChip } from "../shared/DiffPercentageChip";
 import CardActions from "@mui/material/CardActions";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
+import Link from "next/link";
 
 interface IStatsCardProps {
   number: React.ReactNode;
@@ -120,12 +121,14 @@ export function StatsCard({ number, text, tooltip, actionButton, graphPath, diff
           </CustomTooltip>
         )}
         {graphPath && (
-          <Button aria-label="graph" size="small" classes={{ text: classes.actionButtonLabel }}>
-            <Box component="span" marginRight=".5rem">
-              Graph
-            </Box>
-            <TimelineIcon className={classes.actionIcon} />
-          </Button>
+          <Link href={graphPath} passHref>
+            <Button aria-label="graph" size="small" classes={{ text: classes.actionButtonLabel }}>
+              <Box component="span" marginRight=".5rem">
+                Graph
+              </Box>
+              <TimelineIcon className={classes.actionIcon} />
+            </Button>
+          </Link>
         )}
 
         {actionButton}
