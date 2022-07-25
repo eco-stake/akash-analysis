@@ -27,19 +27,6 @@ async function saveLatestDownloadedHeight(height) {
   await fs.promises.writeFile(dataFolderPath + "/latestDownloadedHeight.txt", height.toString(), { encoding: "utf-8" });
 }
 
-async function getLatestDownloadedTxHeight() {
-  if (fs.existsSync(dataFolderPath + "/latestDownloadedTxHeight.txt")) {
-    const fileContent = await fs.promises.readFile(dataFolderPath + "/latestDownloadedTxHeight.txt", { encoding: "utf-8" });
-    return parseInt(fileContent);
-  } else {
-    return 0;
-  }
-}
-
-async function saveLatestDownloadedTxHeight(height) {
-  await fs.promises.writeFile(dataFolderPath + "/latestDownloadedTxHeight.txt", height.toString(), { encoding: "utf-8" });
-}
-
 export async function syncBlocks() {
   try {
     syncingStatus = "Fetching latest block";
@@ -260,28 +247,8 @@ async function downloadBlocks(startHeight: number, endHeight: number) {
 async function downloadTransactions() {
   syncingStatus = "Downloading transactions";
   console.log(syncingStatus);
-  const latestDownloadedTxHeight = await getLatestDownloadedTxHeight();
 
-  if (latestDownloadedTxHeight > 0) {
-    await Transaction.update(
-      {
-        downloaded: true
-      },
-      {
-        where: {
-          downloaded: false,
-          height: { [Op.lte]: latestDownloadedTxHeight }
-        }
-      }
-    );
-  }
-
-  const whereFilter = {
-    downloaded: false,
-    height: { [Op.gt]: latestDownloadedTxHeight || 0 }
-  };
-
-  const missingTxCount = await Transaction.count({ where: whereFilter });
+  const missingTxCount = await Transaction.count({ where: { downloaded: false } });
   const txGroupSize = 50_000;
   const txGroupCount = Math.ceil(missingTxCount / txGroupSize);
 
@@ -291,7 +258,7 @@ async function downloadTransactions() {
 
     const missingTransactions = await Transaction.findAll({
       attributes: ["id", "hash", "height"],
-      where: whereFilter,
+      where: { downloaded: false },
       order: [["height", "ASC"]],
       limit: txGroupSize
     });
@@ -366,12 +333,6 @@ async function downloadTransactions() {
     if (shouldStop) throw shouldStop;
 
     await nodeAccessor.waitForAllFinished();
-
-    syncingStatus = "Saving latest downloaded tx height";
-
-    if (highestHeight > 0) {
-      await saveLatestDownloadedTxHeight(highestHeight);
-    }
   }
 }
 
