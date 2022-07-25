@@ -18,8 +18,14 @@ export const MsgCloseLease: React.FunctionComponent<TxMessageProps> = ({ message
           </Link>
         }
       />
-      <MessageLabelValue label="dseq" value={message?.data?.leaseId?.dseq} />
-      {/* TODO: Add link to deployment page */}
+      <MessageLabelValue
+        label="dseq"
+        value={
+          <Link href={UrlService.deployment(message?.data?.leaseId?.owner, message?.data?.leaseId?.dseq)}>
+            <a>{message?.data?.leaseId?.dseq}</a>
+          </Link>
+        }
+      />
       <MessageLabelValue label="gseq" value={message?.data?.leaseId?.gseq} />
       <MessageLabelValue label="oseq" value={message?.data?.leaseId?.oseq} />
       <MessageLabelValue

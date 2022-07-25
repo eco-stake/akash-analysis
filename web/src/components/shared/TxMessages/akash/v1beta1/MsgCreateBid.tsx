@@ -29,10 +29,16 @@ export const MsgCreateBid: React.FunctionComponent<TxMessageProps> = ({ message 
           </Link>
         }
       />
-      <MessageLabelValue label="dseq" value={message?.data?.order?.dseq} />
-      {/* TODO: Add link to deployment page */}
-      <MessageLabelValue label="gseq" value={message?.data?.order?.dseq} />
-      <MessageLabelValue label="oseq" value={message?.data?.order?.dseq} />
+      <MessageLabelValue
+        label="dseq"
+        value={
+          <Link href={UrlService.deployment(message?.data?.order?.owner, message?.data?.order?.dseq)}>
+            <a>{message?.data?.order?.dseq}</a>
+          </Link>
+        }
+      />
+      <MessageLabelValue label="gseq" value={message?.data?.order?.gseq} />
+      <MessageLabelValue label="oseq" value={message?.data?.order?.oseq} />
       <MessageLabelValue
         label="Price"
         value={

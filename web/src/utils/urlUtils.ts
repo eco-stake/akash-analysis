@@ -12,6 +12,7 @@ export class UrlService {
   static validator = (address: string) => `/validators/${address}`;
   static proposals = () => "/proposals";
   static proposal = (id: number) => `/proposals/${id}`;
+  static deployment = (owner: string, dseq: string) => `/deployments/${owner}/${dseq}`;
 }
 
 export function appendSearchParams(params) {

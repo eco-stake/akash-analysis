@@ -185,9 +185,10 @@ async function insertBlocks(startHeight, endHeight) {
     blocksToAdd.push(blockEntry);
 
     if (blocksToAdd.length >= 1_000 || i === endHeight) {
-      await Block.bulkCreate(blocksToAdd);
-      await Transaction.bulkCreate(txsToAdd);
-      await Message.bulkCreate(msgsToAdd);
+      const insertDbTransaction = await sequelize.transaction();
+      await Block.bulkCreate(blocksToAdd, { transaction: insertDbTransaction });
+      await Transaction.bulkCreate(txsToAdd, { transaction: insertDbTransaction });
+      await Message.bulkCreate(msgsToAdd, { transaction: insertDbTransaction });
 
       blocksToAdd = [];
       txsToAdd = [];
@@ -196,8 +197,10 @@ async function insertBlocks(startHeight, endHeight) {
 
       if (lastInsertedBlock) {
         lastInsertedBlock.day.lastBlockHeightYet = lastInsertedBlock.height;
-        await lastInsertedBlock.day.save();
+        await lastInsertedBlock.day.save({ transaction: insertDbTransaction });
       }
+
+      await insertDbTransaction.commit();
     }
   }
 }

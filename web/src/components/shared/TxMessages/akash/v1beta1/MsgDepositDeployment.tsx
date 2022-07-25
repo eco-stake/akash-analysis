@@ -20,8 +20,14 @@ export const MsgDepositDeployment: React.FunctionComponent<TxMessageProps> = ({ 
           </Link>
         }
       />
-      <MessageLabelValue label="dseq" value={message?.data?.id?.dseq} />
-      {/* TODO: Add link to deployment page */}
+      <MessageLabelValue
+        label="dseq"
+        value={
+          <Link href={UrlService.deployment(message?.data?.id?.owner, message?.data?.id?.dseq)}>
+            <a>{message?.data?.id?.dseq}</a>
+          </Link>
+        }
+      />
       <MessageLabelValue
         label="Deposit"
         value={

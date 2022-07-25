@@ -10,11 +10,14 @@ type TxMessageProps = {
 export const MsgCreateLease: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   return (
     <>
-      <MessageLabelValue label="Provider" value={
-        <Link href={UrlService.address(message?.data?.bidId?.provider)}>
-          <a>{message?.data?.bidId?.provider}</a>
-        </Link>
-      } />
+      <MessageLabelValue
+        label="Provider"
+        value={
+          <Link href={UrlService.address(message?.data?.bidId?.provider)}>
+            <a>{message?.data?.bidId?.provider}</a>
+          </Link>
+        }
+      />
       {/* TODO: Add link to provider page */}
       <MessageLabelValue
         label="Owner"
@@ -24,8 +27,14 @@ export const MsgCreateLease: React.FunctionComponent<TxMessageProps> = ({ messag
           </Link>
         }
       />
-      <MessageLabelValue label="dseq" value={message?.data?.bidId?.dseq} />
-      {/* TODO: Add link to deployment page */}
+      <MessageLabelValue
+        label="dseq"
+        value={
+          <Link href={UrlService.deployment(message?.data?.bidId?.owner, message?.data?.bidId?.dseq)}>
+            <a>{message?.data?.bidId?.dseq}</a>
+          </Link>
+        }
+      />
       <MessageLabelValue label="gseq" value={message?.data?.bidId?.gseq} />
       <MessageLabelValue label="oseq" value={message?.data?.bidId?.oseq} />
     </>

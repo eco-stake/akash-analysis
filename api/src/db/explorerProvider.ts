@@ -1,4 +1,4 @@
-import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute } from "./schema";
+import { Block, Transaction, Message, Deployment, Lease, Provider, ProviderAttribute, Op } from "./schema";
 import { getAktMarketData } from "@src/providers/marketDataProvider";
 import { averageBlockCountInAMonth } from "@src/shared/constants";
 import { round } from "@src/shared/utils/math";
@@ -22,9 +22,23 @@ export async function getDeployment(owner: string, dseq: string) {
     ]
   });
 
+  if (!deployment) {
+    return null;
+  }
+
   const relatedMessages = await Message.findAll({
     where: {
-      relatedDeploymentId: deployment.id
+      relatedDeploymentId: deployment.id,
+      type: {
+        [Op.notIn]: [
+          "/akash.market.v1beta1.MsgWithdrawLease",
+          "/akash.market.v1beta2.MsgWithdrawLease",
+          "/akash.market.v1beta1.MsgCreateBid",
+          "/akash.market.v1beta2.MsgCreateBid",
+          "/akash.market.v1beta1.MsgCloseBid",
+          "/akash.market.v1beta2.MsgCloseBid"
+        ]
+      }
     },
     include: [
       {
@@ -54,6 +68,7 @@ export async function getDeployment(owner: string, dseq: string) {
       gseq: lease.gseq,
       provider: {
         address: lease.provider.owner,
+        hostUri: lease.provider.hostUri,
         isDeleted: !!lease.provider.deletedHeight,
         attributes: lease.provider.providerAttributes.map((attr) => ({
           key: attr.key,
@@ -61,8 +76,8 @@ export async function getDeployment(owner: string, dseq: string) {
         }))
       },
       status: lease.closedHeight ? "closed" : "active",
-      costAKT: round(monthlyUAKT / 1_000_000, 2),
-      costUSD: aktPrice ? round((monthlyUAKT / 1_000_000) * aktPrice, 2) : null,
+      monthlyCostAKT: round(monthlyUAKT / 1_000_000, 2),
+      monthlyCostUSD: aktPrice ? round((monthlyUAKT / 1_000_000) * aktPrice, 2) : null,
       spentAKT: round(spentUAKT / 1_000_000, 2),
       spentUSD: aktPrice ? round((spentUAKT / 1_000_000) * aktPrice, 2) : null,
       cpuUnits: lease.cpuUnits,
@@ -74,8 +89,8 @@ export async function getDeployment(owner: string, dseq: string) {
   return {
     owner: deployment.owner,
     dseq: deployment.dseq,
-    totalCostAKT: leases.map((x) => x.costAKT).reduce((a, b) => a + b, 0),
-    totalCostUSD: leases.map((x) => x.costUSD).reduce((a, b) => a + b, 0),
+    totalMonthlyCostAKT: leases.map((x) => x.monthlyCostAKT).reduce((a, b) => a + b, 0),
+    totalMonthlyCostUSD: leases.map((x) => x.monthlyCostUSD).reduce((a, b) => a + b, 0),
     leases: leases,
     events: relatedMessages.map((msg) => ({
       txHash: msg.transaction.hash,
