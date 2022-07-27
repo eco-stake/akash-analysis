@@ -6,6 +6,7 @@ import { udenomToDenom } from "@src/utils/mathHelpers";
 import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { FormattedNumber } from "react-intl";
 import { UrlService } from "@src/utils/urlUtils";
+import { Avatar, Box } from "@mui/material";
 
 type Props = {
   errors?: string;
@@ -18,7 +19,12 @@ export const ValidatorRow: React.FunctionComponent<Props> = ({ validator }) => {
       <TableCell>{validator.rank}</TableCell>
       <TableCell>
         <Link href={UrlService.validator(validator.operatorAddress)}>
-          <a>{validator.moniker}</a>
+          <a style={{ display: "flex", alignItems: "center" }}>
+            <Box mr={1}>
+              <Avatar src={validator.keybaseAvatarUrl} />
+            </Box>
+            {validator.moniker}
+          </a>
         </Link>
       </TableCell>
       <TableCell>

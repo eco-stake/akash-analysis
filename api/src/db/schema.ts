@@ -299,6 +299,58 @@ Bid.init(
   }
 );
 
+export class Validator extends Model {
+  public id!: string;
+  public operatorAddress!: string;
+  public accountAddress!: string;
+  public hexAddress!: string;
+  public createdMsgId?: string;
+  public moniker!: string;
+  public identity?: string;
+  public website?: string;
+  public description?: string;
+  public securityContact?: string;
+  public rate!: number;
+  public maxRate!: number;
+  public maxChangeRate!: number;
+  public minSelfDelegation!: number;
+
+  public keybaseUsername?: string;
+  public keybaseAvatarUrl?: string;
+}
+
+Validator.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: UUIDV4, primaryKey: true, allowNull: false },
+    operatorAddress: { type: DataTypes.STRING, allowNull: false },
+    accountAddress: { type: DataTypes.STRING, allowNull: false },
+    hexAddress: { type: DataTypes.STRING, allowNull: false },
+    createdMsgId: { type: DataTypes.UUID, allowNull: true },
+    moniker: { type: DataTypes.STRING, allowNull: false },
+    identity: { type: DataTypes.STRING, allowNull: true },
+    website: { type: DataTypes.STRING, allowNull: true },
+    description: { type: DataTypes.STRING, allowNull: true },
+    securityContact: { type: DataTypes.STRING, allowNull: true },
+    rate: { type: DataTypes.DECIMAL, allowNull: false },
+    maxRate: { type: DataTypes.DECIMAL, allowNull: false },
+    maxChangeRate: { type: DataTypes.DECIMAL, allowNull: false },
+    minSelfDelegation: { type: DataTypes.BIGINT, allowNull: false },
+    keybaseUsername: { type: DataTypes.STRING, allowNull: true },
+    keybaseAvatarUrl: { type: DataTypes.STRING, allowNull: true }
+  },
+  {
+    tableName: "validator",
+    modelName: "validator",
+    indexes: [
+      { unique: false, fields: ["id"] },
+      { unique: false, fields: ["operatorAddress"] },
+      { unique: false, fields: ["accountAddress"] },
+      { unique: false, fields: ["hexAddress"] }
+    ],
+    sequelize
+  }
+);
+
 export class Day extends Model {
   public id!: string;
   public date!: Date;
@@ -351,6 +403,7 @@ export class Block extends Model {
   public activeProviderCount: number;
 
   public readonly day: Day;
+  public readonly proposerValidator: Validator;
   public readonly transactions?: Transaction[];
 }
 
@@ -396,7 +449,6 @@ export class Transaction extends Model {
   public memo: string;
   public isProcessed!: boolean;
   public downloaded!: boolean;
-  public hasInterestingType!: boolean;
   public hasDownloadError!: boolean;
   public hasProcessingError!: boolean;
   public log?: string;
@@ -421,7 +473,6 @@ Transaction.init(
     memo: { type: DataTypes.STRING, allowNull: false },
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     downloaded: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    hasInterestingTypes: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     hasDownloadError: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     hasProcessingError: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     log: { type: DataTypes.STRING, allowNull: true }
@@ -445,9 +496,7 @@ export class Message extends Model {
   public typeGroup!: string;
   public index!: number;
   public indexInBlock!: number;
-  public isInterestingType!: boolean;
   public isProcessed!: boolean;
-  public shouldProcess!: boolean;
   public relatedDeploymentId?: string;
   public data: Uint8Array;
 
@@ -476,9 +525,7 @@ Message.init(
     typeCategory: { type: DataTypes.STRING, allowNull: true },
     index: { type: DataTypes.INTEGER, allowNull: false },
     indexInBlock: { type: DataTypes.INTEGER, allowNull: false },
-    isInterestingType: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    shouldProcess: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     relatedDeploymentId: { type: DataTypes.STRING, allowNull: true },
     data: { type: DataTypes.BLOB, allowNull: false }
   },
@@ -489,7 +536,7 @@ Message.init(
       { unique: false, fields: ["txId"] },
       { unique: false, fields: ["relatedDeploymentId"] },
       { unique: false, fields: ["height"] },
-      { unique: false, fields: ["txId", "isProcessed", "isInterestingType"] }
+      { unique: false, fields: ["txId", "isProcessed"] }
     ],
     sequelize
   }
@@ -529,3 +576,5 @@ Deployment.hasMany(Lease, { foreignKey: "deploymentId" });
 Lease.belongsTo(Deployment);
 
 Lease.belongsTo(Provider, { foreignKey: "providerAddress" });
+
+Block.belongsTo(Validator, { foreignKey: "proposer", targetKey: "hexAddress", as: "proposerValidator" });

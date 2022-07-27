@@ -19,6 +19,8 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import Table from "@mui/material/Table";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
+import Link from "next/link";
+import { UrlService } from "@src/utils/urlUtils";
 
 type Props = {
   errors?: string;
@@ -79,6 +81,14 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
           <div className={classes.blockInfoRow}>
             <div className={classes.label}>Height</div>
             <div className={classes.value}>{block.height}</div>
+          </div>
+          <div className={classes.blockInfoRow}>
+            <div className={classes.label}>Poposer</div>
+            <div className={classes.value}>
+              <Link href={UrlService.validator(block.proposer.operatorAddress)}>
+                <a>{block.proposer.moniker}</a>
+              </Link>
+            </div>
           </div>
           <div className={classes.blockInfoRow}>
             <div className={classes.label}>Block Time</div>

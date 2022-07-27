@@ -1,4 +1,4 @@
-import { Block, Message, Transaction } from "./schema";
+import { Block, Message, Transaction, Validator } from "./schema";
 import { averageBlockTime } from "@src/shared/constants";
 import { add } from "date-fns";
 import { msgToJSON } from "@src/shared/utils/protobuf";
@@ -41,6 +41,11 @@ export async function getBlock(height: number) {
         model: Transaction,
         include: [Message],
         order: ["index", "ASC"]
+      },
+      {
+        model: Validator,
+        as: "proposerValidator",
+        required: true
       }
     ]
   });
@@ -50,6 +55,11 @@ export async function getBlock(height: number) {
   return {
     height: block.height,
     datetime: block.datetime,
+    proposer: {
+      operatorAddress: block.proposerValidator.operatorAddress,
+      moniker: block.proposerValidator.moniker,
+      avatarUrl: block.proposerValidator.keybaseAvatarUrl
+    },
     hash: block.hash,
     gasUsed: block.transactions.map((tx) => tx.gasUsed).reduce((a, b) => a + b, 0),
     gasWanted: block.transactions.map((tx) => tx.gasWanted).reduce((a, b) => a + b, 0),

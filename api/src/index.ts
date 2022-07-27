@@ -6,7 +6,7 @@ import { getStatus, getWeb3IndexRevenue } from "./db/networkRevenueProvider";
 import { syncPriceHistory } from "./db/priceHistoryProvider";
 import { syncBlocks } from "./akash/akashSync";
 import { getCacheSize } from "./akash/dataStore";
-import { executionMode, ExecutionMode, isProd } from "./shared/constants";
+import { executionMode, ExecutionMode } from "./shared/constants";
 import { bytesToHumanReadableSize } from "./shared/utils/files";
 import * as Sentry from "@sentry/node";
 import * as Tracing from "@sentry/tracing";
@@ -21,6 +21,7 @@ import { getDeployment } from "./db/explorerProvider";
 import { getBlock, getBlocks } from "./db/blocksProvider";
 import { getTransaction, getTransactions } from "./db/transactionsProvider";
 import { getAddressBalance, getProposal, getProposals, getValidator, getValidators } from "./providers/apiNodeProvider";
+import { fetchValidatorKeybaseInfos } from "./db/keybaseProvider";
 
 require("dotenv").config();
 
@@ -391,6 +392,10 @@ async function initApp() {
       scheduler.registerTask("Sync AKT Price History", syncPriceHistory, "1 hour", true, { id: "21a14234-8721-4477-a792-049f6c6104d8", measureDuration: true });
       scheduler.registerTask("Sync Providers Info", syncProvidersInfo, "15 minutes", true, {
         id: "98b40f97-b946-4d6b-a957-5a6e266a4a93",
+        measureDuration: true
+      });
+      scheduler.registerTask("Sync keybase infos", fetchValidatorKeybaseInfos, "6 hours", true, {
+        id: "bb2f5ea2-d405-416a-b87a-02152d91e172",
         measureDuration: true
       });
       scheduler.start();

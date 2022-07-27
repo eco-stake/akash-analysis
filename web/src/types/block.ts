@@ -9,6 +9,11 @@ export interface Block {
 
 export interface BlockDetail {
   height: number;
+  proposer: {
+    operatorAddress: string;
+    moniker: string;
+    avatarUrl: string;
+  };
   datetime: string;
   hash: string;
   gasUsed: number;

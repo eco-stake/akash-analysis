@@ -1,6 +1,7 @@
 export interface ValidatorSummaryDetail {
   rank: number;
   operatorAddress: string;
+  keybaseAvatarUrl?: string;
   moniker: string;
   votingPower: number;
   votingPowerRatio: number;
@@ -11,6 +12,8 @@ export interface ValidatorSummaryDetail {
 export interface ValidatorDetail {
   rank: number;
   operatorAddress: string;
+  keybaseAvatarUrl?: string;
+  keybaseUsername?: string;
   moniker: string;
   votingPower: number;
   commission: number;

@@ -14,7 +14,7 @@ import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { ValidatorDetail } from "@src/types/validator";
 import { FormattedNumber } from "react-intl";
 import { useEffect, useState } from "react";
-import { Avatar } from "@mui/material";
+import { Avatar, Box } from "@mui/material";
 
 type Props = {
   errors?: string;
@@ -58,29 +58,11 @@ const useStyles = makeStyles()(theme => ({
 }));
 
 const ValidatorDetailPage: React.FunctionComponent<Props> = ({ address, validator, errors }) => {
-  const [identity, setIdentity] = useState(null);
-
   if (errors) return <Error errors={errors} />;
 
   const { classes } = useStyles();
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
-
-  useEffect(() => {
-    axios
-      .get(`https://keybase.io/_/api/1.0/user/lookup.json?key_suffix=${validator.identity}`)
-      .then(res => {
-        if (res.data.status.name === "OK" && res.data.them.length > 0) {
-          setIdentity({
-            profileUrl: res.data.them[0].basics?.username && `https://keybase.io/${res.data.them[0].basics.username}`,
-            avatarUrl: res.data.them[0].pictures?.primary?.url
-          });
-        }
-      })
-      .catch(err => {
-        console.error(err);
-      });
-  }, [validator.identity]);
 
   return (
     <Layout title={`Validator ${validator.moniker}`} appendGenericTitle>
@@ -92,8 +74,10 @@ const ValidatorDetailPage: React.FunctionComponent<Props> = ({ address, validato
         <Paper sx={{ padding: 2 }}>
           <div className={classes.validatorInfoRow}>
             <div className={classes.label}>Moniker</div>
-            <div className={classes.value}>
-              {identity?.avatarUrl && <Avatar src={identity?.avatarUrl} />}
+            <div className={classes.value} style={{ display: "flex", alignItems: "center" }}>
+              <Box mr={1}>
+                <Avatar src={validator.keybaseAvatarUrl} />
+              </Box>
               {validator.moniker}
             </div>
           </div>
@@ -140,8 +124,8 @@ const ValidatorDetailPage: React.FunctionComponent<Props> = ({ address, validato
           <div className={classes.validatorInfoRow}>
             <div className={classes.label}>Identity</div>
             <div className={classes.value}>
-              {identity?.profileUrl ? (
-                <a href={identity?.profileUrl} target="_blank">
+              {validator?.keybaseUsername ? (
+                <a href={"https://keybase.io/" + validator?.keybaseUsername} target="_blank">
                   {validator.identity}
                 </a>
               ) : (

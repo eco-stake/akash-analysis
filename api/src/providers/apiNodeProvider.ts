@@ -1,3 +1,4 @@
+import { Op, Validator } from "@src/db/schema";
 import fetch from "node-fetch";
 
 const apiNodeUrl = "http://akash-node.akashlytics.com:1317";
@@ -81,12 +82,19 @@ export async function getValidators() {
 
   const totalVotingPower = validators.reduce((acc, cur) => acc + cur.votingPower, 0);
 
+  const validatorsFromDb = await Validator.findAll({
+    where: {
+      keybaseAvatarUrl: { [Op.ne]: null, [Op.ne]: "" }
+    }
+  });
+
   const sortedValidators = validators
     .sort((a, b) => b.votingPower - a.votingPower)
     .map((x, i) => ({
       ...x,
       votingPowerRatio: x.votingPower / totalVotingPower,
-      rank: i + 1
+      rank: i + 1,
+      keybaseAvatarUrl: validatorsFromDb.find((y) => y.operatorAddress === x.operatorAddress)?.keybaseAvatarUrl
     }));
 
   return sortedValidators;
@@ -96,9 +104,13 @@ export async function getValidator(address: string) {
   const response = await fetch(`${apiNodeUrl}/cosmos/staking/v1beta1/validators/${address}`);
   const data = await response.json();
 
+  const validatorFromDb = await Validator.findOne({ where: { operatorAddress: address } });
+
   return {
     operatorAddress: data.validator.operator_address,
     moniker: data.validator.description.moniker,
+    keybaseUsername: validatorFromDb?.keybaseUsername,
+    keybaseAvatarUrl: validatorFromDb?.keybaseAvatarUrl,
     votingPower: parseInt(data.validator.tokens),
     commission: parseFloat(data.validator.commission.commission_rates.rate),
     maxCommission: parseFloat(data.validator.commission.commission_rates.max_rate),
