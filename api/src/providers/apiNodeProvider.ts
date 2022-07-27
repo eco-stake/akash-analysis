@@ -32,20 +32,22 @@ export async function getAddressBalance(address: string) {
 
   for (const reward of rewardsData.rewards) {
     const delegation = delegations.find((x) => x.validator === reward.validator_address);
+    const rewardAmount = reward.reward.length > 0 ? parseFloat(reward.reward.find((x) => x.denom === "uakt").amount) : 0;
+
     if (delegation) {
-      delegation.reward = parseFloat(reward.reward.find((x) => x.denom === "uakt").amount);
+      delegation.reward = rewardAmount;
     } else {
       delegations.push({
         validator: reward.validator_address,
         amount: 0,
-        reward: parseFloat(reward.reward.find((x) => x.denom === "uakt").amount)
+        reward: rewardAmount
       });
     }
   }
 
   const available = assets.filter((x) => x.denom === "uakt").reduce((acc, cur) => acc + cur.amount, 0);
   const delegated = delegations.reduce((acc, cur) => acc + cur.amount, 0);
-  const rewards = rewardsData.total.lenght > 0 ? parseInt(rewardsData.total.find((x) => x.denom === "uakt").amount) : 0;
+  const rewards = rewardsData.total.length > 0 ? parseInt(rewardsData.total.find((x) => x.denom === "uakt").amount) : 0;
   const redelegations = redelegationsData.redelegation_responses.map((x) => ({
     srcAddress: x.redelegation.validator_src_address,
     dstAddress: x.redelegation.validator_dst_address,

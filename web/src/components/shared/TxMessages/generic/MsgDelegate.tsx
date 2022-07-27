@@ -40,7 +40,8 @@ export const MsgDelegate: React.FunctionComponent<TxMessageProps> = ({ message }
           </>
         }
       />
-      <MessageLabelValue
+      {/* TODO: Add auto claim reward */}
+      {/* <MessageLabelValue
         label="Auto Claim Reward"
         value={
           <>
@@ -48,7 +49,7 @@ export const MsgDelegate: React.FunctionComponent<TxMessageProps> = ({ message }
             <AKTLabel />
           </>
         }
-      />
+      /> */}
     </>
   );
 };

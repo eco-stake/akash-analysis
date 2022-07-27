@@ -100,7 +100,7 @@ const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, er
             </div>
           </div>
           <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Status</div>
+            <div className={classes.label}>Time</div>
             <div className={classes.value}>
               <FormattedRelativeTime
                 value={(new Date(transaction.datetime).getTime() - new Date().getTime()) / 1000}

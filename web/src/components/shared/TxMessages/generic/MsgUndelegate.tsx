@@ -40,7 +40,7 @@ export const MsgUndelegate: React.FunctionComponent<TxMessageProps> = ({ message
           </>
         }
       />
-      <MessageLabelValue
+      {/* <MessageLabelValue
         label="Auto Claim Reward"
         value={
           <>
@@ -48,7 +48,7 @@ export const MsgUndelegate: React.FunctionComponent<TxMessageProps> = ({ message
             <AKTLabel />
           </>
         }
-      />
+      /> */}
     </>
   );
 };

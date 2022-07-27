@@ -15,8 +15,14 @@ export const MsgDeposit: React.FunctionComponent<TxMessageProps> = ({ message })
   // ###################
   return (
     <>
-      <MessageLabelValue label="Proposal Id" value={message?.data?.proposalId} />
-      {/* TODO: Add link to proposal page */}
+      <MessageLabelValue
+        label="Proposal Id"
+        value={
+          <Link href={UrlService.proposal(message?.data?.proposalId)}>
+            <a>#{message?.data?.proposalId}</a>
+          </Link>
+        }
+      />
       <MessageLabelValue
         label="Depositor Address"
         value={
