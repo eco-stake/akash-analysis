@@ -12,6 +12,7 @@ export interface ValidatorSummaryDetail {
 export interface ValidatorDetail {
   rank: number;
   operatorAddress: string;
+  address: string;
   keybaseAvatarUrl?: string;
   keybaseUsername?: string;
   moniker: string;
@@ -22,4 +23,11 @@ export interface ValidatorDetail {
   identity: string;
   description: string;
   website: string;
+}
+
+export interface IValidatorAddess {
+  address: string;
+  operatorAddress: string;
+  moniker: string;
+  avatarUrl: string;
 }

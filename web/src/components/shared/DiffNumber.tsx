@@ -4,12 +4,13 @@ import { makeStyles } from "tss-react/mui";
 
 export interface DiffNumberProps {
   value: number;
+  unit?: string;
   className?: string;
 }
 
 const useStyles = makeStyles()(theme => ({}));
 
-export const DiffNumber: React.FunctionComponent<DiffNumberProps> = ({ value, className = "" }) => {
+export const DiffNumber: React.FunctionComponent<DiffNumberProps> = ({ value, className = "", unit = "" }) => {
   if (typeof value !== "number") return null;
 
   const { classes } = useStyles();
@@ -19,6 +20,7 @@ export const DiffNumber: React.FunctionComponent<DiffNumberProps> = ({ value, cl
     <span className={className}>
       {isPositiveDiff ? "+" : null}
       <FormattedNumber value={value} maximumFractionDigits={2} />
+      {unit && ` ${unit}`}
     </span>
   );
 };

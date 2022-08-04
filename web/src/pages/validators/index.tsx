@@ -16,6 +16,7 @@ import TableHead from "@mui/material/TableHead";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useValidators } from "@src/queries/useValidatorsQuery";
 import { ValidatorRow } from "@src/components/shared/ValidatorRow";
+import { GradientText } from "@src/components/shared/GradientText";
 
 type Props = {
   errors?: string;
@@ -43,34 +44,37 @@ const ValidatorsPage: React.FunctionComponent<Props> = ({}) => {
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
   const { data: validators, isLoading } = useValidators();
+  const cloudmos = validators?.find(v => v.moniker === "Akashlytics");
 
   return (
     <Layout title="Validators" appendGenericTitle>
       <PageContainer>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
           <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-            Validators
+            <GradientText>Validators</GradientText>
           </Typography>
         </Box>
 
         <Paper sx={{ padding: 2 }}>
           {isLoading ? (
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-              <CircularProgress sx={{ color: theme.palette.secondary.main }} />
+              <CircularProgress color="secondary" />
             </Box>
           ) : (
             <TableContainer>
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
                     <TableCell width="5%">Rank</TableCell>
                     <TableCell>Validator</TableCell>
-                    <TableCell>Voting Power</TableCell>
-                    <TableCell>Commission</TableCell>
+                    <TableCell align="right">Voting Power</TableCell>
+                    <TableCell align="center">Commission</TableCell>
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
+                  <ValidatorRow validator={cloudmos} />
+
                   {validators?.map(validator => (
                     <ValidatorRow key={validator.operatorAddress} validator={validator} />
                   ))}

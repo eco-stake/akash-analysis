@@ -14,7 +14,11 @@ import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { ValidatorDetail } from "@src/types/validator";
 import { FormattedNumber } from "react-intl";
 import { useEffect, useState } from "react";
-import { Avatar, Box } from "@mui/material";
+import { Avatar, Badge, Box } from "@mui/material";
+import { GradientText } from "@src/components/shared/GradientText";
+import Link from "next/link";
+import { UrlService } from "@src/utils/urlUtils";
+import { FormattedDecimal } from "@src/components/shared/FormattedDecimal";
 
 type Props = {
   errors?: string;
@@ -47,9 +51,8 @@ const useStyles = makeStyles()(theme => ({
   },
   label: {
     fontWeight: "bold",
-    maxWidth: "10rem",
-    flex: "1 1 0px",
-    flexBasis: 0
+    width: "15rem",
+    flexShrink: 0
   },
   value: {
     wordBreak: "break-all",
@@ -68,27 +71,38 @@ const ValidatorDetailPage: React.FunctionComponent<Props> = ({ address, validato
     <Layout title={`Validator ${validator.moniker}`} appendGenericTitle>
       <PageContainer>
         <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          Details for Validator {validator.moniker}
+          <GradientText>Validator Details</GradientText>
         </Typography>
 
-        <Paper sx={{ padding: 2 }}>
+        <Paper sx={{ padding: 2 }} elevation={2}>
           <div className={classes.validatorInfoRow}>
-            <div className={classes.label}>Moniker</div>
-            <div className={classes.value} style={{ display: "flex", alignItems: "center" }}>
-              <Box mr={1}>
-                <Avatar src={validator.keybaseAvatarUrl} />
+            <Box style={{ display: "flex", alignItems: "center" }}>
+              <Box mr={2}>
+                <Badge color="secondary" badgeContent={validator.rank} overlap="circular">
+                  <Avatar src={validator.keybaseAvatarUrl} sx={{ width: "5rem", height: "5rem" }} />
+                </Badge>
               </Box>
-              {validator.moniker}
-            </div>
+              <Typography variant="h3" sx={{ fontSize: "1.5rem", fontWeight: "bold" }}>
+                {validator.moniker}
+              </Typography>
+            </Box>
           </div>
           <div className={classes.validatorInfoRow}>
             <div className={classes.label}>Operator Address</div>
             <div className={classes.value}>{validator.operatorAddress}</div>
           </div>
           <div className={classes.validatorInfoRow}>
+            <div className={classes.label}>Address</div>
+            <div className={classes.value}>
+              <Link href={UrlService.address(validator.address)}>
+                <a>{validator.address}</a>
+              </Link>
+            </div>
+          </div>
+          <div className={classes.validatorInfoRow}>
             <div className={classes.label}>Voting Power</div>
             <div className={classes.value}>
-              <FormattedNumber value={udenomToDenom(validator.votingPower)} maximumFractionDigits={0} />
+              <FormattedDecimal value={udenomToDenom(validator.votingPower, 6)} />
               &nbsp;
               <AKTLabel />
             </div>

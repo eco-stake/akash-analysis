@@ -16,6 +16,7 @@ import TableHead from "@mui/material/TableHead";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useProposals } from "@src/queries/useProposalsQuery";
 import { ProposalRow } from "@src/components/shared/ProposalRow";
+import { GradientText } from "@src/components/shared/GradientText";
 
 type Props = {
   errors?: string;
@@ -49,14 +50,14 @@ const ProposalsPage: React.FunctionComponent<Props> = ({}) => {
       <PageContainer>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
           <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-            Proposals
+            <GradientText>Proposals</GradientText>
           </Typography>
         </Box>
 
-        <Paper sx={{ padding: 2 }}>
+        <Paper sx={{ padding: 2 }} elevation={2}>
           {isLoading ? (
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-              <CircularProgress sx={{ color: theme.palette.secondary.main }} />
+              <CircularProgress color="secondary" />
             </Box>
           ) : (
             <TableContainer>

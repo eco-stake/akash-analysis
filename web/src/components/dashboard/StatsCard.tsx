@@ -1,10 +1,8 @@
 import React from "react";
-import clsx from "clsx";
 import HelpIcon from "@mui/icons-material/Help";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import { useMediaQueryContext } from "@src/context/MediaQueryProvider";
 import { makeStyles } from "tss-react/mui";
-import { akashRedGradient } from "@src/utils/colors";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Card from "@mui/material/Card";
@@ -15,11 +13,13 @@ import CardActions from "@mui/material/CardActions";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Link from "next/link";
+import { cx } from "@emotion/css";
 
 interface IStatsCardProps {
   number: React.ReactNode;
   text: string;
   diffNumber?: number;
+  diffNumberUnit?: string;
   diffPercent?: number;
   tooltip?: string | React.ReactNode;
   graphPath?: string;
@@ -31,14 +31,12 @@ const useStyles = makeStyles()(theme => ({
     position: "relative",
     height: "100%",
     flexGrow: 1,
-    borderRadius: "1rem",
+    borderRadius: ".5rem",
     display: "flex",
     flexDirection: "column",
     alignItems: "center"
   },
   rootSmall: {
-    marginTop: 12,
-    marginBottom: 12,
     height: "auto"
   },
   number: {
@@ -50,7 +48,7 @@ const useStyles = makeStyles()(theme => ({
     fontSize: "1rem",
     fontWeight: 300,
     margin: 0,
-    borderBottom: "1px solid rgba(255,255,255,0.25)",
+    color: theme.palette.mode === "dark" ? theme.palette.grey[400] : theme.palette.grey[700],
     paddingBottom: "3px"
   },
   extraText: {
@@ -80,7 +78,8 @@ const useStyles = makeStyles()(theme => ({
     fontSize: "1rem"
   },
   actionButtonLabel: {
-    fontSize: ".7rem"
+    fontSize: ".7rem",
+    fontStyle: "italic"
   }
 }));
 
@@ -91,19 +90,28 @@ const CustomTooltip = styled(({ className, ...props }: TooltipProps) => <Tooltip
   }
 }));
 
-export function StatsCard({ number, text, tooltip, actionButton, graphPath, diffNumber, diffPercent }: IStatsCardProps) {
+export const StatsCard: React.FunctionComponent<IStatsCardProps> = ({
+  number,
+  text,
+  tooltip,
+  actionButton,
+  graphPath,
+  diffNumber,
+  diffPercent,
+  diffNumberUnit
+}) => {
   const { classes } = useStyles();
   const mediaQuery = useMediaQueryContext();
 
   return (
-    <Card className={clsx(classes.root, { [classes.rootSmall]: mediaQuery.smallScreen })} elevation={3}>
+    <Card className={cx(classes.root, { [classes.rootSmall]: mediaQuery.smallScreen })} elevation={2}>
       <CardHeader
         classes={{ title: classes.number, root: classes.cardHeader, subheader: classes.subHeader }}
         title={number}
         subheader={
           diffNumber && (
             <>
-              <DiffNumber value={diffNumber} />
+              <DiffNumber value={diffNumber} unit={diffNumberUnit} />
               &nbsp;
               <DiffPercentageChip value={diffPercent} />
             </>
@@ -135,4 +143,4 @@ export function StatsCard({ number, text, tooltip, actionButton, graphPath, diff
       </CardActions>
     </Card>
   );
-}
+};

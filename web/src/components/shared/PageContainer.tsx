@@ -6,7 +6,7 @@ type Props = {
 };
 
 export const PageContainer: React.FunctionComponent<Props> = ({ children }) => {
-  return <Container sx={{ paddingTop: { xs: "1rem", sm: "2rem" }, paddingBottom: "2rem", marginLeft: "0" }}>{children}</Container>;
+  return <Container sx={{ paddingTop: { xs: "1rem", sm: "2rem" }, paddingBottom: "2rem", marginLeft: ".5rem" }}>{children}</Container>;
 };
 
 export default PageContainer;

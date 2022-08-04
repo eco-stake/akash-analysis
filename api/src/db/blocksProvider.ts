@@ -11,13 +11,23 @@ export async function getBlocks(limit: number) {
     include: [
       {
         model: Transaction
+      },
+      {
+        model: Validator,
+        as: "proposerValidator",
+        required: true
       }
     ]
   });
 
   return blocks.map((block) => ({
     height: block.height,
-    proposer: block.proposer,
+    proposer: {
+      address: block.proposerValidator?.accountAddress,
+      operatorAddress: block.proposerValidator.operatorAddress,
+      moniker: block.proposerValidator.moniker,
+      avatarUrl: block.proposerValidator.keybaseAvatarUrl
+    },
     transactionCount: block.transactions.length,
     datetime: block.datetime
   }));
@@ -58,7 +68,8 @@ export async function getBlock(height: number) {
     proposer: {
       operatorAddress: block.proposerValidator.operatorAddress,
       moniker: block.proposerValidator.moniker,
-      avatarUrl: block.proposerValidator.keybaseAvatarUrl
+      avatarUrl: block.proposerValidator.keybaseAvatarUrl,
+      address: block.proposerValidator.accountAddress
     },
     hash: block.hash,
     gasUsed: block.transactions.map((tx) => tx.gasUsed).reduce((a, b) => a + b, 0),
@@ -68,6 +79,7 @@ export async function getBlock(height: number) {
       isSuccess: !tx.hasProcessingError,
       error: tx.hasProcessingError ? tx.log : null,
       fee: tx.fee,
+      datetime: block.datetime,
       messages: tx.messages.map((message) => ({
         id: message.id,
         type: message.type,

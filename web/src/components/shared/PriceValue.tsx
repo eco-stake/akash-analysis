@@ -17,7 +17,7 @@ export const PriceValue: React.FunctionComponent<Props> = ({ value, showLt }) =>
 
   return (
     <>
-      {isLoading && !data && <CircularProgress size=".8rem" />}
+      {isLoading && !data && <CircularProgress size=".8rem" color="secondary" />}
       {showLt && data?.price && _value !== computedValue && "< "}
       {data?.price && (
         <FormattedNumber

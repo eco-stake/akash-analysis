@@ -16,6 +16,7 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import { BlockRow } from "@src/components/shared/BlockRow";
 import CircularProgress from "@mui/material/CircularProgress";
+import { GradientText } from "@src/components/shared/GradientText";
 
 type Props = {
   errors?: string;
@@ -51,14 +52,14 @@ const BlocksPage: React.FunctionComponent<Props> = ({}) => {
       <PageContainer>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
           <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-            Blocks
+            <GradientText>Blocks</GradientText>
           </Typography>
         </Box>
 
-        <Paper sx={{ padding: 2 }}>
+        <Paper sx={{ padding: 2 }} elevation={2}>
           {isLoading ? (
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-              <CircularProgress sx={{ color: theme.palette.secondary.main }} />
+              <CircularProgress color="secondary" />
             </Box>
           ) : (
             <TableContainer>

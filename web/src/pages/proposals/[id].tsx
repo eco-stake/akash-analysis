@@ -15,6 +15,12 @@ import { FormattedNumber, FormattedTime } from "react-intl";
 import { ProposalDetail } from "@src/types/proposal";
 import ReactMarkdown from "react-markdown";
 import { getFriendlyProposalStatus, getProposalParamChangeValue } from "@src/utils/proposals";
+import { useProposalStatusColor } from "@src/hooks/useProposalStatusColor";
+import { Box, Chip } from "@mui/material";
+import { GradientText } from "@src/components/shared/GradientText";
+import Link from "next/link";
+import { UrlService } from "@src/utils/urlUtils";
+import { DynamicReactJson } from "@src/components/shared/DynamicJsonView";
 
 type Props = {
   errors?: string;
@@ -47,13 +53,13 @@ const useStyles = makeStyles()(theme => ({
   },
   label: {
     fontWeight: "bold",
-    maxWidth: "10rem",
-    flex: "1 1 0px",
-    flexBasis: 0
+    width: "10rem",
+    flexShrink: 0
   },
   value: {
     wordBreak: "break-all",
-    overflowWrap: "anywhere"
+    overflowWrap: "anywhere",
+    flexGrow: 1
   }
 }));
 
@@ -63,22 +69,37 @@ const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal, erro
   const { classes } = useStyles();
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
+  const status = getFriendlyProposalStatus(proposal.status);
+  const statusColor = useProposalStatusColor(status);
+  const isValidator = !!proposal.proposer.operatorAddress;
 
   return (
     <Layout title={`Proposal #${id}`} appendGenericTitle>
       <PageContainer>
         <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          Details for Proposal #{id}
+          <GradientText>Proposal Detail</GradientText>
         </Typography>
 
-        <Paper sx={{ padding: 2 }}>
+        <Paper sx={{ padding: 2 }} elevation={2}>
+          <Box
+            sx={{
+              paddingBottom: "1rem",
+              marginBottom: "1rem",
+              borderBottom: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[200]}`
+            }}
+          >
+            <Typography variant="h3" sx={{ fontSize: "1.5rem", fontWeight: "bold" }}>
+              #{proposal.id}&nbsp;-&nbsp;{proposal.title}
+            </Typography>
+          </Box>
+
           <div className={classes.proposalInfoRow}>
-            <div className={classes.label}>ID</div>
-            <div className={classes.value}>#{proposal.id}</div>
-          </div>
-          <div className={classes.proposalInfoRow}>
-            <div className={classes.label}>Title</div>
-            <div className={classes.value}>{proposal.title}</div>
+            <div className={classes.label}>Proposer</div>
+            <div className={classes.value}>
+              <Link href={isValidator ? UrlService.validator(proposal.proposer.operatorAddress) : UrlService.address(proposal.proposer.address)}>
+                <a>{isValidator ? proposal.proposer.moniker : proposal.proposer.address}</a>
+              </Link>
+            </div>
           </div>
           <div className={classes.proposalInfoRow}>
             <div className={classes.label}>Submit Time</div>
@@ -109,8 +130,9 @@ const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal, erro
           <div className={classes.proposalInfoRow}>
             <div className={classes.label}>Final Status</div>
             <div className={classes.value}>
-              {getFriendlyProposalStatus(proposal.status)}
-              <br />
+              <Box sx={{ marginBottom: ".5rem" }}>
+                <Chip label={status} size="small" sx={{ backgroundColor: statusColor, color: theme.palette.secondary.contrastText }} />
+              </Box>
               Yes: <FormattedNumber value={udenomToDenom(proposal.finalTally.yes)} maximumFractionDigits={0} />
               &nbsp;
               <AKTLabel /> (<FormattedNumber style="percent" value={proposal.finalTally.yes / proposal.finalTally.total} minimumFractionDigits={2} />)
@@ -132,21 +154,26 @@ const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal, erro
             <div className={classes.proposalInfoRow}>
               <div className={classes.label}>Parameter Changes</div>
               <div className={classes.value}>
-                {proposal.paramChanges.map(paramChange => (
-                  <div key={paramChange.subspace + paramChange.subspace}>
-                    {paramChange.key}: {getProposalParamChangeValue(paramChange.value)}
-                    <br />
-                  </div>
-                ))}
+                <DynamicReactJson src={JSON.parse(JSON.stringify(proposal.paramChanges))} />
               </div>
             </div>
           )}
           <div className={classes.proposalInfoRow}>
             <div className={classes.label}>Details</div>
             <div className={classes.value}>
-              <ReactMarkdown linkTarget="_blank" remarkPlugins={[]} className="markdownContainer">
-                {proposal.description}
-              </ReactMarkdown>
+              <Paper
+                sx={{
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                  padding: "0 1rem",
+                  backgroundColor: theme.palette.mode === "dark" ? theme.palette.grey[900] : theme.palette.grey[200]
+                }}
+                elevation={0}
+              >
+                <ReactMarkdown linkTarget="_blank" remarkPlugins={[]} className="markdownContainer">
+                  {proposal.description}
+                </ReactMarkdown>
+              </Paper>
             </div>
           </div>
         </Paper>

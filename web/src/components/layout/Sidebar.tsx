@@ -15,14 +15,16 @@ import { useRouter } from "next/router";
 import { drawerWidth } from "@src/utils/constants";
 import getConfig from "next/config";
 import { makeStyles } from "tss-react/mui";
-import { KeplrWalletStatus } from "@src/components/layout/KeplrWalletStatus";
 import { UrlService } from "@src/utils/urlUtils";
 import ViewInArIcon from "@mui/icons-material/ViewInAr";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import PollIcon from "@mui/icons-material/Poll";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import SavingsIcon from '@mui/icons-material/Savings';
-import HelpIcon from '@mui/icons-material/Help';
+import SavingsIcon from "@mui/icons-material/Savings";
+import HelpIcon from "@mui/icons-material/Help";
+import CloudIcon from "@mui/icons-material/Cloud";
+import HubIcon from "@mui/icons-material/Hub";
+import { Tooltip } from "@mui/material";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -58,6 +60,9 @@ const useStyles = makeStyles()(theme => ({
     fontSize: ".7rem",
     fontWeight: "bold",
     color: theme.palette.grey[500]
+  },
+  comingSoonTooltip: {
+    backgroundColor: theme.palette.secondary.main
   }
 }));
 
@@ -76,76 +81,110 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
     {
       title: "Dashboard",
       icon: props => <DashboardIcon {...props} />,
-      url: UrlService.dashboard()
+      url: UrlService.dashboard(),
+      activeRoutes: [UrlService.dashboard()]
     },
     {
       title: "Deploy",
       icon: props => <CloudUploadIcon {...props} />,
-      url: UrlService.deploy()
+      url: UrlService.deploy(),
+      activeRoutes: [UrlService.deploy()]
+    },
+    {
+      title: "Deployments",
+      icon: props => <CloudIcon {...props} />,
+      isComingSoon: true,
+      url: UrlService.deployments(),
+      activeRoutes: [UrlService.deployments()]
+    },
+    {
+      title: "Providers",
+      icon: props => <DnsIcon {...props} />,
+      isComingSoon: true,
+      url: UrlService.providers(),
+      activeRoutes: [UrlService.providers()]
     },
     {
       title: "Blocks",
       icon: props => <ViewInArIcon {...props} />,
-      url: UrlService.blocks()
+      url: UrlService.blocks(),
+      activeRoutes: [UrlService.blocks()]
     },
     {
       title: "Transactions",
       icon: props => <ReceiptIcon {...props} />,
-      url: UrlService.transactions()
+      url: UrlService.transactions(),
+      activeRoutes: [UrlService.transactions()]
     },
     {
       title: "Validators",
-      icon: props => <DnsIcon {...props} />,
-      url: UrlService.validators()
+      icon: props => <HubIcon {...props} />,
+      url: UrlService.validators(),
+      activeRoutes: [UrlService.validators()]
     },
     {
       title: "Proposals",
       icon: props => <PollIcon {...props} />,
-      url: UrlService.proposals()
+      url: UrlService.proposals(),
+      activeRoutes: [UrlService.proposals()]
     },
     {
       title: "Price Compare",
       icon: props => <SavingsIcon {...props} />,
-      url: UrlService.priceCompare()
+      url: UrlService.priceCompare(),
+      activeRoutes: [UrlService.priceCompare()]
     },
     {
       title: "FAQ",
       icon: props => <HelpIcon {...props} />,
-      url: UrlService.faq()
+      url: UrlService.faq(),
+      activeRoutes: [UrlService.faq()]
     }
   ];
 
   const drawer = (
     <div className={classes.root} style={{ width: drawerWidth }}>
       <div className={classes.nav}>
-        <Image alt="Cloudmos Logo" src="/images/cloudmos-logo.png" quality={100} width={248} height={124} priority />
+        <Box sx={{ height: "70px", width: "210px", margin: "1rem 0", alignSelf: "flex-start" }}>
+          <Image alt="Cloudmos Logo" src="/images/cloudmos-logo.png" layout="responsive" quality={100} width={256} height={85} priority />
+        </Box>
 
-        <Box paddingTop="2rem" width="100%">
+        <Box paddingTop="1rem" width="100%">
           <List className={classes.list}>
             {routes.map(route => {
-              const isSelected = router.pathname === route.url;
+              const isSelected = route.url === UrlService.dashboard() ? router.pathname === "/" : route.activeRoutes.some(x => router.pathname.startsWith(x));
+
+              const button = (
+                <Button
+                  startIcon={route.icon({ color: isSelected ? "secondary" : "disabled" })}
+                  fullWidth
+                  color="inherit"
+                  className={cx({
+                    [classes.selected]: isSelected,
+                    [classes.notSelected]: !isSelected
+                  })}
+                  sx={{
+                    justifyContent: "flex-start",
+                    paddingLeft: "1rem",
+                    paddingRight: "1rem",
+                    textTransform: "initial"
+                  }}
+                >
+                  <Box sx={{ marginLeft: ".5rem" }}>{route.title}</Box>
+                </Button>
+              );
 
               return (
                 <ListItem key={route.title} sx={{ paddingLeft: 0, paddingRight: 0 }}>
-                  <Link href={route.url} passHref>
-                    <Button
-                      startIcon={route.icon({ color: isSelected ? "secondary" : "disabled" })}
-                      fullWidth
-                      color="inherit"
-                      className={cx({
-                        [classes.selected]: isSelected,
-                        [classes.notSelected]: !isSelected
-                      })}
-                      sx={{
-                        justifyContent: "flex-start",
-                        paddingLeft: "1rem",
-                        paddingRight: "1rem",
-                        textTransform: "initial"
-                      }}
-                    >
-                      <Box sx={{ marginLeft: ".5rem" }}>{route.title}</Box>
-                    </Button>
-                  </Link>
+                  {route.isComingSoon ? (
+                    <Tooltip title="Coming soon!" classes={{ tooltip: classes.comingSoonTooltip }} placement="top">
+                      {button}
+                    </Tooltip>
+                  ) : (
+                    <Link href={route.url} passHref>
+                      {button}
+                    </Link>
+                  )}
                 </ListItem>
               );
             })}
@@ -161,15 +200,17 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <ColorModeSwitch />
 
-          <Image
-            alt="Akash Network Logo"
-            src={theme.palette.mode === "dark" ? "/images/akash-logo-dark.png" : "/images/akash-logo-light.png"}
-            quality={100}
-            layout="fixed"
-            height="65px"
-            width="128px"
-            priority
-          />
+          <Box sx={{ padding: "1rem", flexGrow: 1 }}>
+            <Image
+              alt="Akash Network Logo"
+              src={theme.palette.mode === "dark" ? "/images/akash-logo-dark.png" : "/images/akash-logo-light.png"}
+              quality={100}
+              layout="fixed"
+              height="49px"
+              width="128px"
+              priority
+            />
+          </Box>
         </Box>
 
         <small className={classes.version}>v{publicRuntimeConfig?.version}</small>

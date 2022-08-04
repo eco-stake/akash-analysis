@@ -251,8 +251,9 @@ apiRouter.get("/getDashboardData", waitForInitMiddleware, async (req, res) => {
     const marketData = marketDataProvider.getAktMarketData();
     const networkCapacity = await getNetworkCapacity();
     const latestBlocks = await getBlocks(5);
+    const latestTransactions = await getTransactions(5);
 
-    res.send({ ...dashboardData, marketData, networkCapacity, latestBlocks });
+    res.send({ ...dashboardData, marketData, networkCapacity, latestBlocks, latestTransactions });
   } catch (err) {
     console.error(err);
   }

@@ -21,6 +21,8 @@ import Table from "@mui/material/Table";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
+import { GradientText } from "@src/components/shared/GradientText";
+import SearchOffIcon from "@mui/icons-material/SearchOff";
 
 type Props = {
   errors?: string;
@@ -53,9 +55,8 @@ const useStyles = makeStyles()(theme => ({
   },
   label: {
     fontWeight: "bold",
-    maxWidth: "10rem",
-    flex: "1 1 0px",
-    flexBasis: 0
+    width: "15rem",
+    flexShrink: 0
   },
   value: {
     wordBreak: "break-all",
@@ -74,10 +75,10 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
     <Layout title={`Block #${block.height}`} appendGenericTitle>
       <PageContainer>
         <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          Details for Block #{block.height}
+          <GradientText>Details for Block #{block.height}</GradientText>
         </Typography>
 
-        <Paper sx={{ padding: 2 }}>
+        <Paper sx={{ padding: 2 }} elevation={2}>
           <div className={classes.blockInfoRow}>
             <div className={classes.label}>Height</div>
             <div className={classes.value}>{block.height}</div>
@@ -121,32 +122,40 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
 
         <Box sx={{ mt: "1rem" }}>
           <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
-            Transactions
+            <GradientText>Transactions</GradientText>
           </Typography>
 
           <Paper sx={{ padding: 2 }}>
-            <TableContainer sx={{ mb: 4 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell width="5%">Tx Hash</TableCell>
-                    <TableCell align="center" width="10%">
-                      Type
-                    </TableCell>
-                    <TableCell align="center">Result</TableCell>
-                    <TableCell align="center">Amount</TableCell>
-                    <TableCell align="center">Fee</TableCell>
-                    <TableCell align="center">Height</TableCell>
-                  </TableRow>
-                </TableHead>
+            {block.transactions.length === 0 ? (
+              <Box sx={{ padding: "1rem", display: "flex", alignItems: "center" }}>
+                <SearchOffIcon />
+                &nbsp; No transactions
+              </Box>
+            ) : (
+              <TableContainer sx={{ mb: 4 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell width="5%">Tx Hash</TableCell>
+                      <TableCell align="center" width="10%">
+                        Type
+                      </TableCell>
+                      <TableCell align="center">Result</TableCell>
+                      <TableCell align="center">Amount</TableCell>
+                      <TableCell align="center">Fee</TableCell>
+                      <TableCell align="center">Height</TableCell>
+                      <TableCell align="center">Time</TableCell>
+                    </TableRow>
+                  </TableHead>
 
-                <TableBody>
-                  {block.transactions.map(transaction => (
-                    <TransactionRow key={transaction.hash} transaction={transaction} blockHeight={block.height} />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  <TableBody>
+                    {block.transactions.map(transaction => (
+                      <TransactionRow key={transaction.hash} transaction={transaction} blockHeight={block.height} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           </Paper>
         </Box>
       </PageContainer>

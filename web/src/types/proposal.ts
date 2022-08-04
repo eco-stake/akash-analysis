@@ -1,3 +1,5 @@
+import { IValidatorAddess } from "./validator";
+
 export interface ProposalSummary {
   id: number;
   title: string;
@@ -11,6 +13,7 @@ export interface ProposalSummary {
 export interface ProposalDetail {
   id: number;
   title: string;
+  proposer: IValidatorAddess;
   description: string;
   status: string;
   submitTime: string;

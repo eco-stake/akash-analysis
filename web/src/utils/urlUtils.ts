@@ -1,6 +1,6 @@
 export class UrlService {
   static dashboard = () => "/";
-  static deploy = () => "/deploy";
+  static deploy = () => "/cloud-deploy";
   static priceCompare = () => "/price-compare";
   static faq = () => "/faq";
   static blocks = () => "/blocks";
@@ -8,10 +8,14 @@ export class UrlService {
   static transactions = () => "/transactions";
   static transaction = (hash: string) => `/transactions/${hash}`;
   static address = (address: string) => `/addresses/${address}`;
+  static addressTransactions = (address: string) => `/addresses/${address}/transactions`;
+  static addressDeployments = (address: string) => `/addresses/${address}/deployments`;
   static validators = () => "/validators";
   static validator = (address: string) => `/validators/${address}`;
   static proposals = () => "/proposals";
   static proposal = (id: number) => `/proposals/${id}`;
+  static providers = () => "/providers";
+  static deployments = () => "/deployments";
   static deployment = (owner: string, dseq: string) => `/deployments/${owner}/${dseq}`;
 }
 

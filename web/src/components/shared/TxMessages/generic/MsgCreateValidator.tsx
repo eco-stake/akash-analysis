@@ -11,7 +11,7 @@ type TxMessageProps = {
 
 export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   // ###################
-  // TODO minSelftDelegation as a coin
+  // TODO minSelftDelegation as a coin + validator moniker
   // TODO commissions DecCoin
   // ###################
   console.log(message);

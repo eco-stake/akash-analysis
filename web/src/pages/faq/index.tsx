@@ -1,21 +1,22 @@
 import React from "react";
-import clsx from "clsx";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
 import { Typography } from "@mui/material";
 import PageContainer from "@src/components/shared/PageContainer";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
+import { GradientText } from "@src/components/shared/GradientText";
 
 const useStyles = makeStyles()(theme => ({
   pageTitle: {
+    fontSize: "2rem",
     fontWeight: "bold",
-    marginBottom: "3rem"
+    marginBottom: "2rem"
   },
   subTitle: {
-    fontSize: "2rem",
+    fontSize: "1.5rem",
     marginBottom: "1rem",
-    fontWeight: "lighter"
+    fontWeight: "300"
   },
   link: {
     fontWeight: "bold",
@@ -27,7 +28,7 @@ const useStyles = makeStyles()(theme => ({
   resourcesTitle: {
     fontSize: "1.5rem",
     marginBottom: "1rem",
-    fontWeight: "lighter"
+    fontWeight: "300"
   }
 }));
 
@@ -114,154 +115,138 @@ export function Faq() {
         <meta name="description" content="Learn more about the akash network and get answers to the most frequently asked questions." />
       </Helmet> */}
 
-        <div className="row">
-          <div className="col-xs-12">
-            <Typography variant="h3" className={classes.pageTitle}>
-              Frequently Asked Questions
-            </Typography>
-          </div>
-        </div>
+        <Typography variant="h1" className={classes.pageTitle}>
+          <GradientText>Frequently Asked Questions</GradientText>
+        </Typography>
 
-        <div className="row">
-          <div className="col-xs-12">
-            <Typography variant="h3" className={classes.subTitle}>
-              What is Akash?
-            </Typography>
+        <Typography variant="h3" className={classes.subTitle}>
+          What is Akash?
+        </Typography>
 
-            <p className={classes.paragraph}>
-              <a href="https://akash.network/" target="_blank" rel="noopener" className={classes.link}>
-                Akash Network
-              </a>{" "}
-              is the world’s first decentralized open source cloud. Almost every website or app you go to are hosted on the “cloud”, meaning servers leased by
-              big companies like Amazon, Google, Microsoft or others. Akash is aiming to disrupt this centralization of resources by providing a decentralized
-              network of server providers, giving the possibility for anyone capable to rent their spare server capacity and earn an extra income. Think AirBnb,
-              but for cloud computing! On the other hand, anyone who wants to host an app or a website can now do it at a{" "}
-              <Link href={UrlService.priceCompare()}>
-                <a className={classes.link}>fraction of the cost.</a>
-              </Link>{" "}
-              To fulfill the transactions done between the parties, Akash uses the{" "}
-              <a href="https://coinmarketcap.com/currencies/akash-network/" target="_blank" rel="noopener" className={classes.link}>
-                blockchain technology
-              </a>{" "}
-              so that all the transactions are transparent, fast, global and cheap. Akash is part of the cosmos ecosystem as it is built with the{" "}
-              <a href="https://v1.cosmos.network/sdk" target="_blank" rel="noopener" className={classes.link}>
-                Cosmos SDK.
+        <p className={classes.paragraph}>
+          <a href="https://akash.network/" target="_blank" rel="noopener" className={classes.link}>
+            Akash Network
+          </a>{" "}
+          is the world’s first decentralized open source cloud. Almost every website or app you go to are hosted on the “cloud”, meaning servers leased by big
+          companies like Amazon, Google, Microsoft or others. Akash is aiming to disrupt this centralization of resources by providing a decentralized network
+          of server providers, giving the possibility for anyone capable to rent their spare server capacity and earn an extra income. Think AirBnb, but for
+          cloud computing! On the other hand, anyone who wants to host an app or a website can now do it at a{" "}
+          <Link href={UrlService.priceCompare()}>
+            <a className={classes.link}>fraction of the cost.</a>
+          </Link>{" "}
+          To fulfill the transactions done between the parties, Akash uses the{" "}
+          <a href="https://coinmarketcap.com/currencies/akash-network/" target="_blank" rel="noopener" className={classes.link}>
+            blockchain technology
+          </a>{" "}
+          so that all the transactions are transparent, fast, global and cheap. Akash is part of the cosmos ecosystem as it is built with the{" "}
+          <a href="https://v1.cosmos.network/sdk" target="_blank" rel="noopener" className={classes.link}>
+            Cosmos SDK.
+          </a>
+        </p>
+
+        <Typography variant="h3" className={classes.subTitle}>
+          How to deploy an app or website to Akash?
+        </Typography>
+
+        <p className={classes.paragraph}>
+          Akash leverages{" "}
+          <a href="https://kubernetes.io/" target="_blank" rel="noopener" className={classes.link}>
+            Kubernetes's container orchestration technology
+          </a>{" "}
+          to provide a maximum of flexibility in terms of what applications can be deployed on it’s network. So basically, if your application is containerized
+          with{" "}
+          <a href="https://www.docker.com/" target="_blank" rel="noopener" className={classes.link}>
+            docker
+          </a>
+          , it can run on Akash. The only thing you need is the currency{" "}
+          <a href="https://coinmarketcap.com/currencies/akash-network/" target="_blank" rel="noopener" className={classes.link}>
+            $AKT
+          </a>{" "}
+          to pay for the computing and then voilà, you can{" "}
+          <Link
+            // href="https://docs.akash.network/guides/deploy"
+            href={UrlService.deploy()}
+          >
+            <a className={classes.link}>deploy your app in a few steps.</a>
+          </Link>
+        </p>
+
+        <Typography variant="h3" className={classes.subTitle}>
+          What can be deployed on Akash?
+        </Typography>
+
+        <p>Any app, website, blockchain node, video game server, etc. You name it! As long as you have a docker image ready, you can run it on Akash!</p>
+        <p className={classes.paragraph}>
+          <a href="https://github.com/ovrclk/awesome-akash" target="_blank" rel="noopener" className={classes.link}>
+            Here’s a list of projects deployed by the community on the network during the testnet.
+          </a>
+        </p>
+
+        <Typography variant="h3" className={classes.pageTitle} sx={{ marginBottom: 2, marginTop: 4 }}>
+          <GradientText>Resources</GradientText>
+        </Typography>
+        <Typography variant="h3" className={classes.resourcesTitle} sx={{ marginBottom: 5 }}>
+          Here's a list of of useful links from the community that could help to get from buying the currency to deploying an app!
+        </Typography>
+
+        <Typography variant="h5" className={classes.resourcesTitle}>
+          #1: How to buy{" "}
+          <a href="https://coinmarketcap.com/currencies/akash-network/" target="_blank" rel="noopener" className={classes.link}>
+            $AKT
+          </a>
+        </Typography>
+
+        <ul>
+          {howToBuyLinks.map((link, i) => (
+            <li key={i}>
+              <a href={link.url} target="_blank" rel="noopener" className={classes.link}>
+                {link.title}
               </a>
-            </p>
+            </li>
+          ))}
+        </ul>
 
-            <Typography variant="h3" className={classes.subTitle}>
-              How to deploy an app or website to Akash?
-            </Typography>
+        <Typography variant="h5" className={classes.resourcesTitle}>
+          #2: How to stake
+        </Typography>
 
-            <p className={classes.paragraph}>
-              Akash leverages{" "}
-              <a href="https://kubernetes.io/" target="_blank" rel="noopener" className={classes.link}>
-                Kubernetes's container orchestration technology
-              </a>{" "}
-              to provide a maximum of flexibility in terms of what applications can be deployed on it’s network. So basically, if your application is
-              containerized with{" "}
-              <a href="https://www.docker.com/" target="_blank" rel="noopener" className={classes.link}>
-                docker
+        <ul>
+          {howToStakeLinks.map((link, i) => (
+            <li key={i}>
+              <a href={link.url} target="_blank" rel="noopener" className={classes.link}>
+                {link.title}
               </a>
-              , it can run on Akash. The only thing you need is the currency{" "}
-              <a href="https://coinmarketcap.com/currencies/akash-network/" target="_blank" rel="noopener" className={classes.link}>
-                $AKT
-              </a>{" "}
-              to pay for the computing and then voilà, you can{" "}
-              <Link
-                // href="https://docs.akash.network/guides/deploy"
-                href={UrlService.deploy()}
-              >
-                <a className={classes.link}>deploy your app in a few steps.</a>
-              </Link>
-            </p>
+            </li>
+          ))}
+        </ul>
 
-            <Typography variant="h3" className={classes.subTitle}>
-              What can be deployed on Akash?
-            </Typography>
+        <Typography variant="h5" className={classes.resourcesTitle}>
+          #3: How to deploy
+        </Typography>
 
-            <p>Any app, website, blockchain node, video game server, etc. You name it! As long as you have a docker image ready, you can run it on Akash!</p>
-            <p className={classes.paragraph}>
-              <a href="https://github.com/ovrclk/awesome-akash" target="_blank" rel="noopener" className={classes.link}>
-                Here’s a list of projects deployed by the community on the network during the testnet.
+        <ul>
+          {howToDeployLinks.map((link, i) => (
+            <li key={i}>
+              <a href={link.url} target="_blank" rel="noopener" className={classes.link}>
+                {link.title}
               </a>
-            </p>
-          </div>
-        </div>
+            </li>
+          ))}
+        </ul>
 
-        <div className="row">
-          <div className="col-12">
-            <Typography variant="h3" className={clsx(classes.pageTitle, "mb-2", "mt-4")}>
-              Resources
-            </Typography>
-            <Typography variant="h3" className={clsx(classes.resourcesTitle, "mb-5")}>
-              Here's a list of of useful links from the community that could help to get from buying the currency to deploying an app!
-            </Typography>
-          </div>
-        </div>
+        <Typography variant="h3" className={classes.pageTitle} sx={{ marginBottom: 4, marginTop: 4 }}>
+          <GradientText>Community</GradientText>
+        </Typography>
 
-        <div className="row">
-          <div className="col-12">
-            <Typography variant="h5" className={clsx(classes.resourcesTitle)}>
-              #1: How to buy{" "}
-              <a href="https://coinmarketcap.com/currencies/akash-network/" target="_blank" rel="noopener" className={classes.link}>
-                $AKT
+        <ul>
+          {communitiesLinks.map((link, i) => (
+            <li key={i}>
+              <a href={link.url} target="_blank" rel="noopener" className={classes.link}>
+                {link.title}
               </a>
-            </Typography>
-
-            <ul>
-              {howToBuyLinks.map((link, i) => (
-                <li key={i}>
-                  <a href={link.url} target="_blank" rel="noopener" className={classes.link}>
-                    {link.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-
-            <Typography variant="h5" className={clsx(classes.resourcesTitle)}>
-              #2: How to stake
-            </Typography>
-
-            <ul>
-              {howToStakeLinks.map((link, i) => (
-                <li key={i}>
-                  <a href={link.url} target="_blank" rel="noopener" className={classes.link}>
-                    {link.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-
-            <Typography variant="h5" className={clsx(classes.resourcesTitle)}>
-              #3: How to deploy
-            </Typography>
-
-            <ul>
-              {howToDeployLinks.map((link, i) => (
-                <li key={i}>
-                  <a href={link.url} target="_blank" rel="noopener" className={classes.link}>
-                    {link.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-
-            <Typography variant="h3" className={clsx(classes.pageTitle, "mb-4", "mt-4")}>
-              Community
-            </Typography>
-
-            <ul>
-              {communitiesLinks.map((link, i) => (
-                <li key={i}>
-                  <a href={link.url} target="_blank" rel="noopener" className={classes.link}>
-                    {link.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+            </li>
+          ))}
+        </ul>
       </PageContainer>
     </Layout>
   );

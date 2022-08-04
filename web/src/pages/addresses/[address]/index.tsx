@@ -1,0 +1,236 @@
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
+import { makeStyles } from "tss-react/mui";
+import Layout from "@src/components/layout/Layout";
+import { cx } from "@emotion/css";
+import PageContainer from "@src/components/shared/PageContainer";
+import { BASE_API_URL } from "@src/utils/constants";
+import axios from "axios";
+import Error from "@src/components/shared/Error";
+import TableContainer from "@mui/material/TableContainer";
+import TableBody from "@mui/material/TableBody";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import Table from "@mui/material/Table";
+import { AddressDetail } from "@src/types/address";
+import { udenomToDenom } from "@src/utils/mathHelpers";
+import { GradientText } from "@src/components/shared/GradientText";
+import { useQRCode } from "next-qrcode";
+import { Address } from "@src/components/shared/Address";
+import { useState } from "react";
+import { CircularProgress, Grid, Tab, Tabs } from "@mui/material";
+import { a11yTabProps } from "@src/utils/a11y";
+import { Delegations } from "@src/components/address/Delegations";
+import { Redelegations } from "@src/components/address/Redelegations";
+import AddressLayout from "@src/components/layout/AddressLayout";
+import { FormattedDecimal } from "@src/components/shared/FormattedDecimal";
+
+type Props = {
+  errors?: string;
+  address: string;
+  addressDetail: AddressDetail;
+};
+
+const useStyles = makeStyles()(theme => ({
+  root: {
+    paddingTop: "2rem",
+    paddingBottom: "2rem",
+    marginLeft: "0"
+  },
+  title: {
+    fontSize: "2rem",
+    fontWeight: "bold",
+    marginLeft: ".5rem",
+    marginBottom: "1rem"
+  },
+  titleSmall: {
+    fontSize: "1.1rem"
+  },
+  addressInfoRow: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: ".5rem",
+    "&:last-child": {
+      marginBottom: 0
+    }
+  },
+  label: {
+    width: "10rem",
+    flexShrink: 0
+  },
+  value: {
+    wordBreak: "break-all",
+    overflowWrap: "anywhere"
+  }
+}));
+
+const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDetail, errors }) => {
+  if (errors) return <Error errors={errors} />;
+
+  const [assetTab, setAssetTab] = useState("delegations");
+  const { classes } = useStyles();
+  const { Canvas } = useQRCode();
+  const theme = useTheme();
+  const matches = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+    setAssetTab(newValue);
+  };
+
+  return (
+    <Layout title={`Account ${address}`} appendGenericTitle>
+      <AddressLayout page="address" address={address}>
+        <Paper sx={{ padding: 2 }} elevation={2}>
+          <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+            <Canvas
+              text={address}
+              options={{
+                type: "image/jpeg",
+                quality: 0.3,
+                level: "M",
+                margin: 2,
+                scale: 4,
+                width: 175,
+                color: {
+                  dark: theme.palette.secondary.main,
+                  light: theme.palette.primary.main
+                }
+              }}
+            />
+            <Box sx={{ paddingLeft: "1rem", flexGrow: 1 }}>
+              <div className={classes.addressInfoRow}>
+                <div className={classes.label}>Address</div>
+                <Box className={classes.value} sx={{ color: theme.palette.secondary.main }}>
+                  <Address address={address} isCopyable disableTruncate />
+                </Box>
+              </div>
+              <Box
+                className={classes.addressInfoRow}
+                sx={{
+                  marginBottom: "1rem",
+                  paddingBottom: ".5rem",
+                  borderBottom: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[200]}`
+                }}
+              >
+                <Box className={classes.addressInfoRow} sx={{ fontSize: "1.5rem" }}>
+                  <div className={classes.label}>
+                    <GradientText>
+                      <strong>AKT</strong>
+                    </GradientText>
+                  </div>
+                  <div className={classes.value}>
+                    <FormattedDecimal value={udenomToDenom(addressDetail.total, 6)} />
+                  </div>
+                </Box>
+              </Box>
+
+              <div className={classes.addressInfoRow}>
+                <div className={classes.label}>Available</div>
+                <div className={classes.value}>
+                  <FormattedDecimal value={udenomToDenom(addressDetail.available, 6)} />
+                </div>
+              </div>
+              <div className={classes.addressInfoRow}>
+                <div className={classes.label}>Delegated</div>
+                <div className={classes.value}>
+                  <FormattedDecimal value={udenomToDenom(addressDetail.delegated, 6)} />
+                </div>
+              </div>
+              <div className={classes.addressInfoRow}>
+                <div className={classes.label}>Rewards</div>
+                <div className={classes.value}>
+                  <FormattedDecimal value={udenomToDenom(addressDetail.rewards, 6)} />
+                </div>
+              </div>
+              <div className={classes.addressInfoRow}>
+                <div className={classes.label}>Commission</div>
+                <div className={classes.value}>
+                  <FormattedDecimal value={udenomToDenom(addressDetail.commission, 6)} />
+                </div>
+              </div>
+            </Box>
+          </Box>
+        </Paper>
+
+        <Box sx={{ mt: "1rem" }}>
+          <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
+            Assets
+          </Typography>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={4}>
+              <Paper sx={{ padding: 2, height: "100%" }} elevation={2}>
+                {/** TODO improve */}
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Name</TableCell>
+                        <TableCell align="center">Amount</TableCell>
+                      </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                      {addressDetail.assets.map(asset => (
+                        <TableRow key={asset.denom}>
+                          <TableCell>{asset.denom}</TableCell>
+                          <TableCell align="center">{asset.amount}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={8}>
+              <Paper sx={{ padding: 2, height: "100%" }} elevation={2}>
+                <Box sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 1 }}>
+                  <Tabs value={assetTab} onChange={handleTabChange} aria-label="assets table" textColor="secondary" indicatorColor="secondary">
+                    <Tab value="delegations" label="Delegations" {...a11yTabProps("delegation-tab", "delegation-tab-panel", 0)} />
+                    <Tab value="redelegations" label="Redelegations" {...a11yTabProps("redelegations-tab", "redelegations-tab-panel", 1)} />
+                  </Tabs>
+                </Box>
+
+                {assetTab === "delegations" && <Delegations delegations={addressDetail.delegations} />}
+                {assetTab === "redelegations" && <Redelegations redelegations={addressDetail.redelegations} />}
+              </Paper>
+            </Grid>
+          </Grid>
+        </Box>
+
+        <Box sx={{ mt: "1rem" }}>
+          <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
+            Transactions
+          </Typography>
+
+          <Paper sx={{ padding: 2 }} elevation={2}>
+            {/* <CircularProgress color="secondary" /> */}
+            Coming soon!
+          </Paper>
+        </Box>
+      </AddressLayout>
+    </Layout>
+  );
+};
+
+export default AddressDetailPage;
+
+export async function getServerSideProps({ params }) {
+  const addressDetail = await fetchAddressData(params?.address);
+
+  return {
+    props: {
+      address: params?.address,
+      addressDetail
+    }
+  };
+}
+
+async function fetchAddressData(address: string) {
+  const response = await axios.get(`${BASE_API_URL}/api/addresses/${address}`);
+  return response.data;
+}

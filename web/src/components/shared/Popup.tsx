@@ -1,7 +1,6 @@
 import * as React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "./ErrorFallback";
-import clsx from "clsx";
 import { ButtonProps, DialogProps, IconButton, Paper } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -13,6 +12,7 @@ import TextField from "@mui/material/TextField";
 import CloseIcon from "@mui/icons-material/Close";
 import { makeStyles } from "tss-react/mui";
 import { default as MuiDialogTitle } from "@mui/material/DialogTitle";
+import { cx } from "@emotion/css";
 
 const useStyles = makeStyles()(theme => ({
   closeButton: {
@@ -189,7 +189,7 @@ export const Popup: React.FC<PopupProps> = props => {
   switch (props.variant) {
     case "confirm":
       component.push(
-        <DialogActions key="dialog-actions" className={clsx(classes.genericDialogActions, classes.justifyContentBetween)}>
+        <DialogActions key="dialog-actions" className={cx(classes.genericDialogActions, classes.justifyContentBetween)}>
           <Button
             variant="text"
             className={classes.genericDialogActionButton}
@@ -218,7 +218,7 @@ export const Popup: React.FC<PopupProps> = props => {
       break;
     case "prompt":
       component.push(
-        <DialogActions key="DialogActions" className={clsx(classes.genericDialogActions, classes.justifyContentBetween)}>
+        <DialogActions key="DialogActions" className={cx(classes.genericDialogActions, classes.justifyContentBetween)}>
           <Button
             variant="text"
             className={classes.genericDialogActionButton}
@@ -279,7 +279,7 @@ export const Popup: React.FC<PopupProps> = props => {
           </Button>
         ));
       component.push(
-        <DialogActions className={clsx(classes.genericDialogActions, classes.justifyContentBetween)}>
+        <DialogActions className={cx(classes.genericDialogActions, classes.justifyContentBetween)}>
           <div className={classes.dialogActionSpaced}>{leftButtons}</div>
           <div className={classes.dialogActionSpaced}>{rightButtons}</div>
         </DialogActions>

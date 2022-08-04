@@ -11,6 +11,7 @@ import { copyTextToClipboard } from "@src/utils/copyClipboard";
 type Props = {
   address: string;
   isCopyable?: boolean;
+  disableTruncate?: boolean;
   children?: ReactNode;
 };
 
@@ -38,17 +39,17 @@ const useStyles = makeStyles()(theme => ({
   }
 }));
 
-export const Address: React.FunctionComponent<Props> = ({ address, isCopyable, ...rest }) => {
+export const Address: React.FunctionComponent<Props> = ({ address, isCopyable, disableTruncate, ...rest }) => {
   const [isOver, setIsOver] = useState(false);
   const { classes } = useStyles();
   const { enqueueSnackbar } = useSnackbar();
-  const formattedAddress = [address?.slice(0, 8), "...", address?.slice(address?.length - 5)].join("");
+  const formattedAddress = disableTruncate ? address : [address?.slice(0, 8), "...", address?.slice(address?.length - 5)].join("");
 
   const onClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-
     if (isCopyable) {
+      event.preventDefault();
+      event.stopPropagation();
+
       copyTextToClipboard(address);
       enqueueSnackbar(<Snackbar title="Address copied to clipboard!" iconVariant="success" />, {
         variant: "success",

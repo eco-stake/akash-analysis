@@ -9,17 +9,19 @@ import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
 import Error from "@src/components/shared/Error";
-import MemoryIcon from "@mui/icons-material/Memory";
-import StorageIcon from "@mui/icons-material/Storage";
-import SpeedIcon from "@mui/icons-material/Speed";
-import { Avatar, Box, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Avatar, Box, Chip, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { useFriendlyMessageType } from "@src/hooks/useFriendlyMessageType";
-import { useSplitText } from "@src/hooks/useShortText";
+import { getSplitText } from "@src/hooks/useShortText";
 import { FormattedNumber, FormattedTime } from "react-intl";
 import { humanFileSize } from "@src/utils/unitUtils";
 import { DeploymentDetail } from "@src/types/deployment";
+import { GradientText } from "@src/components/shared/GradientText";
+import { Address } from "@src/components/shared/Address";
+import { LeaseSpecDetail } from "@src/components/shared/LeaseSpecDetail";
+import { udenomToDenom } from "@src/utils/mathHelpers";
+import { AKTLabel } from "@src/components/shared/AKTLabel";
 
 type Props = {
   errors?: string;
@@ -33,10 +35,16 @@ const useStyles = makeStyles()(theme => ({
     fontSize: "2rem",
     fontWeight: "bold",
     marginLeft: ".5rem",
-    marginBottom: "1rem"
+    marginBottom: "2rem"
   },
   titleSmall: {
     fontSize: "1.1rem"
+  },
+  subTitle: {
+    fontSize: "1.5rem",
+    marginBottom: "1rem",
+    marginLeft: ".5rem",
+    color: theme.palette.mode === "dark" ? theme.palette.grey[500] : theme.palette.grey[800]
   },
   deploymentInfoRow: {
     display: "flex",
@@ -48,9 +56,8 @@ const useStyles = makeStyles()(theme => ({
   },
   label: {
     fontWeight: "bold",
-    maxWidth: "10rem",
-    flex: "1 1 0px",
-    flexBasis: 0
+    width: "12rem",
+    flexShrink: 0
   },
   value: {
     wordBreak: "break-all",
@@ -69,62 +76,78 @@ const DeploymentDetailPage: React.FunctionComponent<Props> = ({ owner, dseq, dep
     <Layout title={`Deployment ${owner}/${dseq}`} appendGenericTitle>
       <PageContainer>
         <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          Details for Deployment {owner}/{dseq}
+          <GradientText>Deployment Detail</GradientText>
         </Typography>
 
         <Grid container spacing={2}>
           <Grid item md={6}>
-            <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
+            <Typography variant="h3" className={classes.subTitle}>
               Summary
             </Typography>
-            <Paper sx={{ padding: 2 }}>
+            <Paper sx={{ padding: 2, marginBottom: "1rem" }} elevation={2}>
               <div className={classes.deploymentInfoRow}>
                 <div className={classes.label}>Owner</div>
                 <div className={classes.value}>
                   <Link href={UrlService.address(deployment.owner)}>
-                    <a>{deployment.owner}</a>
+                    <a>
+                      <Address address={deployment.owner} />
+                    </a>
                   </Link>
+                </div>
+              </div>
+              <div className={classes.deploymentInfoRow}>
+                <div className={classes.label}>Status</div>
+                <div className={classes.value}>
+                  <Chip label={deployment.status} color={deployment.status === "active" ? "success" : "error"} size="small" />
                 </div>
               </div>
               <div className={classes.deploymentInfoRow}>
                 <div className={classes.label}>DSEQ</div>
                 <div className={classes.value}>{deployment.dseq}</div>
               </div>
+              <div className={classes.deploymentInfoRow}>
+                <div className={classes.label}>Balance</div>
+                <div className={classes.value}>
+                  {udenomToDenom(deployment.balance, 6)}&nbsp;
+                  <AKTLabel />
+                </div>
+              </div>
               {deployment.leases.length > 0 && (
                 <div className={classes.deploymentInfoRow}>
                   <div className={classes.label}>Total Cost</div>
                   <div className={classes.value}>
-                    <FormattedNumber style="currency" currency="USD" value={deployment.totalMonthlyCostUSD} /> per month
-                    <br />
-                    <small>
+                    <Typography variant="body1">
+                      <FormattedNumber style="currency" currency="USD" value={deployment.totalMonthlyCostUSD} /> per month
+                    </Typography>
+                    <Typography variant="caption">
                       <FormattedNumber value={deployment.totalMonthlyCostAKT} /> $AKT per month
-                    </small>
+                    </Typography>
                   </div>
                 </div>
               )}
             </Paper>
 
-            <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
+            <Typography variant="h3" className={classes.subTitle}>
               Timeline
             </Typography>
 
-            <Paper sx={{ padding: 2 }}>
-              <TableContainer sx={{ mb: 4 }}>
-                <Table>
+            <Paper sx={{ padding: 2 }} elevation={2}>
+              <TableContainer>
+                <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Tx</TableCell>
+                      <TableCell>Transaction</TableCell>
                       <TableCell align="center">Event</TableCell>
                       <TableCell align="center">Date</TableCell>
                     </TableRow>
                   </TableHead>
 
                   <TableBody>
-                    {deployment.events.map(event => (
-                      <TableRow key={event.txHash}>
+                    {deployment.events.map((event, i) => (
+                      <TableRow key={`${event.txHash}_${i}`}>
                         <TableCell>
                           <Link href={UrlService.transaction(event.txHash)}>
-                            <a>{useSplitText(event.txHash, 6, 6)}</a>
+                            <a target="_blank">{getSplitText(event.txHash, 6, 6)}</a>
                           </Link>
                         </TableCell>
                         <TableCell align="center">{useFriendlyMessageType(event.type)}</TableCell>
@@ -139,12 +162,12 @@ const DeploymentDetailPage: React.FunctionComponent<Props> = ({ owner, dseq, dep
             </Paper>
           </Grid>
           <Grid item md={6} xs={12}>
-            <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
+            <Typography variant="h3" className={classes.subTitle}>
               Leases
             </Typography>
             {deployment.leases.length === 0 && <>This deployment has no lease</>}
             {deployment.leases.map(lease => (
-              <Paper key={lease.oseq + "_" + lease.gseq} sx={{ padding: 2, marginBottom: 1 }}>
+              <Paper key={lease.oseq + "_" + lease.gseq} sx={{ padding: "1rem", marginBottom: "1rem" }} elevation={2}>
                 <div className={classes.deploymentInfoRow}>
                   <div className={classes.label}>OSEQ</div>
                   <div className={classes.value}>{lease.oseq}</div>
@@ -155,38 +178,35 @@ const DeploymentDetailPage: React.FunctionComponent<Props> = ({ owner, dseq, dep
                 </div>
                 <div className={classes.deploymentInfoRow}>
                   <div className={classes.label}>Status</div>
-                  <div className={classes.value}>{lease.status}</div>
+                  <div className={classes.value}>
+                    <Chip label={lease.status} color={lease.status === "active" ? "success" : "error"} size="small" />
+                  </div>
                 </div>
 
                 <div className={classes.deploymentInfoRow}>
                   <div className={classes.label}>Total Cost</div>
                   <div className={classes.value}>
-                    <FormattedNumber style="currency" currency="USD" value={lease.monthlyCostUSD} /> per month
-                    <br />
-                    <small>
+                    <Typography variant="body1">
+                      <FormattedNumber style="currency" currency="USD" value={lease.monthlyCostUSD} /> per month
+                    </Typography>
+                    <Typography variant="caption">
                       <FormattedNumber value={lease.monthlyCostAKT} /> $AKT per month
-                    </small>
+                    </Typography>
                   </div>
                 </div>
                 <div className={classes.deploymentInfoRow}>
                   <div className={classes.label}>Specs</div>
                   <div className={classes.value}>
-                    <SpeedIcon />
-                    &nbsp;
-                    <FormattedNumber value={lease.cpuUnits / 1_000} /> vCPU
-                    <br />
-                    <MemoryIcon />
-                    &nbsp;{humanFileSize(lease.memoryQuantity)}
-                    <br />
-                    <StorageIcon />
-                    &nbsp;{humanFileSize(lease.storageQuantity)}
+                    <LeaseSpecDetail type="cpu" value={lease.cpuUnits / 1_000} />
+                    <LeaseSpecDetail type="ram" value={humanFileSize(lease.memoryQuantity, true)} />
+                    <LeaseSpecDetail type="storage" value={humanFileSize(lease.storageQuantity, true)} />
                   </div>
                 </div>
                 <div className={classes.deploymentInfoRow}>
                   <div className={classes.label}>Provider</div>
                   <div className={classes.value}>
                     <Link href={UrlService.address(lease.provider.address)}>
-                      <a title={lease.provider.address}>{useSplitText(lease.provider.address, 10, 10)}</a>
+                      <a title={lease.provider.address}>{getSplitText(lease.provider.address, 10, 10)}</a>
                     </Link>
                     <br />
                     {new URL(lease.provider.hostUri).hostname}

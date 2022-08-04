@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Button, Input } from "@mui/material";
+import { Box, Button, Input, InputAdornment, OutlinedInput, Paper, TextField } from "@mui/material";
 import { fromBech32, normalizeBech32 } from "@cosmjs/encoding";
 import { useRouter } from "next/router";
 import { UrlService } from "@src/utils/urlUtils";
+import { makeStyles } from "tss-react/mui";
 
 type Props = {};
 
@@ -13,10 +14,28 @@ enum SearchType {
   BlockHeight
 }
 
+const useStyles = makeStyles()(theme => ({
+  searchBar: {
+    "&::placeholder": {
+      fontSize: ".75rem",
+      fontWeight: 300,
+      color: theme.palette.mode === "dark" ? theme.palette.grey[500] : theme.palette.grey[500],
+      opacity: 1
+    }
+  },
+  button: {
+    color: theme.palette.mode === "dark" ? theme.palette.grey[500] : theme.palette.grey[500]
+  },
+  searchBarFocused: {
+    borderColor: `${theme.palette.grey[500]}!important`
+  }
+}));
+
 const SearchBar: React.FunctionComponent<Props> = ({}) => {
   const [searchTerms, setSearchTerms] = useState("");
   const [searchType, setSearchType] = useState<SearchType>(null);
   const router = useRouter();
+  const { classes } = useStyles();
 
   useEffect(() => {
     setSearchType(getSearchType(searchTerms));
@@ -96,14 +115,33 @@ const SearchBar: React.FunctionComponent<Props> = ({}) => {
   }
 
   return (
-    <form onSubmit={onSubmit}>
-      <Input value={searchTerms} onChange={onSearchTermsChange} />
-      <Button type="submit" disabled={searchType === null || !searchTerms.trim()}>
-        {getSearchBtnLabel(searchType)}
-      </Button>
-      <br />
-      {searchType === null && searchTerms.trim() && <>Invalid search term</>}
-    </form>
+    <Box sx={{ padding: "1rem", maxWidth: "500px", flexGrow: 1, position: "relative" }}>
+      <form onSubmit={onSubmit}>
+        <OutlinedInput
+          fullWidth
+          value={searchTerms}
+          onChange={onSearchTermsChange}
+          placeholder="Search by Address, Block Height, TxHash..."
+          size="small"
+          classes={{ input: classes.searchBar, notchedOutline: classes.searchBarFocused }}
+          endAdornment={
+            <InputAdornment position="end">
+              <Button type="submit" disabled={searchType === null || !searchTerms.trim()} size="small" classes={{ disabled: classes.button }}>
+                {getSearchBtnLabel(searchType)}
+              </Button>
+            </InputAdornment>
+          }
+        />
+
+        {searchType === null && searchTerms.trim() && (
+          <Box sx={{ position: "absolute", left: 0, width: "100%", bottom: "-2rem" }}>
+            <Paper elevation={2} sx={{ padding: ".5rem 1rem" }}>
+              Invalid search term
+            </Paper>
+          </Box>
+        )}
+      </form>
+    </Box>
   );
 };
 

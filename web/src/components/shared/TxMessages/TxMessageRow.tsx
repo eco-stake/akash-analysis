@@ -76,6 +76,7 @@ import { MsgStartGroup as MsgStartGroup_v2 } from "./akash/v1beta2/MsgStartGroup
 import { MsgUpdateDeployment as MsgUpdateDeployment_v2 } from "./akash/v1beta2/MsgUpdateDeployment";
 import { MsgWithdrawLease as MsgWithdrawLease_v2 } from "./akash/v1beta2/MsgWithdrawLease";
 import { MsgUpdateProvider as MsgUpdateProvider_v2 } from "./akash/v1beta2/MsgUpdateProvider";
+import { GradientText } from "../GradientText";
 
 type Props = {
   message: TransactionMessage;
@@ -85,7 +86,6 @@ const useStyles = makeStyles()(theme => ({
   messageType: {
     padding: "1rem",
     marginBottom: theme.spacing(3),
-    color: theme.palette.secondary.main,
     borderBottom: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[700] : theme.palette.grey[500]}`
   }
 }));
@@ -96,9 +96,11 @@ export const TxMessageRow: React.FunctionComponent<Props> = ({ message }) => {
 
   return (
     <Box>
-      <div className={classes.messageType}>{friendlyType}</div>
+      <div className={classes.messageType}>
+        <GradientText>{friendlyType}</GradientText>
+      </div>
 
-      <Box sx={{ padding: "0 1rem 1rem" }}>
+      <Box sx={{ padding: "0 1rem 1rem", wordBreak: "break-all" }}>
         <TxMessage message={message} />
       </Box>
     </Box>

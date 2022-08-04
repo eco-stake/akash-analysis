@@ -22,6 +22,9 @@ import Button from "@mui/material/Button";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
 import { BlockRow } from "../shared/BlockRow";
+import { GradientText } from "../shared/GradientText";
+import { TransactionRow } from "../shared/TransactionRow";
+import { bytesToShrink } from "@src/utils/unitUtils";
 
 interface IDashboardProps {
   dashboardData: DashboardData;
@@ -29,11 +32,9 @@ interface IDashboardProps {
 
 const useStyles = makeStyles()(theme => ({
   title: {
-    fontWeight: "lighter",
-    fontSize: "2rem",
-    paddingBottom: "1rem",
-    textAlign: "left",
-    borderBottom: "1px solid rgba(255,255,255,0.1)"
+    fontWeight: "500",
+    fontSize: "1.5rem",
+    textAlign: "left"
   },
   link: {
     textDecoration: "underline"
@@ -61,10 +62,9 @@ const useStyles = makeStyles()(theme => ({
     }
   },
   priceDataContainer: {
-    backgroundColor: "rgba(0,0,0,0.1)",
     padding: "1rem",
     marginBottom: "1.5rem",
-    borderRadius: "1rem",
+    borderRadius: ".5rem",
     display: "flex",
     alignItems: "center",
     fontSize: "1rem",
@@ -75,6 +75,7 @@ const useStyles = makeStyles()(theme => ({
   },
   priceData: {
     marginLeft: "1rem",
+    flexGrow: 1,
     display: "flex",
     alignItems: "center",
     [theme.breakpoints.down("sm")]: {
@@ -92,6 +93,8 @@ const useStyles = makeStyles()(theme => ({
 export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardData }) => {
   const { classes } = useStyles();
   const mediaQuery = useMediaQueryContext();
+  const memoryDiff = bytesToShrink(dashboardData.now.activeMemory - dashboardData.compare.activeMemory);
+  const storageDiff = bytesToShrink(dashboardData.now.activeStorage - dashboardData.compare.activeStorage);
 
   return (
     <>
@@ -129,8 +132,8 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12}>
-          <Typography variant="h1" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
-            Network summary
+          <Typography variant="h3" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
+            <GradientText>Network summary</GradientText>
           </Typography>
         </Grid>
 
@@ -186,8 +189,8 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12}>
-          <Typography variant="h1" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
-            Total resources currently leased
+          <Typography variant="h3" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
+            <GradientText>Total resources currently leased</GradientText>
           </Typography>
         </Grid>
 
@@ -224,30 +227,22 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
         <Grid item xs={12} lg={3}>
           <StatsCard
-            number={
-              <>
-                <FormattedNumber value={dashboardData.now.activeMemory / 1024 / 1024 / 1024} maximumFractionDigits={2} />
-                <small style={{ paddingLeft: "5px", fontWeight: "bold", fontSize: 16 }}>GB</small>
-              </>
-            }
+            number={<HumanReadableBytes value={dashboardData.now.activeMemory} />}
             text="Memory"
             graphPath={`/graph/${SnapshotsUrlParam.memory}`}
-            diffNumber={(dashboardData.now.activeMemory - dashboardData.compare.activeMemory) / 1024 / 1024 / 1024}
+            diffNumberUnit={memoryDiff.unit}
+            diffNumber={memoryDiff.value}
             diffPercent={percIncrease(dashboardData.compare.activeMemory, dashboardData.now.activeMemory)}
           />
         </Grid>
 
         <Grid item xs={12} lg={3}>
           <StatsCard
-            number={
-              <>
-                <FormattedNumber value={dashboardData.now.activeStorage / 1024 / 1024 / 1024} maximumFractionDigits={2} />
-                <small style={{ paddingLeft: "5px", fontWeight: "bold", fontSize: 16 }}>GB</small>
-              </>
-            }
+            number={<HumanReadableBytes value={dashboardData.now.activeStorage} />}
             text="Storage"
             graphPath={`/graph/${SnapshotsUrlParam.storage}`}
-            diffNumber={(dashboardData.now.activeStorage - dashboardData.compare.activeStorage) / 1024 / 1024 / 1024}
+            diffNumberUnit={storageDiff.unit}
+            diffNumber={storageDiff.value}
             diffPercent={percIncrease(dashboardData.compare.activeStorage, dashboardData.now.activeStorage)}
           />
         </Grid>
@@ -255,8 +250,8 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12}>
-          <Typography variant="h1" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
-            Network Capacity
+          <Typography variant="h3" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
+            <GradientText>Network Capacity</GradientText>
           </Typography>
         </Grid>
 
@@ -285,64 +280,93 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
         </Grid>
 
         <Grid item xs={12} lg={3}>
-          <StatsCard
-            number={
-              <>
-                <HumanReadableBytes value={dashboardData.networkCapacity.totalMemory} />
-              </>
-            }
-            text="Memory"
-          />
+          <StatsCard number={<HumanReadableBytes value={dashboardData.networkCapacity.totalMemory} />} text="Memory" />
         </Grid>
 
         <Grid item xs={12} lg={3}>
-          <StatsCard
-            number={
-              <>
-                <HumanReadableBytes value={dashboardData.networkCapacity.totalStorage} />
-              </>
-            }
-            text="Storage"
-          />
+          <StatsCard number={<HumanReadableBytes value={dashboardData.networkCapacity.totalStorage} />} text="Storage" />
         </Grid>
       </Grid>
 
-      <TableContainer sx={{ mb: 4 }}>
-        <Typography variant="h1" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })} sx={{ mb: 1 }}>
-          Blocks
-        </Typography>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6}>
+          <Paper sx={{ padding: "1rem", borderRadius: ".5rem" }} elevation={2}>
+            <Typography variant="h3" sx={{ mb: 0, border: "0 !important" }} className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
+              <GradientText>Blocks</GradientText>
+            </Typography>
 
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell width="5%">Height</TableCell>
-              <TableCell align="center" width="10%">
-                Proposer
-              </TableCell>
-              <TableCell align="center" width="45%">
-                Txs
-              </TableCell>
-              <TableCell align="center" width="10%">
-                Time
-              </TableCell>
-            </TableRow>
-          </TableHead>
+            <TableContainer sx={{ mb: 4 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell width="10%">Height</TableCell>
+                    <TableCell align="center" width="45%">
+                      Proposer
+                    </TableCell>
+                    <TableCell align="center" width="20%">
+                      Txs
+                    </TableCell>
+                    <TableCell align="center" width="25%">
+                      Time
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
 
-          <TableBody>
-            {dashboardData.latestBlocks.map(block => (
-              <BlockRow key={block.height} block={block} />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                <TableBody>
+                  {dashboardData.latestBlocks.map(block => (
+                    <BlockRow key={block.height} block={block} />
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
 
-      <Box sx={{ mb: 4 }}>
-        <Link href={UrlService.blocks()} passHref>
-          <Button variant="contained" color="secondary">
-            Show more
-          </Button>
-        </Link>
-      </Box>
+            <Link href={UrlService.blocks()} passHref>
+              <Button variant="outlined" color="secondary" fullWidth>
+                Show more
+              </Button>
+            </Link>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <Paper sx={{ padding: "1rem", borderRadius: ".5rem" }} elevation={2}>
+            <Typography variant="h3" sx={{ mb: 0, border: "0 !important" }} className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
+              <GradientText>Transactions</GradientText>
+            </Typography>
+
+            <TableContainer sx={{ mb: 4 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell width="35%">Tx Hash</TableCell>
+                    <TableCell align="center" width="35%">
+                      Type
+                    </TableCell>
+                    <TableCell align="center" width="15%">
+                      Height
+                    </TableCell>
+                    <TableCell align="center" width="15%">
+                      Time
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {dashboardData.latestTransactions.map(tx => (
+                    <TransactionRow key={tx.hash} transaction={tx} isSimple blockHeight={tx.height} />
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Link href={UrlService.transactions()} passHref>
+              <Button variant="outlined" color="secondary" fullWidth>
+                Show more
+              </Button>
+            </Link>
+          </Paper>
+        </Grid>
+      </Grid>
     </>
   );
 };

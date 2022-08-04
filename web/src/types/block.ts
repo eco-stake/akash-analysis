@@ -1,19 +1,16 @@
 import { TransactionMessage } from "./transaction";
+import { IValidatorAddess } from "./validator";
 
 export interface Block {
   datetime: string;
   height: number;
-  proposer: string;
+  proposer: IValidatorAddess;
   transactionCount: number;
 }
 
 export interface BlockDetail {
   height: number;
-  proposer: {
-    operatorAddress: string;
-    moniker: string;
-    avatarUrl: string;
-  };
+  proposer: IValidatorAddess;
   datetime: string;
   hash: string;
   gasUsed: number;
@@ -26,5 +23,6 @@ export interface BlockTransaction {
   isSuccess: boolean;
   error: string;
   fee: number;
+  datetime: string;
   messages: TransactionMessage[];
 }

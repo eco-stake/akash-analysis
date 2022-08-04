@@ -1,10 +1,11 @@
 import React from "react";
 import { FormattedNumber } from "react-intl";
-import clsx from "clsx";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { makeStyles } from "tss-react/mui";
 import Chip from "@mui/material/Chip";
+import { cx } from "@emotion/css";
+import { customColors } from "@src/utils/colors";
 
 export interface DiffPercentageChipProps {
   value: number;
@@ -13,7 +14,11 @@ export interface DiffPercentageChipProps {
 
 const useStyles = makeStyles()(theme => ({
   root: {
-    marginLeft: ".5rem"
+    marginLeft: ".5rem",
+    color: theme.palette.primary.contrastText,
+    "& .MuiChip-icon": {
+      color: theme.palette.primary.contrastText
+    }
   },
   small: {
     fontSize: ".7rem",
@@ -24,7 +29,7 @@ const useStyles = makeStyles()(theme => ({
     height: "1.2rem"
   },
   green: {
-    backgroundColor: "#00945c" // TODO Theme
+    backgroundColor: customColors.green
   },
   red: {
     backgroundColor: "transparent"
@@ -43,7 +48,7 @@ export const DiffPercentageChip: React.FunctionComponent<DiffPercentageChipProps
   return (
     <Chip
       size={size}
-      className={clsx(
+      className={cx(
         {
           [classes.green]: isPositiveDiff,
           [classes.red]: !isPositiveDiff,

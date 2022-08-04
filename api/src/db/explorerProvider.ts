@@ -89,6 +89,8 @@ export async function getDeployment(owner: string, dseq: string) {
   return {
     owner: deployment.owner,
     dseq: deployment.dseq,
+    balance: deployment.balance,
+    status: deployment.closedHeight ? "closed" : "active",
     totalMonthlyCostAKT: leases.map((x) => x.monthlyCostAKT).reduce((a, b) => a + b, 0),
     totalMonthlyCostUSD: leases.map((x) => x.monthlyCostUSD).reduce((a, b) => a + b, 0),
     leases: leases,

@@ -1,4 +1,5 @@
 import { Block } from "./block";
+import { TransactionDetail } from "./transaction";
 
 export interface RevenueAmount {
   akt: number;
@@ -49,6 +50,7 @@ export interface DashboardData {
   compare: DashboardBlockStats;
   networkCapacity: NetworkCapacity;
   latestBlocks: Block[];
+  latestTransactions: TransactionDetail[];
 }
 
 export interface SnapshotData {
@@ -79,4 +81,10 @@ export interface MarketData {
   marketCapRank: number;
   priceChange24h: number;
   priceChangePercentage24: number;
+}
+
+export interface ISnapshotMetadata {
+  value: number;
+  unit?: string;
+  modifiedValue?: number;
 }

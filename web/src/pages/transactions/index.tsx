@@ -18,6 +18,7 @@ import { BlockRow } from "@src/components/shared/BlockRow";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useTransactions } from "@src/queries/useTransactionsQuery";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
+import { GradientText } from "@src/components/shared/GradientText";
 
 type Props = {
   errors?: string;
@@ -53,11 +54,11 @@ const TransactionsPage: React.FunctionComponent<Props> = ({}) => {
       <PageContainer>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
           <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-            Transactions
+            <GradientText>Transactions</GradientText>
           </Typography>
         </Box>
 
-        <Paper sx={{ padding: 2 }}>
+        <Paper sx={{ padding: 2 }} elevation={2}>
           {isLoading ? (
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
               <CircularProgress sx={{ color: theme.palette.secondary.main }} />
@@ -71,10 +72,21 @@ const TransactionsPage: React.FunctionComponent<Props> = ({}) => {
                     <TableCell align="center" width="20%">
                       Type
                     </TableCell>
-                    <TableCell align="center" width="10%">Result</TableCell>
-                    <TableCell align="center" width="10%">Amount</TableCell>
-                    <TableCell align="center" width="10%">Fee</TableCell>
-                    <TableCell align="center" width="5%">Height</TableCell>
+                    <TableCell align="center" width="10%">
+                      Result
+                    </TableCell>
+                    <TableCell align="center" width="10%">
+                      Amount
+                    </TableCell>
+                    <TableCell align="center" width="10%">
+                      Fee
+                    </TableCell>
+                    <TableCell align="center" width="5%">
+                      Height
+                    </TableCell>
+                    <TableCell align="center" width="5%">
+                      Time
+                    </TableCell>
                   </TableRow>
                 </TableHead>
 

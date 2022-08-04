@@ -21,9 +21,11 @@ import Table from "@mui/material/Table";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
-import { useSplitText } from "@src/hooks/useShortText";
+import { getSplitText } from "@src/hooks/useShortText";
 import { udenomToDenom } from "@src/utils/mathHelpers";
 import { TxMessageRow } from "@src/components/shared/TxMessages/TxMessageRow";
+import { GradientText } from "@src/components/shared/GradientText";
+import { FormattedDecimal } from "@src/components/shared/FormattedDecimal";
 
 type Props = {
   errors?: string;
@@ -56,9 +58,8 @@ const useStyles = makeStyles()(theme => ({
   },
   label: {
     fontWeight: "bold",
-    maxWidth: "15rem",
-    flex: "1 1 0px",
-    flexBasis: 0
+    width: "15rem",
+    flexShrink: 0
   },
   value: {
     wordBreak: "break-all",
@@ -72,16 +73,16 @@ const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, er
   const { classes } = useStyles();
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
-  const splittedTxHash = useSplitText(hash, 6, 6);
+  const splittedTxHash = getSplitText(hash, 6, 6);
 
   return (
     <Layout title={`Tx ${splittedTxHash}`} appendGenericTitle>
       <PageContainer>
         <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          Transaction Details
+          <GradientText>Transaction Details</GradientText>
         </Typography>
 
-        <Paper sx={{ padding: 2 }}>
+        <Paper sx={{ padding: 2 }} elevation={2}>
           <div className={classes.blockInfoRow}>
             <div className={classes.label}>Hash</div>
             <div className={classes.value}>{transaction.hash}</div>
@@ -116,7 +117,8 @@ const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, er
           <div className={classes.blockInfoRow}>
             <div className={classes.label}>Fee</div>
             <div className={classes.value}>
-              {udenomToDenom(transaction.fee, 6)}&nbsp;
+              <FormattedDecimal value={udenomToDenom(transaction.fee, 6)} />
+              &nbsp;
               <Box component="span" sx={{ color: theme.palette.secondary.main }}>
                 AKT
               </Box>

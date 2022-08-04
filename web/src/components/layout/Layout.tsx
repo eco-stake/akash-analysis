@@ -14,6 +14,7 @@ import { drawerWidth } from "@src/utils/constants";
 import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "./SearchBar";
+import { Container } from "@mui/material";
 
 type Props = {
   children?: ReactNode;
@@ -75,7 +76,12 @@ const LayoutApp: React.FunctionComponent<Props> = ({ children, title }) => {
           height: "100%"
         }}
       >
-        <SearchBar />
+        <Container sx={{ marginLeft: 0 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <SearchBar />
+          </Box>
+        </Container>
+
         <ErrorBoundary FallbackComponent={ErrorFallback}>{children}</ErrorBoundary>
       </Box>
     </Box>

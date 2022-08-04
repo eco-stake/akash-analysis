@@ -11,8 +11,9 @@ type TxMessageProps = {
 
 export const MsgDelegate: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   // ###################
-  // TODO missing auto claim reward
+  // TODO missing auto claim reward + validator moniker
   // ###################
+
   return (
     <>
       <MessageLabelValue
@@ -26,7 +27,7 @@ export const MsgDelegate: React.FunctionComponent<TxMessageProps> = ({ message }
       <MessageLabelValue
         label="Validator Address"
         value={
-          <Link href={UrlService.address(message?.data?.validatorAddress)}>
+          <Link href={UrlService.validator(message?.data?.validatorAddress)}>
             <a>{message?.data?.validatorAddress}</a>
           </Link>
         }

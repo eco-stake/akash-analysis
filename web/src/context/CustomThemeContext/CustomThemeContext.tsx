@@ -104,6 +104,9 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
         "#nprogress .spinner-icon": {
           borderTopColor: `${customColors.main} !important`,
           borderLeftColor: `${customColors.main} !important`
+        },
+        a: {
+          textDecoration: "none"
         }
       }
     },

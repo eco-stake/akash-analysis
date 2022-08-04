@@ -9,7 +9,7 @@ type TxMessageProps = {
 
 export const MsgWithdrawDelegatorReward: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   // ###################
-  // TODO Missing amount
+  // TODO Missing amount + validator moniker
   // ###################
   return (
     <>

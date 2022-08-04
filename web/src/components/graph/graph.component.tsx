@@ -1,16 +1,43 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Theme, Typography, useTheme } from "@mui/material";
 import { LineCanvasProps, ResponsiveLineCanvas } from "@nivo/line";
 import { useMediaQueryContext } from "@src/context/MediaQueryProvider";
-import { GraphResponse, Snapshots, SnapshotValue } from "@src/types";
+import { GraphResponse, ISnapshotMetadata, Snapshots, SnapshotValue } from "@src/types";
 import { SelectedRange } from "@src/utils/constants";
 import { nFormatter, roundDecimal } from "@src/utils/mathHelpers";
 import { FormattedDate, useIntl } from "react-intl";
-import { useStyles } from "./Graph.styles";
+import { makeStyles } from "tss-react/mui";
+
+export const useStyles = makeStyles()(theme => ({
+  graphContainer: {
+    height: "400px",
+    position: "relative"
+  },
+  watermark: {
+    position: "absolute",
+    top: "4px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    "& span": {
+      fontWeight: "bold",
+      letterSpacing: "1px",
+      fontSize: "1rem",
+      color: "rgba(255,255,255,.2)"
+    }
+  },
+  graphTooltip: {
+    padding: "5px 10px",
+    fontWeight: "bold",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: ".5rem",
+    lineHeight: "1rem"
+  }
+}));
 
 interface IGraphProps {
   rangedData: SnapshotValue[];
   snapshotMetadata: {
-    unitFn: (number: any) => number;
+    unitFn: (number: any) => ISnapshotMetadata;
+    legend?: string;
   };
   snapshotData: GraphResponse;
   snapshot: Snapshots | "NOT_FOUND";
@@ -19,12 +46,13 @@ interface IGraphProps {
 
 const Graph: React.FunctionComponent<IGraphProps> = ({ rangedData, snapshotMetadata, snapshotData, snapshot, selectedRange }) => {
   const intl = useIntl();
-  const theme = getTheme();
+  const muiTheme = useTheme();
+  const theme = getTheme(muiTheme);
   const mediaQuery = useMediaQueryContext();
   const { classes } = useStyles();
 
-  const minValue = rangedData && snapshotMetadata.unitFn(rangedData.map(x => x.value).reduce((a, b) => (a < b ? a : b)));
-  const maxValue = snapshotData && snapshotMetadata.unitFn(rangedData.map(x => x.value).reduce((a, b) => (a > b ? a : b)));
+  const minValue = rangedData && snapshotMetadata.unitFn(rangedData.map(x => x.value).reduce((a, b) => (a < b ? a : b))).value;
+  const maxValue = snapshotData && snapshotMetadata.unitFn(rangedData.map(x => x.value).reduce((a, b) => (a > b ? a : b))).value;
   const graphData = snapshotData
     ? [
         {
@@ -32,7 +60,7 @@ const Graph: React.FunctionComponent<IGraphProps> = ({ rangedData, snapshotMetad
           color: "rgb(1,0,0)",
           data: rangedData.map(snapshot => ({
             x: snapshot.date,
-            y: roundDecimal(snapshotMetadata.unitFn(snapshot.value))
+            y: roundDecimal(snapshotMetadata.unitFn(snapshot.value).value)
           }))
         }
       ]
@@ -48,7 +76,7 @@ const Graph: React.FunctionComponent<IGraphProps> = ({ rangedData, snapshotMetad
         theme={theme}
         data={graphData}
         curve="linear"
-        margin={{ top: 30, right: 35, bottom: 50, left: 45 }}
+        margin={{ top: 30, right: 35, bottom: 50, left: 55 }}
         xScale={{ type: "point" }}
         yScale={{
           type: "linear",
@@ -64,13 +92,16 @@ const Graph: React.FunctionComponent<IGraphProps> = ({ rangedData, snapshotMetad
         }}
         // @ts-ignore will be fixed in 0.69.1
         axisLeft={{
-          format: val => nFormatter(val, 2)
+          format: val => nFormatter(val, 2),
+          legend: snapshotMetadata.legend,
+          legendOffset: -45,
+          legendPosition: "middle"
         }}
         axisTop={null}
         axisRight={null}
-        colors={"#e41e13"}
+        colors={muiTheme.palette.secondary.main}
         pointSize={graphMetadata.size}
-        pointBorderColor="#e41e13"
+        pointBorderColor={muiTheme.palette.secondary.main}
         pointColor={"#ffffff"}
         pointBorderWidth={graphMetadata.border}
         isInteractive={true}
@@ -89,27 +120,29 @@ const Graph: React.FunctionComponent<IGraphProps> = ({ rangedData, snapshotMetad
   );
 };
 
-const getTheme = () => {
+const getTheme = (muiTheme: Theme) => {
+  const color = muiTheme.palette.mode === "dark" ? muiTheme.palette.primary.contrastText : muiTheme.palette.primary.main;
+
   return {
-    textColor: "#FFFFFF",
+    textColor: color,
     fontSize: 14,
     axis: {
       domain: {
         line: {
-          stroke: "#FFFFFF",
+          stroke: color,
           strokeWidth: 1
         }
       },
       ticks: {
         line: {
-          stroke: "#FFFFFF",
+          stroke: color,
           strokeWidth: 1
         }
       }
     },
     grid: {
       line: {
-        stroke: "#FFFFFF",
+        stroke: color,
         strokeWidth: 0.5
       }
     }
@@ -132,7 +165,7 @@ const getGraphMetadataPerRange = (range: SelectedRange): { size: number; border:
       };
     case SelectedRange["ALL"]:
       return {
-        size: 3,
+        size: 0,
         border: 1,
         xModulo: 5
       };

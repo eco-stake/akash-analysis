@@ -11,7 +11,7 @@ type TxMessageProps = {
 
 export const MsgUndelegate: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   // ###################
-  // TODO missing auto claim reward
+  // TODO missing auto claim reward + validator moniker
   // ###################
   return (
     <>

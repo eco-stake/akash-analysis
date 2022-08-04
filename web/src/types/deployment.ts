@@ -1,6 +1,8 @@
 export interface DeploymentDetail {
   owner: string;
   dseq: number;
+  balance: number;
+  status: string;
   totalMonthlyCostAKT: number;
   totalMonthlyCostUSD: number;
   leases: {
