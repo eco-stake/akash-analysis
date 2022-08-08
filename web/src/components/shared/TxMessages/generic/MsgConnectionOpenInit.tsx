@@ -1,7 +1,7 @@
 import { TransactionMessage } from "@src/types";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -10,10 +10,10 @@ type TxMessageProps = {
 export const MsgConnectionOpenInit: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   return (
     <>
-      <MessageLabelValue label="Client Id" value={message?.data?.clientId} />
-      <MessageLabelValue label="Counterparty Client Id" value={message?.data?.counterparty?.clientId} />
-      <MessageLabelValue label="Connection Id" value={message?.data?.counterparty?.connectionId} />
-      <MessageLabelValue
+      <LabelValue label="Client Id" value={message?.data?.clientId} />
+      <LabelValue label="Counterparty Client Id" value={message?.data?.counterparty?.clientId} />
+      <LabelValue label="Connection Id" value={message?.data?.counterparty?.connectionId} />
+      <LabelValue
         label="Signer"
         value={
           <Link href={UrlService.address(message?.data?.signer)}>

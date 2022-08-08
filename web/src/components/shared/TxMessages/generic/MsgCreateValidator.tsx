@@ -3,7 +3,7 @@ import { coinsToAmount } from "@src/utils/mathHelpers";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -17,7 +17,7 @@ export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ me
   console.log(message);
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Min Self Delegation"
         value={
           <>
@@ -27,7 +27,7 @@ export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ me
           </>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Delegator Address"
         value={
           <Link href={UrlService.address(message?.data?.delegatorAddress)}>
@@ -35,7 +35,7 @@ export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ me
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Validator Address"
         value={
           <Link href={UrlService.validator(message?.data?.validatorAddress)}>
@@ -43,7 +43,7 @@ export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ me
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Value"
         value={
           <>
@@ -52,9 +52,9 @@ export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ me
           </>
         }
       />
-      <MessageLabelValue label="Details" value={message?.data?.description?.details} />
-      <MessageLabelValue label="Moniker" value={message?.data?.description?.moniker} />
-      <MessageLabelValue
+      <LabelValue label="Details" value={message?.data?.description?.details} />
+      <LabelValue label="Moniker" value={message?.data?.description?.moniker} />
+      <LabelValue
         label="Website"
         value={
           <a href={message?.data?.description?.website} target="_blank">
@@ -62,12 +62,12 @@ export const MsgCreateValidator: React.FunctionComponent<TxMessageProps> = ({ me
           </a>
         }
       />
-      <MessageLabelValue label="Identity" value={message?.data?.description?.identity} />
-      <MessageLabelValue label="Security Contact" value={message?.data?.description?.securityContact} />
-      <MessageLabelValue label="Commission Rate" value={message?.data?.commission?.rate} />
-      <MessageLabelValue label="Commission Max Rate" value={message?.data?.commission?.maxRate} />
-      <MessageLabelValue label="Commission Max Change Rate" value={message?.data?.commission?.maxChangeRate} />
-      <MessageLabelValue label="Public Key" value={message?.data?.pubkey?.value} />
+      <LabelValue label="Identity" value={message?.data?.description?.identity} />
+      <LabelValue label="Security Contact" value={message?.data?.description?.securityContact} />
+      <LabelValue label="Commission Rate" value={message?.data?.commission?.rate} />
+      <LabelValue label="Commission Max Rate" value={message?.data?.commission?.maxRate} />
+      <LabelValue label="Commission Max Change Rate" value={message?.data?.commission?.maxChangeRate} />
+      <LabelValue label="Public Key" value={message?.data?.pubkey?.value} />
     </>
   );
 };

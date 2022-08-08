@@ -14,6 +14,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Link from "next/link";
 import { cx } from "@emotion/css";
+import { customColors } from "@src/utils/colors";
 
 interface IStatsCardProps {
   number: React.ReactNode;
@@ -79,7 +80,8 @@ const useStyles = makeStyles()(theme => ({
   },
   actionButtonLabel: {
     fontSize: ".7rem",
-    fontStyle: "italic"
+    fontStyle: "italic",
+    color: customColors.link
   }
 }));
 

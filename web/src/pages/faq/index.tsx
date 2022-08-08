@@ -1,23 +1,13 @@
 import React from "react";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
-import { Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import PageContainer from "@src/components/shared/PageContainer";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
-import { GradientText } from "@src/components/shared/GradientText";
+import { Title } from "@src/components/shared/Title";
 
 const useStyles = makeStyles()(theme => ({
-  pageTitle: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginBottom: "2rem"
-  },
-  subTitle: {
-    fontSize: "1.5rem",
-    marginBottom: "1rem",
-    fontWeight: "300"
-  },
   link: {
     fontWeight: "bold",
     textDecoration: "underline"
@@ -115,13 +105,11 @@ export function Faq() {
         <meta name="description" content="Learn more about the akash network and get answers to the most frequently asked questions." />
       </Helmet> */}
 
-        <Typography variant="h1" className={classes.pageTitle}>
-          <GradientText>Frequently Asked Questions</GradientText>
-        </Typography>
+        <Box sx={{ marginBottom: "2rem" }}>
+          <Title value="Frequently Asked Questions" />
+        </Box>
 
-        <Typography variant="h3" className={classes.subTitle}>
-          What is Akash?
-        </Typography>
+        <Title value="What is Akash?" subTitle />
 
         <p className={classes.paragraph}>
           <a href="https://akash.network/" target="_blank" rel="noopener" className={classes.link}>
@@ -144,9 +132,7 @@ export function Faq() {
           </a>
         </p>
 
-        <Typography variant="h3" className={classes.subTitle}>
-          How to deploy an app or website to Akash?
-        </Typography>
+        <Title value="How to deploy an app or website to Akash?" subTitle />
 
         <p className={classes.paragraph}>
           Akash leverages{" "}
@@ -171,9 +157,7 @@ export function Faq() {
           </Link>
         </p>
 
-        <Typography variant="h3" className={classes.subTitle}>
-          What can be deployed on Akash?
-        </Typography>
+        <Title value="What can be deployed on Akash?" subTitle />
 
         <p>Any app, website, blockchain node, video game server, etc. You name it! As long as you have a docker image ready, you can run it on Akash!</p>
         <p className={classes.paragraph}>
@@ -182,10 +166,9 @@ export function Faq() {
           </a>
         </p>
 
-        <Typography variant="h3" className={classes.pageTitle} sx={{ marginBottom: 2, marginTop: 4 }}>
-          <GradientText>Resources</GradientText>
-        </Typography>
-        <Typography variant="h3" className={classes.resourcesTitle} sx={{ marginBottom: 5 }}>
+        <Title value="Resources" subTitle />
+
+        <Typography variant="body1" sx={{ marginBottom: "2rem" }}>
           Here's a list of of useful links from the community that could help to get from buying the currency to deploying an app!
         </Typography>
 
@@ -234,9 +217,7 @@ export function Faq() {
           ))}
         </ul>
 
-        <Typography variant="h3" className={classes.pageTitle} sx={{ marginBottom: 4, marginTop: 4 }}>
-          <GradientText>Community</GradientText>
-        </Typography>
+        <Title value="Community" subTitle sx={{ marginBottom: 4, marginTop: 4 }} />
 
         <ul>
           {communitiesLinks.map((link, i) => (

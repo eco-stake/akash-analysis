@@ -3,7 +3,7 @@ import { coinsToAmount } from "@src/utils/mathHelpers";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -16,7 +16,7 @@ export const MsgEditValidator: React.FunctionComponent<TxMessageProps> = ({ mess
 
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Validator Address"
         value={
           <Link href={UrlService.validator(message?.data?.validatorAddress)}>
@@ -24,9 +24,9 @@ export const MsgEditValidator: React.FunctionComponent<TxMessageProps> = ({ mess
           </Link>
         }
       />
-      <MessageLabelValue label="Details" value={message?.data?.description?.details} />
-      <MessageLabelValue label="Moniker" value={message?.data?.description?.moniker} />
-      <MessageLabelValue
+      <LabelValue label="Details" value={message?.data?.description?.details} />
+      <LabelValue label="Moniker" value={message?.data?.description?.moniker} />
+      <LabelValue
         label="Website"
         value={
           message?.data?.description?.website && message?.data?.description?.website !== "[do-not-modify]" ? (
@@ -38,10 +38,10 @@ export const MsgEditValidator: React.FunctionComponent<TxMessageProps> = ({ mess
           )
         }
       />
-      <MessageLabelValue label="Identity" value={message?.data?.description?.identity} />
-      <MessageLabelValue label="Security Contact" value={message?.data?.description?.securityContact} />
-      <MessageLabelValue label="Commission Rate" value={message?.data?.commissionRate} />
-      <MessageLabelValue
+      <LabelValue label="Identity" value={message?.data?.description?.identity} />
+      <LabelValue label="Security Contact" value={message?.data?.description?.securityContact} />
+      <LabelValue label="Commission Rate" value={message?.data?.commissionRate} />
+      <LabelValue
         label="Min Self Delegation"
         value={
           <>

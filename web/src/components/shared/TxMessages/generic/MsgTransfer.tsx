@@ -3,7 +3,7 @@ import { coinsToAmount } from "@src/utils/mathHelpers";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -15,7 +15,7 @@ export const MsgTransfer: React.FunctionComponent<TxMessageProps> = ({ message }
   // ###################
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Sender"
         value={
           <Link href={UrlService.address(message?.data?.sender)}>
@@ -23,7 +23,7 @@ export const MsgTransfer: React.FunctionComponent<TxMessageProps> = ({ message }
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Receiver"
         value={
           <Link href={UrlService.address(message?.data?.receiver)}>
@@ -31,10 +31,10 @@ export const MsgTransfer: React.FunctionComponent<TxMessageProps> = ({ message }
           </Link>
         }
       />
-      <MessageLabelValue label="Source Channel" value={message?.data?.sourceChannel} />
-      <MessageLabelValue label="Port" value={message?.data?.sourcePort} />
+      <LabelValue label="Source Channel" value={message?.data?.sourceChannel} />
+      <LabelValue label="Port" value={message?.data?.sourcePort} />
       {/* <MessageLabelValue label="Sequence" value={"TODO"} /> */}
-      <MessageLabelValue
+      <LabelValue
         label="Amount"
         value={
           <>
@@ -43,8 +43,8 @@ export const MsgTransfer: React.FunctionComponent<TxMessageProps> = ({ message }
           </>
         }
       />
-      <MessageLabelValue label="Origin Amount" value={message?.data?.token?.amount} />
-      <MessageLabelValue label="Origin Denom" value={message?.data?.token?.denom} />
+      <LabelValue label="Origin Amount" value={message?.data?.token?.amount} />
+      <LabelValue label="Origin Denom" value={message?.data?.token?.denom} />
     </>
   );
 };

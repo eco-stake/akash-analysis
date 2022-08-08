@@ -1,7 +1,7 @@
 import { TransactionMessage } from "@src/types";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -13,11 +13,11 @@ export const MsgConnectionOpenConfirm: React.FunctionComponent<TxMessageProps> =
   // ###################
   return (
     <>
-      <MessageLabelValue label="Connection Id" value={message?.data?.connectionId} />
-      <MessageLabelValue label="Proof Ack" value={message?.data?.proofAck} />
-      <MessageLabelValue label="Revision Number" value={message?.data?.proofHeight?.revisionNumber} />
-      <MessageLabelValue label="Revision Height" value={message?.data?.proofHeight?.revisionHeight} />
-      <MessageLabelValue
+      <LabelValue label="Connection Id" value={message?.data?.connectionId} />
+      <LabelValue label="Proof Ack" value={message?.data?.proofAck} />
+      <LabelValue label="Revision Number" value={message?.data?.proofHeight?.revisionNumber} />
+      <LabelValue label="Revision Height" value={message?.data?.proofHeight?.revisionHeight} />
+      <LabelValue
         label="Signer"
         value={
           <Link href={UrlService.address(message?.data?.signer)}>

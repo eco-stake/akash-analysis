@@ -3,7 +3,7 @@ import { coinsToAmount } from "@src/utils/mathHelpers";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -15,7 +15,7 @@ export const MsgBeginRedelegate: React.FunctionComponent<TxMessageProps> = ({ me
   // ###################
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Delegator Address"
         value={
           <Link href={UrlService.address(message?.data?.delegatorAddress)}>
@@ -23,7 +23,7 @@ export const MsgBeginRedelegate: React.FunctionComponent<TxMessageProps> = ({ me
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Source Validator Address"
         value={
           <Link href={UrlService.validator(message?.data?.validatorSrcAddress)}>
@@ -31,7 +31,7 @@ export const MsgBeginRedelegate: React.FunctionComponent<TxMessageProps> = ({ me
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Destination Validator Address"
         value={
           <Link href={UrlService.validator(message?.data?.validatorDstAddress)}>
@@ -39,7 +39,7 @@ export const MsgBeginRedelegate: React.FunctionComponent<TxMessageProps> = ({ me
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Amount"
         value={
           <>

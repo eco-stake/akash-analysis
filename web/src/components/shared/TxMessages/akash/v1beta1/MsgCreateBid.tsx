@@ -3,7 +3,7 @@ import { TransactionMessage } from "@src/types";
 import { coinsToAmount } from "@src/utils/mathHelpers";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
-import { MessageLabelValue } from "../../MessageLabelValue";
+import { LabelValue } from "../../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -12,7 +12,7 @@ type TxMessageProps = {
 export const MsgCreateBid: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Provider"
         value={
           <Link href={UrlService.address(message?.data?.provider)}>
@@ -21,7 +21,7 @@ export const MsgCreateBid: React.FunctionComponent<TxMessageProps> = ({ message 
         }
       />
       {/* TODO: Add link to provider page */}
-      <MessageLabelValue
+      <LabelValue
         label="Owner"
         value={
           <Link href={UrlService.address(message?.data?.order?.owner)}>
@@ -29,7 +29,7 @@ export const MsgCreateBid: React.FunctionComponent<TxMessageProps> = ({ message 
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="dseq"
         value={
           <Link href={UrlService.deployment(message?.data?.order?.owner, message?.data?.order?.dseq)}>
@@ -37,9 +37,9 @@ export const MsgCreateBid: React.FunctionComponent<TxMessageProps> = ({ message 
           </Link>
         }
       />
-      <MessageLabelValue label="gseq" value={message?.data?.order?.gseq} />
-      <MessageLabelValue label="oseq" value={message?.data?.order?.oseq} />
-      <MessageLabelValue
+      <LabelValue label="gseq" value={message?.data?.order?.gseq} />
+      <LabelValue label="oseq" value={message?.data?.order?.oseq} />
+      <LabelValue
         label="Price"
         value={
           <>
@@ -48,7 +48,7 @@ export const MsgCreateBid: React.FunctionComponent<TxMessageProps> = ({ message 
           </>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Deposit"
         value={
           <>

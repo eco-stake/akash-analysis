@@ -4,7 +4,7 @@ import { TransactionMessage } from "@src/types";
 import { coinsToAmount } from "@src/utils/mathHelpers";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
-import { MessageLabelValue } from "../../MessageLabelValue";
+import { LabelValue } from "../../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -16,7 +16,7 @@ export const MsgCreateDeployment: React.FunctionComponent<TxMessageProps> = ({ m
   // ###################
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Owner"
         value={
           <Link href={UrlService.address(message?.data?.id?.owner)}>
@@ -24,7 +24,7 @@ export const MsgCreateDeployment: React.FunctionComponent<TxMessageProps> = ({ m
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="dseq"
         value={
           <Link href={UrlService.deployment(message?.data?.id?.owner, message?.data?.id?.dseq)}>
@@ -32,8 +32,8 @@ export const MsgCreateDeployment: React.FunctionComponent<TxMessageProps> = ({ m
           </Link>
         }
       />
-      <MessageLabelValue label="Version" value={message?.data?.version} />
-      <MessageLabelValue
+      <LabelValue label="Version" value={message?.data?.version} />
+      <LabelValue
         label="Depositor"
         value={
           <Link href={UrlService.address(message?.data?.depositor)}>
@@ -41,7 +41,7 @@ export const MsgCreateDeployment: React.FunctionComponent<TxMessageProps> = ({ m
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Deposit"
         value={
           <>
@@ -50,7 +50,7 @@ export const MsgCreateDeployment: React.FunctionComponent<TxMessageProps> = ({ m
           </>
         }
       />
-      <MessageLabelValue label="Groups" value={<DynamicReactJson src={JSON.parse(JSON.stringify(message?.data?.groups))} />} />
+      <LabelValue label="Groups" value={<DynamicReactJson src={JSON.parse(JSON.stringify(message?.data?.groups))} />} />
     </>
   );
 };

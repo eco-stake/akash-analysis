@@ -4,7 +4,7 @@ import { getFriendlyProposalType } from "@src/utils/proposals";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -16,7 +16,7 @@ export const MsgSubmitProposal: React.FunctionComponent<TxMessageProps> = ({ mes
   // ###################
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Initial Deposit"
         value={
           <>
@@ -25,7 +25,7 @@ export const MsgSubmitProposal: React.FunctionComponent<TxMessageProps> = ({ mes
           </>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Proposer"
         value={
           <Link href={UrlService.address(message?.data?.proposer)}>
@@ -41,7 +41,7 @@ export const MsgSubmitProposal: React.FunctionComponent<TxMessageProps> = ({ mes
           </Link>
         }
       /> */}
-      <MessageLabelValue label="Proposal Type" value={getFriendlyProposalType(message?.data?.content.typeUrl)} />
+      <LabelValue label="Proposal Type" value={getFriendlyProposalType(message?.data?.content.typeUrl)} />
       {/* <MessageLabelValue label="Title" value={"TODO"} /> */}
     </>
   );

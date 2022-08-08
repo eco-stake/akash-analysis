@@ -2,7 +2,7 @@ import { TransactionMessage } from "@src/types";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { DynamicReactJson } from "../../DynamicJsonView";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -14,27 +14,27 @@ export const MsgConnectionOpenAck: React.FunctionComponent<TxMessageProps> = ({ 
   // ###################
   return (
     <>
-      <MessageLabelValue label="@type" value={message?.data?.clientState?.typeUrl} />
-      <MessageLabelValue label="Connection Id" value={message?.data?.connectionId} />
-      <MessageLabelValue label="Counterparty Connection Id" value={message?.data?.counterpartyConnectionId} />
-      <MessageLabelValue label="Identifier" value={message?.data?.version?.identifier} />
-      <MessageLabelValue label="Features" value={<DynamicReactJson src={JSON.parse(JSON.stringify(message?.data?.version?.features))} />} />
+      <LabelValue label="@type" value={message?.data?.clientState?.typeUrl} />
+      <LabelValue label="Connection Id" value={message?.data?.connectionId} />
+      <LabelValue label="Counterparty Connection Id" value={message?.data?.counterpartyConnectionId} />
+      <LabelValue label="Identifier" value={message?.data?.version?.identifier} />
+      <LabelValue label="Features" value={<DynamicReactJson src={JSON.parse(JSON.stringify(message?.data?.version?.features))} />} />
       {/* <MessageLabelValue label="Chain Id" value={"TODO"} />
       <MessageLabelValue label="Numerator" value={"TODO"} />
       <MessageLabelValue label="Denominator" value={"TODO"} />
       <MessageLabelValue label="Trusting Period" value={"TODO"} />
       <MessageLabelValue label="Unbonding Period" value={"TODO"} />
       <MessageLabelValue label="Max Clock Drift" value={"TODO"} /> */}
-      <MessageLabelValue label="Revision Number" value={message?.data?.proofHeight?.revisionNumber} />
-      <MessageLabelValue label="Revision Height" value={message?.data?.proofHeight?.revisionHeight} />
+      <LabelValue label="Revision Number" value={message?.data?.proofHeight?.revisionNumber} />
+      <LabelValue label="Revision Height" value={message?.data?.proofHeight?.revisionHeight} />
       {/* <MessageLabelValue label="Proof Specs" value={"TODO"} />
       <MessageLabelValue label="Upgrade Path" value={"TODO"} />
       <MessageLabelValue label="Allow Update After Expiry" value={"TODO"} />
       <MessageLabelValue label="Allow Update After Misbehaviour" value={"TODO"} /> */}
-      <MessageLabelValue label="Proof Try" value={message?.data?.proofTry} />
-      <MessageLabelValue label="Proof Client" value={message?.data?.proofClient} />
-      <MessageLabelValue label="Proof Consensus" value={message?.data?.proofConsensus} />
-      <MessageLabelValue
+      <LabelValue label="Proof Try" value={message?.data?.proofTry} />
+      <LabelValue label="Proof Client" value={message?.data?.proofClient} />
+      <LabelValue label="Proof Consensus" value={message?.data?.proofConsensus} />
+      <LabelValue
         label="Signer"
         value={
           <Link href={UrlService.address(message?.data?.signer)}>

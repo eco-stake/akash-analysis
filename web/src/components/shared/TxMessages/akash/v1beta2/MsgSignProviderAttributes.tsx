@@ -2,7 +2,7 @@ import { DynamicReactJson } from "@src/components/shared/DynamicJsonView";
 import { TransactionMessage } from "@src/types";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
-import { MessageLabelValue } from "../../MessageLabelValue";
+import { LabelValue } from "../../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -11,7 +11,7 @@ type TxMessageProps = {
 export const MsgSignProviderAttributes: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Provider"
         value={
           <Link href={UrlService.address(message?.data?.owner)}>
@@ -20,7 +20,7 @@ export const MsgSignProviderAttributes: React.FunctionComponent<TxMessageProps> 
         }
       />
       {/* TODO: Add link to provider page */}
-      <MessageLabelValue
+      <LabelValue
         label="Auditor"
         value={
           <Link href={UrlService.address(message?.data?.auditor)}>
@@ -28,7 +28,7 @@ export const MsgSignProviderAttributes: React.FunctionComponent<TxMessageProps> 
           </Link>
         }
       />
-      <MessageLabelValue label="Attributes" value={<DynamicReactJson src={JSON.parse(JSON.stringify(message?.data?.attributes))} />} />
+      <LabelValue label="Attributes" value={<DynamicReactJson src={JSON.parse(JSON.stringify(message?.data?.attributes))} />} />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import { Box, Button, Chip, CircularProgress, Grid, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Button, Chip, CircularProgress, Grid, Paper, Typography, useTheme } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import ReactPlayer from "react-player/lazy";
@@ -11,7 +11,6 @@ import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import { GradientText } from "@src/components/shared/GradientText";
 import Image from "next/image";
-import { burningGradient } from "@src/utils/colors";
 import { makeStyles } from "tss-react/mui";
 
 export interface IDeployProps {}
@@ -21,7 +20,7 @@ export const useStyles = makeStyles()(theme => ({
     textAlign: "center",
     fontWeight: "bold",
     fontSize: "3rem",
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("sm")]: {
       fontSize: "2.5rem"
     }
   },
@@ -140,8 +139,8 @@ export const Deploy: React.FunctionComponent<IDeployProps> = ({}) => {
 
           {!isLoading && releaseInfo && (
             <Box marginTop="2rem">
-              <Typography variant="h6">
-                <GradientText>Download</GradientText>
+              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                Download
               </Typography>
 
               <div className={classes.actionButtonContainer}>

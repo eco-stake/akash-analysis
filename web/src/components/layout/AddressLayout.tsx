@@ -1,13 +1,11 @@
 import React, { ReactNode, useState } from "react";
 import PageContainer from "../shared/PageContainer";
-import { Box, Tab, Tabs, Typography, useTheme } from "@mui/material";
-import { useMediaQuery } from "@src/context/MediaQueryProvider";
-import { GradientText } from "../shared/GradientText";
-import { cx } from "@emotion/css";
+import { Box, Tab, Tabs } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 import { a11yTabProps } from "@src/utils/a11y";
 import { useRouter } from "next/router";
 import { UrlService } from "@src/utils/urlUtils";
+import { Title } from "../shared/Title";
 
 type AddressTab = "address" | "transactions" | "deployments";
 type Props = {
@@ -20,7 +18,6 @@ const useStyles = makeStyles()(theme => ({
   title: {
     fontSize: "2rem",
     fontWeight: "bold",
-    marginLeft: ".5rem",
     marginBottom: "1rem"
   },
   titleSmall: {
@@ -30,8 +27,6 @@ const useStyles = makeStyles()(theme => ({
 
 const AddressLayout: React.FunctionComponent<Props> = ({ children, page, address }) => {
   const { classes } = useStyles();
-  const theme = useTheme();
-  const matches = useMediaQuery(theme.breakpoints.down("sm"));
   const [assetTab, setAssetTab] = useState(page);
   const router = useRouter();
 
@@ -52,12 +47,18 @@ const AddressLayout: React.FunctionComponent<Props> = ({ children, page, address
 
   return (
     <PageContainer>
-      <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-        <GradientText>Account Detail</GradientText>
-      </Typography>
+      <Title value="Account Detail" />
 
       <Box sx={{ borderBottom: 1, borderColor: "divider", marginBottom: "1rem" }}>
-        <Tabs value={assetTab} onChange={handleTabChange} aria-label="address tabs" textColor="secondary" indicatorColor="secondary">
+        <Tabs
+          value={assetTab}
+          onChange={handleTabChange}
+          aria-label="address tabs"
+          textColor="secondary"
+          indicatorColor="secondary"
+          variant="scrollable"
+          scrollButtons="auto"
+        >
           <Tab value="address" label="Address" {...a11yTabProps("address-tab", "address-tab-panel", 0)} />
           <Tab value="transactions" label="Transactions" {...a11yTabProps("transactions-tab", "transactions-tab-panel", 1)} />
           <Tab value="deployments" label="Deployments" {...a11yTabProps("deployments-tab", "deployments-tab-panel", 1)} />

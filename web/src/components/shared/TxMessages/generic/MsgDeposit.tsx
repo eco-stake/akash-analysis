@@ -3,7 +3,7 @@ import { coinsToAmount } from "@src/utils/mathHelpers";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -15,7 +15,7 @@ export const MsgDeposit: React.FunctionComponent<TxMessageProps> = ({ message })
   // ###################
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Proposal Id"
         value={
           <Link href={UrlService.proposal(message?.data?.proposalId)}>
@@ -23,7 +23,7 @@ export const MsgDeposit: React.FunctionComponent<TxMessageProps> = ({ message })
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Depositor Address"
         value={
           <Link href={UrlService.address(message?.data?.depositor)}>
@@ -31,7 +31,7 @@ export const MsgDeposit: React.FunctionComponent<TxMessageProps> = ({ message })
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Amount"
         value={
           <>

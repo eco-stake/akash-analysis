@@ -15,10 +15,7 @@ export interface DiffPercentageChipProps {
 const useStyles = makeStyles()(theme => ({
   root: {
     marginLeft: ".5rem",
-    color: theme.palette.primary.contrastText,
-    "& .MuiChip-icon": {
-      color: theme.palette.primary.contrastText
-    }
+    fontWeight: 700
   },
   small: {
     fontSize: ".7rem",
@@ -29,7 +26,11 @@ const useStyles = makeStyles()(theme => ({
     height: "1.2rem"
   },
   green: {
-    backgroundColor: customColors.green
+    backgroundColor: customColors.green,
+    color: theme.palette.primary.main,
+    "& .MuiChip-icon": {
+      color: theme.palette.primary.main
+    }
   },
   red: {
     backgroundColor: "transparent"

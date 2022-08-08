@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PaletteMode } from "@mui/material";
+import { darken, lighten, PaletteMode } from "@mui/material";
 import { createTheme, ThemeProvider, ThemeOptions } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { customColors } from "@src/utils/colors";
@@ -106,14 +106,16 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
           borderLeftColor: `${customColors.main} !important`
         },
         a: {
-          textDecoration: "none"
+          textDecoration: "none",
+          color: customColors.link
         }
       }
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          transition: "background-color .2s ease, box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
+          transition: "background-color .2s ease, box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+          boxShadow: "none"
         }
       }
     },

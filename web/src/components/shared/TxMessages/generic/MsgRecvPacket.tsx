@@ -2,7 +2,7 @@ import { TransactionMessage } from "@src/types";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -15,7 +15,7 @@ export const MsgRecvPacket: React.FunctionComponent<TxMessageProps> = ({ message
 
   return (
     <>
-      <MessageLabelValue label="Sequence" value={message?.data?.packet?.sequence} />
+      <LabelValue label="Sequence" value={message?.data?.packet?.sequence} />
       {/* <MessageLabelValue
         label="Amount"
         value={
@@ -43,11 +43,11 @@ export const MsgRecvPacket: React.FunctionComponent<TxMessageProps> = ({ message
           </>
         }
       /> */}
-      <MessageLabelValue label="Source Port" value={message?.data?.packet?.sourcePort} />
-      <MessageLabelValue label="Source Channel" value={message?.data?.packet?.sourceChannel} />
-      <MessageLabelValue label="Destination Port" value={message?.data?.packet?.destinationPort} />
-      <MessageLabelValue label="Destination Channel" value={message?.data?.packet?.destinationChannel} />
-      <MessageLabelValue
+      <LabelValue label="Source Port" value={message?.data?.packet?.sourcePort} />
+      <LabelValue label="Source Channel" value={message?.data?.packet?.sourceChannel} />
+      <LabelValue label="Destination Port" value={message?.data?.packet?.destinationPort} />
+      <LabelValue label="Destination Channel" value={message?.data?.packet?.destinationChannel} />
+      <LabelValue
         label="Signer"
         value={
           <Link href={UrlService.address(message?.data?.signer)}>
@@ -71,7 +71,7 @@ export const MsgRecvPacket: React.FunctionComponent<TxMessageProps> = ({ message
           </Link>
         }
       /> */}
-      <MessageLabelValue label="Effected" value={message?.data?.effected} />
+      <LabelValue label="Effected" value={message?.data?.effected} />
     </>
   );
 };

@@ -1,6 +1,5 @@
 import { useMediaQuery } from "@mui/material";
 import React, { createContext, useContext, useMemo } from "react";
-// import { useMediaQuery } from "./useMediaQuery";
 
 const MediaQueryContext = createContext(null);
 

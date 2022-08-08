@@ -28,6 +28,9 @@ import { Delegations } from "@src/components/address/Delegations";
 import { Redelegations } from "@src/components/address/Redelegations";
 import AddressLayout from "@src/components/layout/AddressLayout";
 import { FormattedDecimal } from "@src/components/shared/FormattedDecimal";
+import { LabelValue } from "@src/components/shared/LabelValue";
+import { Title } from "@src/components/shared/Title";
+import { ComingSoon } from "@src/components/ComingSoon";
 
 type Props = {
   errors?: string;
@@ -35,38 +38,7 @@ type Props = {
   addressDetail: AddressDetail;
 };
 
-const useStyles = makeStyles()(theme => ({
-  root: {
-    paddingTop: "2rem",
-    paddingBottom: "2rem",
-    marginLeft: "0"
-  },
-  title: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginLeft: ".5rem",
-    marginBottom: "1rem"
-  },
-  titleSmall: {
-    fontSize: "1.1rem"
-  },
-  addressInfoRow: {
-    display: "flex",
-    alignItems: "center",
-    marginBottom: ".5rem",
-    "&:last-child": {
-      marginBottom: 0
-    }
-  },
-  label: {
-    width: "10rem",
-    flexShrink: 0
-  },
-  value: {
-    wordBreak: "break-all",
-    overflowWrap: "anywhere"
-  }
-}));
+const useStyles = makeStyles()(theme => ({}));
 
 const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDetail, errors }) => {
   if (errors) return <Error errors={errors} />;
@@ -75,7 +47,6 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
   const { classes } = useStyles();
   const { Canvas } = useQRCode();
   const theme = useTheme();
-  const matches = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setAssetTab(newValue);
@@ -85,7 +56,16 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
     <Layout title={`Account ${address}`} appendGenericTitle>
       <AddressLayout page="address" address={address}>
         <Paper sx={{ padding: 2 }} elevation={2}>
-          <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              [theme.breakpoints.down("sm")]: {
+                flexDirection: "column",
+                alignItems: "flex-start"
+              }
+            }}
+          >
             <Canvas
               text={address}
               options={{
@@ -101,65 +81,46 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
                 }
               }}
             />
-            <Box sx={{ paddingLeft: "1rem", flexGrow: 1 }}>
-              <div className={classes.addressInfoRow}>
-                <div className={classes.label}>Address</div>
-                <Box className={classes.value} sx={{ color: theme.palette.secondary.main }}>
-                  <Address address={address} isCopyable disableTruncate />
-                </Box>
-              </div>
+            <Box sx={{ paddingLeft: { xs: 0, sm: "1rem" }, paddingTop: { xs: "1rem" }, flexGrow: 1 }}>
+              <LabelValue
+                label="Address"
+                value={
+                  <Box sx={{ color: theme.palette.secondary.main }}>
+                    <Address address={address} isCopyable disableTruncate />
+                  </Box>
+                }
+                labelWidth="10rem"
+              />
+
               <Box
-                className={classes.addressInfoRow}
                 sx={{
                   marginBottom: "1rem",
                   paddingBottom: ".5rem",
-                  borderBottom: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[200]}`
+                  borderBottom: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[200]}`,
+                  fontSize: "1.5rem"
                 }}
               >
-                <Box className={classes.addressInfoRow} sx={{ fontSize: "1.5rem" }}>
-                  <div className={classes.label}>
+                <LabelValue
+                  label={
                     <GradientText>
                       <strong>AKT</strong>
                     </GradientText>
-                  </div>
-                  <div className={classes.value}>
-                    <FormattedDecimal value={udenomToDenom(addressDetail.total, 6)} />
-                  </div>
-                </Box>
+                  }
+                  value={<FormattedDecimal value={udenomToDenom(addressDetail.available, 6)} />}
+                  labelWidth="10rem"
+                />
               </Box>
 
-              <div className={classes.addressInfoRow}>
-                <div className={classes.label}>Available</div>
-                <div className={classes.value}>
-                  <FormattedDecimal value={udenomToDenom(addressDetail.available, 6)} />
-                </div>
-              </div>
-              <div className={classes.addressInfoRow}>
-                <div className={classes.label}>Delegated</div>
-                <div className={classes.value}>
-                  <FormattedDecimal value={udenomToDenom(addressDetail.delegated, 6)} />
-                </div>
-              </div>
-              <div className={classes.addressInfoRow}>
-                <div className={classes.label}>Rewards</div>
-                <div className={classes.value}>
-                  <FormattedDecimal value={udenomToDenom(addressDetail.rewards, 6)} />
-                </div>
-              </div>
-              <div className={classes.addressInfoRow}>
-                <div className={classes.label}>Commission</div>
-                <div className={classes.value}>
-                  <FormattedDecimal value={udenomToDenom(addressDetail.commission, 6)} />
-                </div>
-              </div>
+              <LabelValue label="Available" value={<FormattedDecimal value={udenomToDenom(addressDetail.available, 6)} />} labelWidth="10rem" />
+              <LabelValue label="Delegated" value={<FormattedDecimal value={udenomToDenom(addressDetail.delegated, 6)} />} labelWidth="10rem" />
+              <LabelValue label="Rewards" value={<FormattedDecimal value={udenomToDenom(addressDetail.rewards, 6)} />} labelWidth="10rem" />
+              <LabelValue label="Commission" value={<FormattedDecimal value={udenomToDenom(addressDetail.commission, 6)} />} labelWidth="10rem" />
             </Box>
           </Box>
         </Paper>
 
         <Box sx={{ mt: "1rem" }}>
-          <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
-            Assets
-          </Typography>
+          <Title value="Assets" subTitle sx={{ marginBottom: "1rem" }} />
 
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
@@ -203,14 +164,9 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
         </Box>
 
         <Box sx={{ mt: "1rem" }}>
-          <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
-            Transactions
-          </Typography>
+          <Title value="Transactions" subTitle sx={{ marginBottom: "1rem" }} />
 
-          <Paper sx={{ padding: 2 }} elevation={2}>
-            {/* <CircularProgress color="secondary" /> */}
-            Coming soon!
-          </Paper>
+          <ComingSoon />
         </Box>
       </AddressLayout>
     </Layout>

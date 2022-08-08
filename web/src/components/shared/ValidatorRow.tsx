@@ -6,7 +6,7 @@ import { udenomToDenom } from "@src/utils/mathHelpers";
 import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { FormattedNumber } from "react-intl";
 import { UrlService } from "@src/utils/urlUtils";
-import { Avatar, Box, lighten, useTheme } from "@mui/material";
+import { Avatar, Box, darken, lighten, useTheme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 
 type Props = {
@@ -14,19 +14,26 @@ type Props = {
   validator: ValidatorSummaryDetail;
 };
 
+const useStyles = makeStyles()(theme => ({
+  root: {
+    whiteSpace: "nowrap",
+    height: "40px",
+    "&:nth-of-type(odd)": {
+      backgroundColor: theme.palette.mode === "dark" ? darken(theme.palette.grey[700], 0.5) : theme.palette.action.hover
+    },
+    "& td": {
+      border: "none"
+    }
+  }
+}));
+
 export const ValidatorRow: React.FunctionComponent<Props> = ({ validator }) => {
   const theme = useTheme();
+  const { classes } = useStyles();
   const isTop10 = validator.rank <= 10;
 
   return (
-    <TableRow
-      sx={{
-        whiteSpace: "nowrap",
-        "&:nth-of-type(odd)": {
-          backgroundColor: theme.palette.action.hover
-        }
-      }}
-    >
+    <TableRow className={classes.root}>
       <TableCell>
         <Box
           sx={{
@@ -46,14 +53,16 @@ export const ValidatorRow: React.FunctionComponent<Props> = ({ validator }) => {
         </Box>
       </TableCell>
       <TableCell>
-        <Link href={UrlService.validator(validator.operatorAddress)}>
-          <a style={{ display: "inline-flex", alignItems: "center" }}>
-            <Box mr={1}>
-              <Avatar src={validator.keybaseAvatarUrl} sx={{ width: "30px", height: "30px" }} />
-            </Box>
-            {validator.moniker}
-          </a>
-        </Link>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Link href={UrlService.validator(validator.operatorAddress)}>
+            <a style={{ display: "inline-flex", alignItems: "center" }}>
+              <Box mr={1}>
+                <Avatar src={validator.keybaseAvatarUrl} sx={{ width: "26px", height: "26px" }} />
+              </Box>
+              {validator.moniker}
+            </a>
+          </Link>
+        </Box>
       </TableCell>
       <TableCell align="right">
         <FormattedNumber value={udenomToDenom(validator.votingPower)} maximumFractionDigits={0} />

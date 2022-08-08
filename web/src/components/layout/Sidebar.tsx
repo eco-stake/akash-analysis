@@ -59,7 +59,8 @@ const useStyles = makeStyles()(theme => ({
   version: {
     fontSize: ".7rem",
     fontWeight: "bold",
-    color: theme.palette.grey[500]
+    color: theme.palette.grey[500],
+    textAlign: "left"
   },
   comingSoonTooltip: {
     backgroundColor: theme.palette.secondary.main
@@ -93,14 +94,12 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
     {
       title: "Deployments",
       icon: props => <CloudIcon {...props} />,
-      isComingSoon: true,
       url: UrlService.deployments(),
       activeRoutes: [UrlService.deployments()]
     },
     {
       title: "Providers",
       icon: props => <DnsIcon {...props} />,
-      isComingSoon: true,
       url: UrlService.providers(),
       activeRoutes: [UrlService.providers()]
     },
@@ -145,8 +144,16 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
   const drawer = (
     <div className={classes.root} style={{ width: drawerWidth }}>
       <div className={classes.nav}>
-        <Box sx={{ height: "70px", width: "210px", margin: "1rem 0", alignSelf: "flex-start" }}>
-          <Image alt="Cloudmos Logo" src="/images/cloudmos-logo.png" layout="responsive" quality={100} width={256} height={85} priority />
+        <Box sx={{ height: "70px", width: "210px", paddingTop: ".5rem", marginBottom: { xs: 0, md: "2rem" }, alignSelf: "flex-start" }}>
+          <Image
+            alt="Cloudmos Logo"
+            src={theme.palette.mode === "dark" ? "/images/cloudmos-logo.png" : "/images/cloudmos-logo-light.png"}
+            layout="responsive"
+            quality={100}
+            width={160}
+            height={40}
+            priority
+          />
         </Box>
 
         <Box paddingTop="1rem" width="100%">
@@ -175,16 +182,10 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
               );
 
               return (
-                <ListItem key={route.title} sx={{ paddingLeft: 0, paddingRight: 0 }}>
-                  {route.isComingSoon ? (
-                    <Tooltip title="Coming soon!" classes={{ tooltip: classes.comingSoonTooltip }} placement="top">
-                      {button}
-                    </Tooltip>
-                  ) : (
-                    <Link href={route.url} passHref>
-                      {button}
-                    </Link>
-                  )}
+                <ListItem key={route.title} sx={{ padding: "4px 0" }}>
+                  <Link href={route.url} passHref>
+                    {button}
+                  </Link>
                 </ListItem>
               );
             })}
@@ -192,7 +193,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
         </Box>
       </div>
 
-      <Box sx={{ padding: "0 1rem 2rem", width: "100%", textAlign: "center" }}>
+      <Box sx={{ padding: "0 1rem 2rem", width: "100%" }}>
         {/* <Box sx={{ mb: 2 }}>
           <KeplrWalletStatus />
         </Box> */}
@@ -200,7 +201,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <ColorModeSwitch />
 
-          <Box sx={{ padding: "1rem", flexGrow: 1 }}>
+          <Box sx={{ padding: "1rem", flexGrow: 1, textAlign: "center" }}>
             <Image
               alt="Akash Network Logo"
               src={theme.palette.mode === "dark" ? "/images/akash-logo-dark.png" : "/images/akash-logo-light.png"}
@@ -213,14 +214,15 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
           </Box>
         </Box>
 
-        <small className={classes.version}>v{publicRuntimeConfig?.version}</small>
+        <Box sx={{ padding: "0 1rem" }}>
+          <small className={classes.version}>v{publicRuntimeConfig?.version}</small>
+        </Box>
       </Box>
     </div>
   );
 
   return (
-    <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }} aria-label="mailbox folders">
-      {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
+    <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }} aria-label="mailbox folders">
       <Drawer
         variant="temporary"
         open={isMobileOpen}
@@ -229,7 +231,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
           keepMounted: true // Better open performance on mobile.
         }}
         sx={{
-          display: { xs: "block", sm: "none" },
+          display: { xs: "block", sm: "block", md: "none" },
           "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth, overflow: "hidden" }
         }}
         PaperProps={{
@@ -243,7 +245,7 @@ export const Sidebar: React.FunctionComponent<Props> = ({ isMobileOpen, handleDr
       <Drawer
         variant="permanent"
         sx={{
-          display: { xs: "none", sm: "block" },
+          display: { xs: "none", sm: "none", md: "block" },
           "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth, overflow: "hidden" }
         }}
         PaperProps={{

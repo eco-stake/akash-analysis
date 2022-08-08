@@ -18,7 +18,7 @@ import { makeStyles } from "tss-react/mui";
 import { GradientText } from "@src/components/shared/GradientText";
 import { bytesToShrink } from "@src/utils/unitUtils";
 
-const Graph = dynamic(() => import("../../components/graph/graph.component"), {
+const Graph = dynamic(() => import("../../components/graph/Graph"), {
   ssr: false
 });
 
@@ -31,7 +31,7 @@ export const useStyles = makeStyles()(theme => ({
   title: {
     fontSize: "2rem",
     fontWeight: "normal",
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("sm")]: {
       textAlign: "center"
     }
   },
@@ -40,12 +40,13 @@ export const useStyles = makeStyles()(theme => ({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: "1rem",
-    [theme.breakpoints.down("xs")]: {
-      flexWrap: "wrap"
+    [theme.breakpoints.down("sm")]: {
+      flexWrap: "wrap",
+      flexDirection: "column"
     }
   },
   subTitleValues: {
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("sm")]: {
       flexBasis: "100%",
       marginBottom: "1rem"
     }
@@ -55,7 +56,7 @@ export const useStyles = makeStyles()(theme => ({
     fontWeight: "bold",
     display: "flex",
     alignItems: "center",
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("sm")]: {
       justifyContent: "center"
     }
   },
@@ -64,7 +65,7 @@ export const useStyles = makeStyles()(theme => ({
     fontWeight: "lighter"
   },
   graphRangeSelect: {
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("sm")]: {
       margin: "0 auto"
     }
   }
@@ -87,7 +88,7 @@ export const GraphPage: React.FunctionComponent<IGraphProps> = ({ snapshot: snap
 
   return (
     <Layout title={title} appendGenericTitle>
-      <PageContainer>
+      <PageContainer sx={{ padding: { xs: "0 .5rem" } }}>
         {/* <Helmet title={title} /> */}
 
         <div className={classes.root}>
@@ -162,7 +163,7 @@ export const GraphPage: React.FunctionComponent<IGraphProps> = ({ snapshot: snap
   );
 };
 
-const getSnapshotMetadata = (snapshot: Snapshots): { unitFn: (number) => ISnapshotMetadata, legend?: string } => {
+const getSnapshotMetadata = (snapshot: Snapshots): { unitFn: (number) => ISnapshotMetadata; legend?: string } => {
   switch (snapshot) {
     case Snapshots.dailyUAktSpent:
     case Snapshots.totalUAktSpent:

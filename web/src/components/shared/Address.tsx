@@ -12,6 +12,7 @@ type Props = {
   address: string;
   isCopyable?: boolean;
   disableTruncate?: boolean;
+  showIcon?: boolean;
   children?: ReactNode;
 };
 
@@ -39,7 +40,7 @@ const useStyles = makeStyles()(theme => ({
   }
 }));
 
-export const Address: React.FunctionComponent<Props> = ({ address, isCopyable, disableTruncate, ...rest }) => {
+export const Address: React.FunctionComponent<Props> = ({ address, isCopyable, disableTruncate, showIcon, ...rest }) => {
   const [isOver, setIsOver] = useState(false);
   const { classes } = useStyles();
   const { enqueueSnackbar } = useSnackbar();
@@ -70,7 +71,7 @@ export const Address: React.FunctionComponent<Props> = ({ address, isCopyable, d
       >
         <span>{formattedAddress}</span>
 
-        {isCopyable && <FileCopy className={cx(classes.copyIcon, { [classes.showIcon]: isOver })} />}
+        {isCopyable && <FileCopy className={cx(classes.copyIcon, { [classes.showIcon]: isOver || showIcon })} />}
       </Box>
     </Tooltip>
   );

@@ -23,6 +23,8 @@ import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
 import { GradientText } from "@src/components/shared/GradientText";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
+import { LabelValue } from "@src/components/shared/LabelValue";
+import { Title } from "@src/components/shared/Title";
 
 type Props = {
   errors?: string;
@@ -31,36 +33,12 @@ type Props = {
 };
 
 const useStyles = makeStyles()(theme => ({
-  root: {
-    paddingTop: "2rem",
-    paddingBottom: "2rem",
-    marginLeft: "0"
-  },
-  title: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginLeft: ".5rem",
-    marginBottom: "1rem"
-  },
-  titleSmall: {
-    fontSize: "1.1rem"
-  },
-  blockInfoRow: {
-    display: "flex",
-    alignItems: "center",
-    marginBottom: "1rem",
-    "&:last-child": {
-      marginBottom: 0
+  tableHeader: {
+    "& th": {
+      textTransform: "uppercase",
+      border: "none",
+      opacity: 0.8
     }
-  },
-  label: {
-    fontWeight: "bold",
-    width: "15rem",
-    flexShrink: 0
-  },
-  value: {
-    wordBreak: "break-all",
-    overflowWrap: "anywhere"
   }
 }));
 
@@ -71,59 +49,45 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down("sm"));
 
+  console.log(block);
+
   return (
     <Layout title={`Block #${block.height}`} appendGenericTitle>
       <PageContainer>
-        <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          <GradientText>Details for Block #{block.height}</GradientText>
-        </Typography>
+        <Title value={`Details for Block #${block.height}`} />
 
         <Paper sx={{ padding: 2 }} elevation={2}>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Height</div>
-            <div className={classes.value}>{block.height}</div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Poposer</div>
-            <div className={classes.value}>
+          <LabelValue label="Height" value={block.height} />
+          <LabelValue
+            label="Poposer"
+            value={
               <Link href={UrlService.validator(block.proposer.operatorAddress)}>
                 <a>{block.proposer.moniker}</a>
               </Link>
-            </div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Block Time</div>
-            <div className={classes.value}>
-              <FormattedRelativeTime
-                value={(new Date(block.datetime).getTime() - new Date().getTime()) / 1000}
-                numeric="auto"
-                unit="second"
-                updateIntervalInSeconds={7}
-              />
-              &nbsp;(
-              <FormattedDate value={block.datetime} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" second="2-digit" />)
-            </div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Block Hash</div>
-            <div className={classes.value}>{block.hash}</div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}># of Transactions</div>
-            <div className={classes.value}>{block.transactions.length}</div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Gas wanted / used</div>
-            <div className={classes.value}>
-              {block.gasUsed} / {block.gasWanted}
-            </div>
-          </div>
+            }
+          />
+          <LabelValue
+            label="Block Time"
+            value={
+              <>
+                <FormattedRelativeTime
+                  value={(new Date(block.datetime).getTime() - new Date().getTime()) / 1000}
+                  numeric="auto"
+                  unit="second"
+                  updateIntervalInSeconds={7}
+                />
+                &nbsp;(
+                <FormattedDate value={block.datetime} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" second="2-digit" />)
+              </>
+            }
+          />
+          <LabelValue label="Block Hash" value={block.hash} />
+          <LabelValue label="# of Transactions" value={block.transactions.length} />
+          <LabelValue label="Gas wanted / used" value={block.gasUsed === 0 || block.gasWanted === 0 ? 0 : block.gasUsed / block.gasWanted} />
         </Paper>
 
         <Box sx={{ mt: "1rem" }}>
-          <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
-            <GradientText>Transactions</GradientText>
-          </Typography>
+          <Title value="Transactions" subTitle sx={{ marginBottom: "1rem" }} />
 
           <Paper sx={{ padding: 2 }}>
             {block.transactions.length === 0 ? (
@@ -132,10 +96,10 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
                 &nbsp; No transactions
               </Box>
             ) : (
-              <TableContainer sx={{ mb: 4 }}>
-                <Table>
+              <TableContainer>
+                <Table size="small">
                   <TableHead>
-                    <TableRow>
+                    <TableRow className={classes.tableHeader}>
                       <TableCell width="5%">Tx Hash</TableCell>
                       <TableCell align="center" width="10%">
                         Type

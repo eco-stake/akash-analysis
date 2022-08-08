@@ -86,7 +86,7 @@ const useStyles = makeStyles()(theme => ({
   messageType: {
     padding: "1rem",
     marginBottom: theme.spacing(3),
-    borderBottom: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[700] : theme.palette.grey[500]}`
+    borderBottom: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[300]}`
   }
 }));
 

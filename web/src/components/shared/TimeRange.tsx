@@ -26,7 +26,7 @@ const useStyles = makeStyles()(theme => ({
     }
   },
   graphRangeSelect: {
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("sm")]: {
       margin: "0 auto"
     }
   }

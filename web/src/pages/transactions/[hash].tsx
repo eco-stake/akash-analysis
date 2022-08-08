@@ -1,31 +1,23 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
-import { cx } from "@emotion/css";
 import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
 import Error from "@src/components/shared/Error";
-import { BlockDetail, TransactionDetail } from "@src/types";
+import { TransactionDetail } from "@src/types";
 import { FormattedDate, FormattedRelativeTime } from "react-intl";
-import TableContainer from "@mui/material/TableContainer";
-import TableBody from "@mui/material/TableBody";
-import TableRow from "@mui/material/TableRow";
-import TableCell from "@mui/material/TableCell";
-import TableHead from "@mui/material/TableHead";
-import Table from "@mui/material/Table";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
-import { TransactionRow } from "@src/components/shared/TransactionRow";
 import { getSplitText } from "@src/hooks/useShortText";
 import { udenomToDenom } from "@src/utils/mathHelpers";
 import { TxMessageRow } from "@src/components/shared/TxMessages/TxMessageRow";
-import { GradientText } from "@src/components/shared/GradientText";
 import { FormattedDecimal } from "@src/components/shared/FormattedDecimal";
+import { LabelValue } from "@src/components/shared/LabelValue";
+import { Title } from "@src/components/shared/Title";
 
 type Props = {
   errors?: string;
@@ -33,113 +25,64 @@ type Props = {
   transaction: TransactionDetail;
 };
 
-const useStyles = makeStyles()(theme => ({
-  root: {
-    paddingTop: "2rem",
-    paddingBottom: "2rem",
-    marginLeft: "0"
-  },
-  title: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginLeft: ".5rem",
-    marginBottom: "1rem"
-  },
-  titleSmall: {
-    fontSize: "1.1rem"
-  },
-  blockInfoRow: {
-    display: "flex",
-    alignItems: "center",
-    marginBottom: "1rem",
-    "&:last-child": {
-      marginBottom: 0
-    }
-  },
-  label: {
-    fontWeight: "bold",
-    width: "15rem",
-    flexShrink: 0
-  },
-  value: {
-    wordBreak: "break-all",
-    overflowWrap: "anywhere"
-  }
-}));
+const useStyles = makeStyles()(theme => ({}));
 
 const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, errors, hash }) => {
   if (errors) return <Error errors={errors} />;
 
   const { classes } = useStyles();
   const theme = useTheme();
-  const matches = useMediaQuery(theme.breakpoints.down("sm"));
   const splittedTxHash = getSplitText(hash, 6, 6);
 
   return (
     <Layout title={`Tx ${splittedTxHash}`} appendGenericTitle>
       <PageContainer>
-        <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          <GradientText>Transaction Details</GradientText>
-        </Typography>
+        <Title value="Transaction Details" />
 
         <Paper sx={{ padding: 2 }} elevation={2}>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Hash</div>
-            <div className={classes.value}>{transaction.hash}</div>
-          </div>
-
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Status</div>
-            <div className={classes.value}>{transaction.isSuccess ? "Success" : "Failed"}</div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Height</div>
-            <div className={classes.value}>
+          <LabelValue label="Hash" value={transaction.hash} />
+          <LabelValue label="Status" value={transaction.isSuccess ? "Success" : "Failed"} />
+          <LabelValue
+            label="Height"
+            value={
               <Link href={UrlService.block(transaction.height)}>
                 <a>{transaction.height}</a>
               </Link>
-            </div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Time</div>
-            <div className={classes.value}>
-              <FormattedRelativeTime
-                value={(new Date(transaction.datetime).getTime() - new Date().getTime()) / 1000}
-                numeric="auto"
-                unit="second"
-                updateIntervalInSeconds={7}
-              />
-              &nbsp;(
-              <FormattedDate value={transaction.datetime} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" second="2-digit" />)
-            </div>
-          </div>
-
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Fee</div>
-            <div className={classes.value}>
-              <FormattedDecimal value={udenomToDenom(transaction.fee, 6)} />
-              &nbsp;
-              <Box component="span" sx={{ color: theme.palette.secondary.main }}>
-                AKT
-              </Box>
-            </div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Gas (used/wanted)</div>
-            <div className={classes.value}>
-              {transaction.gasUsed}/{transaction.gasWanted}
-            </div>
-          </div>
-          <div className={classes.blockInfoRow}>
-            <div className={classes.label}>Memo</div>
-            <div className={classes.value}>{transaction.memo}</div>
-          </div>
+            }
+          />
+          <LabelValue
+            label="Time"
+            value={
+              <>
+                <FormattedRelativeTime
+                  value={(new Date(transaction.datetime).getTime() - new Date().getTime()) / 1000}
+                  numeric="auto"
+                  unit="second"
+                  updateIntervalInSeconds={7}
+                />
+                &nbsp;(
+                <FormattedDate value={transaction.datetime} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" second="2-digit" />)
+              </>
+            }
+          />
+          <LabelValue
+            label="Fee"
+            value={
+              <>
+                <FormattedDecimal value={udenomToDenom(transaction.fee, 6)} />
+                &nbsp;
+                <Box component="span" sx={{ color: theme.palette.secondary.main }}>
+                  AKT
+                </Box>
+              </>
+            }
+          />
+          <LabelValue label="Gas (used/wanted)" value={transaction.gasUsed / transaction.gasWanted} />
+          <LabelValue label="Memo" value={transaction.memo} />
         </Paper>
 
         <Box sx={{ mt: "1rem" }}>
-          <Typography variant="h3" sx={{ fontSize: "1.5rem", mb: "1rem", fontWeight: "bold", marginLeft: ".5rem" }}>
-            Messages
-          </Typography>
+          <Title value="Messages" subTitle sx={{ marginBottom: "1rem" }} />
 
           {transaction.messages.map(msg => (
             <Paper key={msg.id} sx={{ padding: 0, mb: 2 }}>

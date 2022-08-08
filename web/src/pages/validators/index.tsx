@@ -31,11 +31,17 @@ const useStyles = makeStyles()(theme => ({
   title: {
     fontSize: "2rem",
     fontWeight: "bold",
-    marginLeft: ".5rem",
     marginBottom: "2px"
   },
   titleSmall: {
     fontSize: "1.1rem"
+  },
+  tableHeader: {
+    "& th": {
+      textTransform: "uppercase",
+      border: "none",
+      opacity: 0.8
+    }
   }
 }));
 
@@ -64,7 +70,7 @@ const ValidatorsPage: React.FunctionComponent<Props> = ({}) => {
             <TableContainer>
               <Table size="small">
                 <TableHead>
-                  <TableRow>
+                  <TableRow className={classes.tableHeader}>
                     <TableCell width="5%">Rank</TableCell>
                     <TableCell>Validator</TableCell>
                     <TableCell align="right">Voting Power</TableCell>

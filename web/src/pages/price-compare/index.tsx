@@ -8,6 +8,7 @@ import Layout from "@src/components/layout/Layout";
 import PageContainer from "@src/components/shared/PageContainer";
 import { GradientText } from "@src/components/shared/GradientText";
 import { cx } from "@emotion/css";
+import { customColors } from "@src/utils/colors";
 
 export const useStyles = makeStyles()(theme => ({
   root: {
@@ -36,10 +37,10 @@ export const useStyles = makeStyles()(theme => ({
   },
   discountChip: {
     fontWeight: "bold",
-    color: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.contrastText
+    color: theme.palette.primary.main
   },
   discountChipGreen: {
-    backgroundColor: theme.palette.success.main
+    backgroundColor: customColors.green
   },
   discountLabel: {
     fontWeight: "bold",

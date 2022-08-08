@@ -1,5 +1,4 @@
 import React from "react";
-import { useMediaQueryContext } from "@src/context/MediaQueryProvider";
 import { FormattedNumber } from "react-intl";
 import { DashboardData, SnapshotsUrlParam } from "@src/types";
 import Paper from "@mui/material/Paper";
@@ -11,7 +10,6 @@ import { StatsCard } from "./StatsCard";
 import { percIncrease, uaktToAKT } from "@src/utils/mathHelpers";
 import { HumanReadableBytes } from "../shared/HumanReadableBytes";
 import Grid from "@mui/material/Grid";
-import { cx } from "@emotion/css";
 import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -22,20 +20,15 @@ import Button from "@mui/material/Button";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
 import { BlockRow } from "../shared/BlockRow";
-import { GradientText } from "../shared/GradientText";
 import { TransactionRow } from "../shared/TransactionRow";
 import { bytesToShrink } from "@src/utils/unitUtils";
+import { Title } from "../shared/Title";
 
 interface IDashboardProps {
   dashboardData: DashboardData;
 }
 
 const useStyles = makeStyles()(theme => ({
-  title: {
-    fontWeight: "500",
-    fontSize: "1.5rem",
-    textAlign: "left"
-  },
   link: {
     textDecoration: "underline"
   },
@@ -87,12 +80,22 @@ const useStyles = makeStyles()(theme => ({
     display: "flex",
     alignItems: "center",
     marginLeft: ".5rem"
+  },
+  loadMoreButton: {
+    borderColor: theme.palette.mode === "dark" ? theme.palette.grey[600] : theme.palette.grey[400],
+    textTransform: "initial"
+  },
+  tableHeader: {
+    "& th": {
+      textTransform: "uppercase",
+      border: "none",
+      opacity: 0.8
+    }
   }
 }));
 
 export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardData }) => {
   const { classes } = useStyles();
-  const mediaQuery = useMediaQueryContext();
   const memoryDiff = bytesToShrink(dashboardData.now.activeMemory - dashboardData.compare.activeMemory);
   const storageDiff = bytesToShrink(dashboardData.now.activeStorage - dashboardData.compare.activeStorage);
 
@@ -132,9 +135,7 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12}>
-          <Typography variant="h3" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
-            <GradientText>Network summary</GradientText>
-          </Typography>
+          <Title value="Network Summary" subTitle sx={{ textAlign: { sm: "center" } }} />
         </Grid>
 
         <Grid item xs={12} lg={3}>
@@ -189,9 +190,7 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12}>
-          <Typography variant="h3" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
-            <GradientText>Total resources currently leased</GradientText>
-          </Typography>
+          <Title value="Total resources currently leased" subTitle sx={{ textAlign: { sm: "center" } }} />
         </Grid>
 
         <Grid item xs={12} lg={3}>
@@ -250,9 +249,7 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12}>
-          <Typography variant="h3" className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
-            <GradientText>Network Capacity</GradientText>
-          </Typography>
+          <Title value="Network Capacity" subTitle sx={{ textAlign: { sm: "center" } }} />
         </Grid>
 
         <Grid item xs={12} lg={3}>
@@ -290,15 +287,13 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6}>
-          <Paper sx={{ padding: "1rem", borderRadius: ".5rem" }} elevation={2}>
-            <Typography variant="h3" sx={{ mb: 0, border: "0 !important" }} className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
-              <GradientText>Blocks</GradientText>
-            </Typography>
+          <Paper sx={{ padding: "1rem", borderRadius: ".5rem", height: "100%" }} elevation={2}>
+            <Title value="Blocks" subTitle sx={{ mb: "1rem", border: "0 !important" }} />
 
-            <TableContainer sx={{ mb: 4 }}>
-              <Table>
+            <TableContainer sx={{ mb: 3 }}>
+              <Table size="small">
                 <TableHead>
-                  <TableRow>
+                  <TableRow className={classes.tableHeader}>
                     <TableCell width="10%">Height</TableCell>
                     <TableCell align="center" width="45%">
                       Proposer
@@ -321,23 +316,21 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
             </TableContainer>
 
             <Link href={UrlService.blocks()} passHref>
-              <Button variant="outlined" color="secondary" fullWidth>
-                Show more
+              <Button variant="outlined" color="inherit" className={classes.loadMoreButton}>
+                Load More
               </Button>
             </Link>
           </Paper>
         </Grid>
 
         <Grid item xs={12} sm={6}>
-          <Paper sx={{ padding: "1rem", borderRadius: ".5rem" }} elevation={2}>
-            <Typography variant="h3" sx={{ mb: 0, border: "0 !important" }} className={cx(classes.title, { "text-center": mediaQuery.smallScreen })}>
-              <GradientText>Transactions</GradientText>
-            </Typography>
+          <Paper sx={{ padding: "1rem", borderRadius: ".5rem", height: "100%" }} elevation={2}>
+            <Title value="Transactions" subTitle sx={{ mb: "1rem", border: "0 !important" }} />
 
-            <TableContainer sx={{ mb: 4 }}>
-              <Table>
+            <TableContainer sx={{ mb: 3 }}>
+              <Table size="small">
                 <TableHead>
-                  <TableRow>
+                  <TableRow className={classes.tableHeader}>
                     <TableCell width="35%">Tx Hash</TableCell>
                     <TableCell align="center" width="35%">
                       Type
@@ -360,8 +353,8 @@ export const Dashboard: React.FunctionComponent<IDashboardProps> = ({ dashboardD
             </TableContainer>
 
             <Link href={UrlService.transactions()} passHref>
-              <Button variant="outlined" color="secondary" fullWidth>
-                Show more
+              <Button variant="outlined" color="inherit" className={classes.loadMoreButton}>
+                Load More
               </Button>
             </Link>
           </Paper>

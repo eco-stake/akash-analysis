@@ -6,7 +6,7 @@ import { FormattedRelativeTime } from "react-intl";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
 import { Block } from "@src/types";
-import { Box, Typography } from "@mui/material";
+import { Box, darken, Typography } from "@mui/material";
 
 type Props = {
   errors?: string;
@@ -16,9 +16,12 @@ type Props = {
 const useStyles = makeStyles()(theme => ({
   root: {
     whiteSpace: "nowrap",
-    height: "55px",
+    height: "40px",
     "&:nth-of-type(odd)": {
-      backgroundColor: theme.palette.action.hover
+      backgroundColor: theme.palette.mode === "dark" ? darken(theme.palette.grey[700], 0.50) : theme.palette.action.hover
+    },
+    "& td": {
+      border: "none"
     }
   }
 }));

@@ -1,7 +1,7 @@
 import { TransactionMessage } from "@src/types";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -13,13 +13,13 @@ export const MsgCreateClient: React.FunctionComponent<TxMessageProps> = ({ messa
   // ###################
   return (
     <>
-      <MessageLabelValue label="Client Id" value={message?.data?.packet?.sequence} />
-      <MessageLabelValue label="Client Type" value={message?.data?.packet?.sequence} />
-      <MessageLabelValue label="Chain Id" value={message?.data?.packet?.sequence} />
-      <MessageLabelValue label="Trusting Period" value={message?.data?.packet?.sequence} />
-      <MessageLabelValue label="Unbonding Period" value={message?.data?.packet?.sequence} />
-      <MessageLabelValue label="Timestamp" value={message?.data?.packet?.sequence} />
-      <MessageLabelValue
+      <LabelValue label="Client Id" value={message?.data?.packet?.sequence} />
+      <LabelValue label="Client Type" value={message?.data?.packet?.sequence} />
+      <LabelValue label="Chain Id" value={message?.data?.packet?.sequence} />
+      <LabelValue label="Trusting Period" value={message?.data?.packet?.sequence} />
+      <LabelValue label="Unbonding Period" value={message?.data?.packet?.sequence} />
+      <LabelValue label="Timestamp" value={message?.data?.packet?.sequence} />
+      <LabelValue
         label="Signer"
         value={
           <Link href={UrlService.address(message?.data?.signer)}>

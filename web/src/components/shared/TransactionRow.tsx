@@ -1,4 +1,4 @@
-import { useTheme } from "@mui/material/styles";
+import { darken, useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
@@ -21,7 +21,18 @@ type Props = {
   transaction: BlockTransaction;
 };
 
-const useStyles = makeStyles()(theme => ({}));
+const useStyles = makeStyles()(theme => ({
+  root: {
+    whiteSpace: "nowrap",
+    height: "40px",
+    "&:nth-of-type(odd)": {
+      backgroundColor: theme.palette.mode === "dark" ? darken(theme.palette.grey[700], 0.5) : theme.palette.action.hover
+    },
+    "& td": {
+      border: "none"
+    }
+  }
+}));
 
 export const TransactionRow: React.FunctionComponent<Props> = ({ transaction, blockHeight, isSimple }) => {
   const { classes } = useStyles();
@@ -30,15 +41,7 @@ export const TransactionRow: React.FunctionComponent<Props> = ({ transaction, bl
   const firstMessageType = useFriendlyMessageType(transaction.messages[0].type);
 
   return (
-    <TableRow
-      sx={{
-        height: "55px",
-        whiteSpace: "nowrap",
-        "&:nth-of-type(odd)": {
-          backgroundColor: theme.palette.action.hover
-        }
-      }}
-    >
+    <TableRow className={classes.root}>
       <TableCell>
         <Link href={UrlService.transaction(transaction.hash)}>
           <a target="_blank">{txHash}</a>

@@ -34,6 +34,7 @@ const useStyles = makeStyles()(theme => ({
 const SearchBar: React.FunctionComponent<Props> = ({}) => {
   const [searchTerms, setSearchTerms] = useState("");
   const [searchType, setSearchType] = useState<SearchType>(null);
+  const [isFocused, setIsFocused] = useState(false);
   const router = useRouter();
   const { classes } = useStyles();
 
@@ -115,12 +116,14 @@ const SearchBar: React.FunctionComponent<Props> = ({}) => {
   }
 
   return (
-    <Box sx={{ padding: "1rem", maxWidth: "500px", flexGrow: 1, position: "relative" }}>
+    <Box sx={{ padding: { xs: 0, sm: "1rem" }, maxWidth: "500px", flexGrow: 1, position: "relative" }}>
       <form onSubmit={onSubmit}>
         <OutlinedInput
           fullWidth
           value={searchTerms}
           onChange={onSearchTermsChange}
+          onClick={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder="Search by Address, Block Height, TxHash..."
           size="small"
           classes={{ input: classes.searchBar, notchedOutline: classes.searchBarFocused }}
@@ -133,8 +136,8 @@ const SearchBar: React.FunctionComponent<Props> = ({}) => {
           }
         />
 
-        {searchType === null && searchTerms.trim() && (
-          <Box sx={{ position: "absolute", left: 0, width: "100%", bottom: "-2rem" }}>
+        {searchType === null && searchTerms.trim() && isFocused && (
+          <Box sx={{ position: "absolute", left: 0, width: "100%", bottom: { xs: "-3rem", sm: "-2rem" } }}>
             <Paper elevation={2} sx={{ padding: ".5rem 1rem" }}>
               Invalid search term
             </Paper>

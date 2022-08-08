@@ -1,7 +1,7 @@
 import { TransactionMessage } from "@src/types";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -10,7 +10,7 @@ type TxMessageProps = {
 export const MsgVote: React.FunctionComponent<TxMessageProps> = ({ message }) => {
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Proposal Id"
         value={
           <Link href={UrlService.proposal(message?.data?.proposalId)}>
@@ -18,7 +18,7 @@ export const MsgVote: React.FunctionComponent<TxMessageProps> = ({ message }) =>
           </Link>
         }
       />
-      <MessageLabelValue
+      <LabelValue
         label="Voter"
         value={
           <Link href={UrlService.address(message?.data?.voter)}>
@@ -26,7 +26,7 @@ export const MsgVote: React.FunctionComponent<TxMessageProps> = ({ message }) =>
           </Link>
         }
       />
-      <MessageLabelValue label="Option" value={getVoteDescription(message?.data?.option)} />
+      <LabelValue label="Option" value={getVoteDescription(message?.data?.option)} />
     </>
   );
 };

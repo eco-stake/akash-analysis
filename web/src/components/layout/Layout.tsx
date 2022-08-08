@@ -13,8 +13,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import { drawerWidth } from "@src/utils/constants";
 import Image from "next/image";
 import Link from "next/link";
-import SearchBar from "./SearchBar";
-import { Container } from "@mui/material";
+import { Header } from "./Header";
+import { useTheme } from "@mui/material";
+import { UrlService } from "@src/utils/urlUtils";
 
 type Props = {
   children?: ReactNode;
@@ -40,6 +41,7 @@ const Layout: React.FunctionComponent<Props> = ({ children, title = "Cloudmos Bl
 
 const LayoutApp: React.FunctionComponent<Props> = ({ children, title }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const theme = useTheme();
 
   const handleDrawerToggle = () => {
     setIsMobileOpen(!isMobileOpen);
@@ -56,14 +58,20 @@ const LayoutApp: React.FunctionComponent<Props> = ({ children, title }) => {
       <PageHead headTitle={title} />
       <Sidebar isMobileOpen={isMobileOpen} handleDrawerToggle={handleDrawerToggle} />
 
-      <AppBar position="fixed" sx={{ display: { xs: "block", sm: "none" } }}>
+      <AppBar position="relative" sx={{ display: { xs: "block", sm: "block", md: "none" }, backgroundImage: "none" }}>
         <Toolbar sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Link href="/">
-            <Box component="a" sx={{ display: "flex", alignItems: "center", textDecoration: "none", textDecorationColor: "transparent !important" }}>
-              <Image alt="Cloudmos Logo" src="/images/cloudmos-logo.png" quality={100} width={35} height={35} priority />
+          <Link href={UrlService.dashboard()}>
+            <Box
+              component="a"
+              sx={{
+                display: "flex",
+                alignItems: "center"
+              }}
+            >
+              <Image alt="Cloudmos Logo" src="/images/cloudmos-logo.png" layout="fixed" quality={100} width={160} height={40} priority />
             </Box>
           </Link>
-          <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { sm: "none" } }}>
+          <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={handleDrawerToggle} sx={{ mr: 1, display: { md: "none" } }}>
             {isMobileOpen ? <CloseIcon /> : <MenuIcon />}
           </IconButton>
         </Toolbar>
@@ -71,18 +79,15 @@ const LayoutApp: React.FunctionComponent<Props> = ({ children, title }) => {
 
       <Box
         sx={{
-          marginLeft: { xs: 0, sm: `${drawerWidth}px` },
-          paddingTop: { xs: "56px", sm: 0 },
+          marginLeft: { xs: 0, sm: 0, md: `${drawerWidth}px` },
           height: "100%"
         }}
       >
-        <Container sx={{ marginLeft: 0 }}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <SearchBar />
-          </Box>
-        </Container>
+        <Header />
 
         <ErrorBoundary FallbackComponent={ErrorFallback}>{children}</ErrorBoundary>
+
+        {/* TODO  footer */}
       </Box>
     </Box>
   );

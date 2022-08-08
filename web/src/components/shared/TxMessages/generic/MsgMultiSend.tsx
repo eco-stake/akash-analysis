@@ -4,7 +4,7 @@ import { coinsToAmount } from "@src/utils/mathHelpers";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
 import { AKTLabel } from "../../AKTLabel";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -37,8 +37,8 @@ export const MsgMultiSend: React.FunctionComponent<TxMessageProps> = ({ message 
   ));
   return (
     <>
-      <MessageLabelValue label="Senders" value={senders} />
-      <MessageLabelValue label="Receivers" value={receivers} />
+      <LabelValue label="Senders" value={senders} />
+      <LabelValue label="Receivers" value={receivers} />
     </>
   );
 };

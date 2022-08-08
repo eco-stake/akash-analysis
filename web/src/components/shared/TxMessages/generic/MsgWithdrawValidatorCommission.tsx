@@ -1,7 +1,7 @@
 import { TransactionMessage } from "@src/types";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
-import { MessageLabelValue } from "../MessageLabelValue";
+import { LabelValue } from "../../LabelValue";
 
 type TxMessageProps = {
   message: TransactionMessage;
@@ -13,7 +13,7 @@ export const MsgWithdrawValidatorCommission: React.FunctionComponent<TxMessagePr
   // ###################
   return (
     <>
-      <MessageLabelValue
+      <LabelValue
         label="Validator Address"
         value={
           <Link href={UrlService.validator(message?.data?.validatorAddress)}>
