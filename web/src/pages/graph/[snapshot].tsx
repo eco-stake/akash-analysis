@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 import { makeStyles } from "tss-react/mui";
 import { GradientText } from "@src/components/shared/GradientText";
 import { bytesToShrink } from "@src/utils/unitUtils";
+import { NextSeo } from "next-seo";
 
 const Graph = dynamic(() => import("../../components/graph/Graph"), {
   ssr: false
@@ -87,10 +88,10 @@ export const GraphPage: React.FunctionComponent<IGraphProps> = ({ snapshot: snap
   const metricDiff = snapshotData && snapshotMetadata.unitFn(snapshotData.currentValue - snapshotData.compareValue);
 
   return (
-    <Layout title={title} appendGenericTitle>
-      <PageContainer sx={{ padding: { xs: "0 .5rem" } }}>
-        {/* <Helmet title={title} /> */}
+    <Layout>
+      <NextSeo title={title} />
 
+      <PageContainer sx={{ padding: { xs: "0 .5rem" } }}>
         <div className={classes.root}>
           <Box sx={{ marginBottom: "2rem" }}>
             <Link href={UrlService.dashboard()} passHref>

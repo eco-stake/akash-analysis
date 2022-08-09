@@ -1,6 +1,5 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
@@ -15,6 +14,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { useProposals } from "@src/queries/useProposalsQuery";
 import { ProposalRow } from "@src/components/shared/ProposalRow";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 type Props = {
   errors?: string;
@@ -33,11 +33,12 @@ const useStyles = makeStyles()(theme => ({
 const ProposalsPage: React.FunctionComponent<Props> = ({}) => {
   const { classes } = useStyles();
   const theme = useTheme();
-  const matches = useMediaQuery(theme.breakpoints.down("sm"));
   const { data: proposals, isLoading } = useProposals();
 
   return (
-    <Layout title="Proposals" appendGenericTitle>
+    <Layout>
+      <NextSeo title="Proposals" />
+
       <PageContainer>
         <Title value="Proposals" />
 

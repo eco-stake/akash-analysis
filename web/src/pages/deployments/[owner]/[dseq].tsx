@@ -6,7 +6,6 @@ import Layout from "@src/components/layout/Layout";
 import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
-import Error from "@src/components/shared/Error";
 import { Box, Chip, darken, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import { UrlService } from "@src/utils/urlUtils";
 import Link from "next/link";
@@ -21,9 +20,9 @@ import { udenomToDenom } from "@src/utils/mathHelpers";
 import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { LabelValue } from "@src/components/shared/LabelValue";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 type Props = {
-  errors?: string;
   owner: string;
   dseq: string;
   deployment: DeploymentDetail;
@@ -49,14 +48,14 @@ const useStyles = makeStyles()(theme => ({
   }
 }));
 
-const DeploymentDetailPage: React.FunctionComponent<Props> = ({ owner, dseq, deployment, errors }) => {
-  if (errors) return <Error errors={errors} />;
-
+const DeploymentDetailPage: React.FunctionComponent<Props> = ({ owner, dseq, deployment }) => {
   const { classes } = useStyles();
   const theme = useTheme();
 
   return (
-    <Layout title={`Deployment ${owner}/${dseq}`} appendGenericTitle>
+    <Layout>
+      <NextSeo title={`Deployment ${owner}/${dseq}`} />
+
       <PageContainer>
         <Box sx={{ marginBottom: "2rem" }}>
           <Title value="Deployment Details" />
@@ -216,15 +215,25 @@ const DeploymentDetailPage: React.FunctionComponent<Props> = ({ owner, dseq, dep
 export default DeploymentDetailPage;
 
 export async function getServerSideProps({ params }) {
-  const deployment = await fetchDeploymentData(params?.owner, params?.dseq);
+  try {
+    const deployment = await fetchDeploymentData(params?.owner, params?.dseq);
 
-  return {
-    props: {
-      owner: params?.owner,
-      dseq: params?.dseq,
-      deployment
+    return {
+      props: {
+        owner: params?.owner,
+        dseq: params?.dseq,
+        deployment
+      }
+    };
+  } catch (error) {
+    if (error.response.status === 404) {
+      return {
+        notFound: true
+      };
+    } else {
+      throw error;
     }
-  };
+  }
 }
 
 async function fetchDeploymentData(owner: string, dseq: string) {

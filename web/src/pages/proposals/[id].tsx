@@ -6,7 +6,6 @@ import Layout from "@src/components/layout/Layout";
 import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
-import Error from "@src/components/shared/Error";
 import { udenomToDenom } from "@src/utils/mathHelpers";
 import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { FormattedNumber, FormattedTime } from "react-intl";
@@ -20,18 +19,16 @@ import { UrlService } from "@src/utils/urlUtils";
 import { DynamicReactJson } from "@src/components/shared/DynamicJsonView";
 import { LabelValue } from "@src/components/shared/LabelValue";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 type Props = {
-  errors?: string;
   id: string;
   proposal: ProposalDetail;
 };
 
 const useStyles = makeStyles()(theme => ({}));
 
-const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal, errors }) => {
-  if (errors) return <Error errors={errors} />;
-
+const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal }) => {
   const { classes } = useStyles();
   const theme = useTheme();
   const status = getFriendlyProposalStatus(proposal.status);
@@ -39,7 +36,9 @@ const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal, erro
   const isValidator = !!proposal.proposer.operatorAddress;
 
   return (
-    <Layout title={`Proposal #${id}`} appendGenericTitle>
+    <Layout>
+      <NextSeo title={`Proposal #${id}`} />
+
       <PageContainer>
         <Title value="Proposal Detail" />
 
@@ -148,14 +147,24 @@ const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal, erro
 export default ProposalDetailPage;
 
 export async function getServerSideProps({ params }) {
-  const proposal = await fetchProposalData(params?.id);
+  try {
+    const proposal = await fetchProposalData(params?.id);
 
-  return {
-    props: {
-      id: params?.id,
-      proposal
+    return {
+      props: {
+        id: params?.id,
+        proposal
+      }
+    };
+  } catch (error) {
+    if (error.response.status === 404) {
+      return {
+        notFound: true
+      };
+    } else {
+      throw error;
     }
-  };
+  }
 }
 
 async function fetchProposalData(id: string) {

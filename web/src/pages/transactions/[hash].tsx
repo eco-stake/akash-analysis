@@ -1,13 +1,11 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
 import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
-import Error from "@src/components/shared/Error";
 import { TransactionDetail } from "@src/types";
 import { FormattedDate, FormattedRelativeTime } from "react-intl";
 import Link from "next/link";
@@ -18,24 +16,24 @@ import { TxMessageRow } from "@src/components/shared/TxMessages/TxMessageRow";
 import { FormattedDecimal } from "@src/components/shared/FormattedDecimal";
 import { LabelValue } from "@src/components/shared/LabelValue";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 type Props = {
-  errors?: string;
   hash: string;
   transaction: TransactionDetail;
 };
 
 const useStyles = makeStyles()(theme => ({}));
 
-const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, errors, hash }) => {
-  if (errors) return <Error errors={errors} />;
-
+const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, hash }) => {
   const { classes } = useStyles();
   const theme = useTheme();
   const splittedTxHash = getSplitText(hash, 6, 6);
 
   return (
-    <Layout title={`Tx ${splittedTxHash}`} appendGenericTitle>
+    <Layout>
+      <NextSeo title={`Tx ${splittedTxHash}`} />
+
       <PageContainer>
         <Title value="Transaction Details" />
 
@@ -98,14 +96,24 @@ const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, er
 export default TransactionDetailPage;
 
 export async function getServerSideProps({ params }) {
-  const transaction = await fetchTransactionData(params?.hash);
+  try {
+    const transaction = await fetchTransactionData(params?.hash);
 
-  return {
-    props: {
-      hash: params?.hash,
-      transaction
+    return {
+      props: {
+        hash: params?.hash,
+        transaction
+      }
+    };
+  } catch (error) {
+    if (error.response.status === 404) {
+      return {
+        notFound: true
+      };
+    } else {
+      throw error;
     }
-  };
+  }
 }
 
 async function fetchTransactionData(hash: string) {

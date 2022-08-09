@@ -4,25 +4,24 @@ import { useTheme } from "@mui/material/styles";
 import Layout from "@src/components/layout/Layout";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
-import Error from "@src/components/shared/Error";
 import { AddressDetail } from "@src/types/address";
 import AddressLayout from "@src/components/layout/AddressLayout";
 import { Title } from "@src/components/shared/Title";
 import { ComingSoon } from "@src/components/ComingSoon";
+import { NextSeo } from "next-seo";
 
 type Props = {
-  errors?: string;
   address: string;
   addressDetail: AddressDetail;
 };
 
-const AddressDeploymentsPage: React.FunctionComponent<Props> = ({ address, addressDetail, errors }) => {
-  if (errors) return <Error errors={errors} />;
-
+const AddressDeploymentsPage: React.FunctionComponent<Props> = ({ address, addressDetail }) => {
   const theme = useTheme();
 
   return (
-    <Layout title={`Account ${address} deployments`} appendGenericTitle>
+    <Layout>
+      <NextSeo title={`Account ${address} deployments`} />
+
       <AddressLayout page="deployments" address={address}>
         <Box sx={{ mt: "1rem" }}>
           <Title value="Deployments" subTitle sx={{ marginBottom: "1rem" }} />
@@ -37,14 +36,24 @@ const AddressDeploymentsPage: React.FunctionComponent<Props> = ({ address, addre
 export default AddressDeploymentsPage;
 
 export async function getServerSideProps({ params }) {
-  const addressDetail = await fetchAddressData(params?.address);
+  try {
+    const addressDetail = await fetchAddressData(params?.address);
 
-  return {
-    props: {
-      address: params?.address,
-      addressDetail
+    return {
+      props: {
+        address: params?.address,
+        addressDetail
+      }
+    };
+  } catch (error) {
+    if (error.response.status === 404) {
+      return {
+        notFound: true
+      };
+    } else {
+      throw error;
     }
-  };
+  }
 }
 
 async function fetchAddressData(address: string) {

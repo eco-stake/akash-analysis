@@ -1,15 +1,11 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
-import { cx } from "@emotion/css";
 import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
-import Error from "@src/components/shared/Error";
 import { BlockDetail } from "@src/types";
 import { FormattedDate, FormattedRelativeTime } from "react-intl";
 import TableContainer from "@mui/material/TableContainer";
@@ -21,13 +17,12 @@ import Table from "@mui/material/Table";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
-import { GradientText } from "@src/components/shared/GradientText";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
 import { LabelValue } from "@src/components/shared/LabelValue";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 type Props = {
-  errors?: string;
   height: string;
   block: BlockDetail;
 };
@@ -42,17 +37,14 @@ const useStyles = makeStyles()(theme => ({
   }
 }));
 
-const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
-  if (errors) return <Error errors={errors} />;
-
+const BlockDetailPage: React.FunctionComponent<Props> = ({ block }) => {
   const { classes } = useStyles();
   const theme = useTheme();
-  const matches = useMediaQuery(theme.breakpoints.down("sm"));
-
-  console.log(block);
 
   return (
-    <Layout title={`Block #${block.height}`} appendGenericTitle>
+    <Layout>
+      <NextSeo title={`Block #${block.height}`} />
+
       <PageContainer>
         <Title value={`Details for Block #${block.height}`} />
 
@@ -130,14 +122,24 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block, errors }) => {
 export default BlockDetailPage;
 
 export async function getServerSideProps({ params }) {
-  const block = await fetchBlockData(params?.height);
+  try {
+    const block = await fetchBlockData(params?.height);
 
-  return {
-    props: {
-      height: params?.height,
-      block
+    return {
+      props: {
+        height: params?.height,
+        block
+      }
+    };
+  } catch (error) {
+    if (error.response.status === 404) {
+      return {
+        notFound: true
+      };
+    } else {
+      throw error;
     }
-  };
+  }
 }
 
 async function fetchBlockData(height: string) {

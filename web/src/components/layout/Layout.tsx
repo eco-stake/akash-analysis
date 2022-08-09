@@ -19,11 +19,9 @@ import { UrlService } from "@src/utils/urlUtils";
 
 type Props = {
   children?: ReactNode;
-  title?: string;
-  appendGenericTitle?: boolean;
 };
 
-const Layout: React.FunctionComponent<Props> = ({ children, title = "Cloudmos Block Explorer", appendGenericTitle }) => {
+const Layout: React.FunctionComponent<Props> = ({ children }) => {
   const [locale, setLocale] = useState("en");
 
   useEffect(() => {
@@ -34,12 +32,12 @@ const Layout: React.FunctionComponent<Props> = ({ children, title = "Cloudmos Bl
 
   return (
     <IntlProvider locale={locale}>
-      <LayoutApp title={`${title}${appendGenericTitle ? " | Cloudmos Block Explorer" : ""}`}>{children}</LayoutApp>
+      <LayoutApp>{children}</LayoutApp>
     </IntlProvider>
   );
 };
 
-const LayoutApp: React.FunctionComponent<Props> = ({ children, title }) => {
+const LayoutApp: React.FunctionComponent<Props> = ({ children }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const theme = useTheme();
 
@@ -55,7 +53,7 @@ const LayoutApp: React.FunctionComponent<Props> = ({ children, title }) => {
         color: "text.primary"
       }}
     >
-      <PageHead headTitle={title} />
+      <PageHead />
       <Sidebar isMobileOpen={isMobileOpen} handleDrawerToggle={handleDrawerToggle} />
 
       <AppBar position="relative" sx={{ display: { xs: "block", sm: "block", md: "none" }, backgroundImage: "none" }}>
@@ -83,11 +81,13 @@ const LayoutApp: React.FunctionComponent<Props> = ({ children, title }) => {
           height: "100%"
         }}
       >
-        <Header />
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Header />
 
-        <ErrorBoundary FallbackComponent={ErrorFallback}>{children}</ErrorBoundary>
+          {children}
 
-        {/* TODO  footer */}
+          {/* TODO  footer */}
+        </ErrorBoundary>
       </Box>
     </Box>
   );

@@ -6,6 +6,7 @@ import PageContainer from "@src/components/shared/PageContainer";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 const useStyles = makeStyles()(theme => ({
   link: {
@@ -99,12 +100,10 @@ export function Faq() {
   ];
 
   return (
-    <Layout title="Proposals" appendGenericTitle>
-      <PageContainer>
-        {/* <Helmet title="FAQ">
-        <meta name="description" content="Learn more about the akash network and get answers to the most frequently asked questions." />
-      </Helmet> */}
+    <Layout>
+      <NextSeo title="Frequently Asked Questions" description="Learn more about the akash network and get answers to the most frequently asked questions." />
 
+      <PageContainer>
         <Box sx={{ marginBottom: "2rem" }}>
           <Title value="Frequently Asked Questions" />
         </Box>

@@ -12,6 +12,7 @@ import { BASE_API_URL } from "@src/utils/constants";
 import { GradientText } from "@src/components/shared/GradientText";
 import Image from "next/image";
 import { makeStyles } from "tss-react/mui";
+import { NextSeo } from "next-seo";
 
 export interface IDeployProps {}
 
@@ -113,7 +114,9 @@ export const Deploy: React.FunctionComponent<IDeployProps> = ({}) => {
   }, []);
 
   return (
-    <Layout title="Proposals" appendGenericTitle>
+    <Layout>
+      <NextSeo title="Deploy on the decentralized cloud!" description="Deploy any docker container in a few clicks at the fraction of the normal cost." />
+
       <PageContainer>
         <Typography variant="h1" className={classes.title}>
           <GradientText>Decentralized Cloud Hosting</GradientText>

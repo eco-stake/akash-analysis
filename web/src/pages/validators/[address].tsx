@@ -1,60 +1,40 @@
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
-import { cx } from "@emotion/css";
 import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
-import Error from "@src/components/shared/Error";
 import { udenomToDenom } from "@src/utils/mathHelpers";
 import { AKTLabel } from "@src/components/shared/AKTLabel";
 import { ValidatorDetail } from "@src/types/validator";
 import { FormattedNumber } from "react-intl";
 import { Avatar, Badge, Box } from "@mui/material";
-import { GradientText } from "@src/components/shared/GradientText";
 import Link from "next/link";
 import { UrlService } from "@src/utils/urlUtils";
 import { FormattedDecimal } from "@src/components/shared/FormattedDecimal";
 import { LabelValue } from "@src/components/shared/LabelValue";
+import { NextSeo } from "next-seo";
+import { Title } from "@src/components/shared/Title";
 
 type Props = {
-  errors?: string;
   address: string;
   validator: ValidatorDetail;
 };
 
-const useStyles = makeStyles()(theme => ({
-  root: {
-    paddingTop: "2rem",
-    paddingBottom: "2rem",
-    marginLeft: "0"
-  },
-  title: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginBottom: "1rem"
-  },
-  titleSmall: {
-    fontSize: "1.1rem"
-  }
-}));
+const useStyles = makeStyles()(theme => ({}));
 
-const ValidatorDetailPage: React.FunctionComponent<Props> = ({ address, validator, errors }) => {
-  if (errors) return <Error errors={errors} />;
-
+const ValidatorDetailPage: React.FunctionComponent<Props> = ({ address, validator }) => {
   const { classes } = useStyles();
   const theme = useTheme();
-  const matches = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <Layout title={`Validator ${validator.moniker}`} appendGenericTitle>
+    <Layout>
+      <NextSeo title={`Validator ${validator.moniker}`} />
+
       <PageContainer>
-        <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-          <GradientText>Validator Details</GradientText>
-        </Typography>
+        <Title value="Validator Details" />
 
         <Paper sx={{ padding: 2 }} elevation={2}>
           <Box style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
@@ -125,14 +105,24 @@ const ValidatorDetailPage: React.FunctionComponent<Props> = ({ address, validato
 export default ValidatorDetailPage;
 
 export async function getServerSideProps({ params }) {
-  const validator = await fetchValidatorData(params?.address);
+  try {
+    const validator = await fetchValidatorData(params?.address);
 
-  return {
-    props: {
-      address: params?.address,
-      validator
+    return {
+      props: {
+        address: params?.address,
+        validator
+      }
+    };
+  } catch (error) {
+    if (error.response.status === 404) {
+      return {
+        notFound: true
+      };
+    } else {
+      throw error;
     }
-  };
+  }
 }
 
 async function fetchValidatorData(address: string) {

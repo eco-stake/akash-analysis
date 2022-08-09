@@ -1,6 +1,6 @@
 {
   "name": "cloudmos-block-explorer",
-  "version": "0.3.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next -p 3001",
@@ -22,6 +22,7 @@
     "@mui/material": "^5.4.4",
     "@nivo/core": "^0.79.0",
     "@nivo/line": "^0.79.1",
+    "@sentry/nextjs": "^7.9.0",
     "axios": "^0.27.2",
     "cosmjs-types": "^0.5.0",
     "lodash": "^4.17.21",
@@ -29,6 +30,7 @@
     "next-dark-mode": "^3.0.0",
     "next-pwa": "^5.4.6",
     "next-qrcode": "^2.1.0",
+    "next-seo": "^5.5.0",
     "notistack": "^2.0.5",
     "nprogress": "^0.2.0",
     "react": "^17.0.2",

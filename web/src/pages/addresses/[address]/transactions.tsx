@@ -1,28 +1,26 @@
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
 import { useTheme } from "@mui/material/styles";
 import Layout from "@src/components/layout/Layout";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
-import Error from "@src/components/shared/Error";
 import { AddressDetail } from "@src/types/address";
 import AddressLayout from "@src/components/layout/AddressLayout";
 import { Title } from "@src/components/shared/Title";
 import { ComingSoon } from "@src/components/ComingSoon";
+import { NextSeo } from "next-seo";
 
 type Props = {
-  errors?: string;
   address: string;
   addressDetail: AddressDetail;
 };
 
-const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDetail, errors }) => {
-  if (errors) return <Error errors={errors} />;
-
+const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDetail }) => {
   const theme = useTheme();
 
   return (
-    <Layout title={`Account ${address} transactions`} appendGenericTitle>
+    <Layout>
+      <NextSeo title={`Account ${address} transactions`} />
+
       <AddressLayout page="transactions" address={address}>
         <Box sx={{ mt: "1rem" }}>
           <Title value="Transactions" subTitle sx={{ marginBottom: "1rem" }} />
@@ -37,14 +35,24 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
 export default AddressDetailPage;
 
 export async function getServerSideProps({ params }) {
-  const addressDetail = await fetchAddressData(params?.address);
+  try {
+    const addressDetail = await fetchAddressData(params?.address);
 
-  return {
-    props: {
-      address: params?.address,
-      addressDetail
+    return {
+      props: {
+        address: params?.address,
+        addressDetail
+      }
+    };
+  } catch (error) {
+    if (error.response.status === 404) {
+      return {
+        notFound: true
+      };
+    } else {
+      throw error;
     }
-  };
+  }
 }
 
 async function fetchAddressData(address: string) {

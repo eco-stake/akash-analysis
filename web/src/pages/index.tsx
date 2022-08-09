@@ -9,6 +9,7 @@ import { FormattedDate, FormattedTime } from "react-intl";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useTheme } from "@mui/material";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 type Props = {
   children?: ReactNode;
@@ -19,7 +20,9 @@ const IndexPage: React.FunctionComponent<Props> = ({}) => {
   const theme = useTheme();
 
   return (
-    <Layout title="Dashboard" appendGenericTitle>
+    <Layout>
+      <NextSeo title="Dashboard" />
+
       <PageContainer>
         <Title value="Dashboard" />
 

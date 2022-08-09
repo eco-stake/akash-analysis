@@ -9,6 +9,7 @@ import PageContainer from "@src/components/shared/PageContainer";
 import { GradientText } from "@src/components/shared/GradientText";
 import { cx } from "@emotion/css";
 import { customColors } from "@src/utils/colors";
+import { NextSeo } from "next-seo";
 
 export const useStyles = makeStyles()(theme => ({
   root: {
@@ -89,14 +90,13 @@ export const PriceCompare: React.FunctionComponent<IPriceCompareProps> = ({}) =>
   }, []);
 
   return (
-    <Layout title="Price comparision" appendGenericTitle>
+    <Layout>
+      <NextSeo
+        title="Price comparision"
+        description="Compare Akash cost savings against the cloud giants like Amazon Web Services (aws), Google Cloud Platform (gcp) and Microsoft Azure."
+      />
+
       <PageContainer>
-        {/* <Helmet title="Price comparison">
-        <meta
-          name="description"
-          content="Compare Akash cost savings against the cloud giants like Amazon Web Services (aws), Google Cloud Platform (gcp) and Microsoft Azure."
-        />
-      </Helmet> */}
         <div className={classes.titleContainer}>
           <Typography variant="h1" className={classes.pageTitle}>
             <GradientText>Akash vs. Cloud giants</GradientText>

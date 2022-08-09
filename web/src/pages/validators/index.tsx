@@ -1,11 +1,8 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
-import { cx } from "@emotion/css";
 import PageContainer from "@src/components/shared/PageContainer";
 import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
@@ -16,26 +13,15 @@ import TableHead from "@mui/material/TableHead";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useValidators } from "@src/queries/useValidatorsQuery";
 import { ValidatorRow } from "@src/components/shared/ValidatorRow";
-import { GradientText } from "@src/components/shared/GradientText";
+import { NextSeo } from "next-seo";
+import { Title } from "@src/components/shared/Title";
+import { validatorAddress } from "@src/utils/constants";
 
 type Props = {
   errors?: string;
 };
 
 const useStyles = makeStyles()(theme => ({
-  root: {
-    paddingTop: "2rem",
-    paddingBottom: "2rem",
-    marginLeft: "0"
-  },
-  title: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginBottom: "2px"
-  },
-  titleSmall: {
-    fontSize: "1.1rem"
-  },
   tableHeader: {
     "& th": {
       textTransform: "uppercase",
@@ -48,18 +34,15 @@ const useStyles = makeStyles()(theme => ({
 const ValidatorsPage: React.FunctionComponent<Props> = ({}) => {
   const { classes } = useStyles();
   const theme = useTheme();
-  const matches = useMediaQuery(theme.breakpoints.down("sm"));
   const { data: validators, isLoading } = useValidators();
-  const cloudmos = validators?.find(v => v.moniker === "Akashlytics");
+  const cloudmos = validators?.find(v => v.operatorAddress === validatorAddress);
 
   return (
-    <Layout title="Validators" appendGenericTitle>
+    <Layout>
+      <NextSeo title="Validators" />
+
       <PageContainer>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-          <Typography variant="h1" className={cx(classes.title, { [classes.titleSmall]: matches })}>
-            <GradientText>Validators</GradientText>
-          </Typography>
-        </Box>
+        <Title value="Validators" />
 
         <Paper sx={{ padding: 2 }}>
           {isLoading ? (

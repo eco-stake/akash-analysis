@@ -22,8 +22,8 @@ const useStyles = makeStyles()(theme => ({
     margin: "0 auto"
   },
   heading: {
-    marginBottom: "1rem",
-    fontSize: "2rem",
+    marginBottom: "1.5rem",
+    fontSize: "1.5rem",
     fontWeight: "bold"
   },
   alert: {
@@ -38,15 +38,15 @@ export const ErrorFallback: React.FunctionComponent<Props> = ({ error, resetErro
   return (
     <div className={classes.root} role="alert">
       <Typography variant="h1" className={classes.heading}>
-        Something went wrong:
+        Something went wrong
       </Typography>
 
-      <Alert severity="error" className={classes.alert}>
+      <Alert severity="error" variant="outlined" className={classes.alert}>
         <AlertTitle>Error</AlertTitle>
         {error.message}
       </Alert>
 
-      <Button variant="contained" color="primary" onClick={resetErrorBoundary}>
+      <Button variant="contained" color="secondary" onClick={resetErrorBoundary}>
         Try again
       </Button>
     </div>

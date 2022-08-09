@@ -1,7 +1,7 @@
 export const customColors = {
   white: "#FFFFFF",
   black: "#000000",
-  lightBg: "#F5F5F5",
+  lightBg: "#e5e5e5",
   green: "#50FF76",
   main: "#E85A39",
   link: "#EE853E",

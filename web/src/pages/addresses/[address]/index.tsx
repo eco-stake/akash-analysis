@@ -1,15 +1,10 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { makeStyles } from "tss-react/mui";
 import Layout from "@src/components/layout/Layout";
-import { cx } from "@emotion/css";
-import PageContainer from "@src/components/shared/PageContainer";
 import { BASE_API_URL } from "@src/utils/constants";
 import axios from "axios";
-import Error from "@src/components/shared/Error";
 import TableContainer from "@mui/material/TableContainer";
 import TableBody from "@mui/material/TableBody";
 import TableRow from "@mui/material/TableRow";
@@ -22,7 +17,7 @@ import { GradientText } from "@src/components/shared/GradientText";
 import { useQRCode } from "next-qrcode";
 import { Address } from "@src/components/shared/Address";
 import { useState } from "react";
-import { CircularProgress, Grid, Tab, Tabs } from "@mui/material";
+import { Grid, Tab, Tabs } from "@mui/material";
 import { a11yTabProps } from "@src/utils/a11y";
 import { Delegations } from "@src/components/address/Delegations";
 import { Redelegations } from "@src/components/address/Redelegations";
@@ -31,18 +26,16 @@ import { FormattedDecimal } from "@src/components/shared/FormattedDecimal";
 import { LabelValue } from "@src/components/shared/LabelValue";
 import { Title } from "@src/components/shared/Title";
 import { ComingSoon } from "@src/components/ComingSoon";
+import { NextSeo } from "next-seo";
 
 type Props = {
-  errors?: string;
   address: string;
   addressDetail: AddressDetail;
 };
 
 const useStyles = makeStyles()(theme => ({}));
 
-const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDetail, errors }) => {
-  if (errors) return <Error errors={errors} />;
-
+const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDetail }) => {
   const [assetTab, setAssetTab] = useState("delegations");
   const { classes } = useStyles();
   const { Canvas } = useQRCode();
@@ -53,7 +46,9 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
   };
 
   return (
-    <Layout title={`Account ${address}`} appendGenericTitle>
+    <Layout>
+      <NextSeo title={`Account ${address}`} />
+
       <AddressLayout page="address" address={address}>
         <Paper sx={{ padding: 2 }} elevation={2}>
           <Box
@@ -175,16 +170,26 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
 
 export default AddressDetailPage;
 
-export async function getServerSideProps({ params }) {
-  const addressDetail = await fetchAddressData(params?.address);
+export const getServerSideProps = async ({ params }) => {
+  try {
+    const addressDetail = await fetchAddressData(params?.address);
 
-  return {
-    props: {
-      address: params?.address,
-      addressDetail
+    return {
+      props: {
+        address: params?.address,
+        addressDetail
+      }
+    };
+  } catch (error) {
+    if (error.response.status === 404) {
+      return {
+        notFound: true
+      };
+    } else {
+      throw error;
     }
-  };
-}
+  }
+};
 
 async function fetchAddressData(address: string) {
   const response = await axios.get(`${BASE_API_URL}/api/addresses/${address}`);

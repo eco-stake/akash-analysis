@@ -43,9 +43,9 @@ const App: React.FunctionComponent<Props> = ({ Component, pageProps, emotionCach
       <QueryClientProvider client={queryClient}>
         <ColorModeProvider>
           <CustomSnackbarProvider>
-            <KeplrWalletProvider>
+            {/* <KeplrWalletProvider> */}
               <Component {...pageProps} />
-            </KeplrWalletProvider>
+            {/* </KeplrWalletProvider> */}
           </CustomSnackbarProvider>
         </ColorModeProvider>
       </QueryClientProvider>

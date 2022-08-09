@@ -13,6 +13,7 @@ import TableHead from "@mui/material/TableHead";
 import { BlockRow } from "@src/components/shared/BlockRow";
 import CircularProgress from "@mui/material/CircularProgress";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 type Props = {
   errors?: string;
@@ -35,7 +36,9 @@ const BlocksPage: React.FunctionComponent<Props> = ({}) => {
   });
 
   return (
-    <Layout title="Blocks" appendGenericTitle>
+    <Layout>
+      <NextSeo title="Blocks" />
+
       <PageContainer>
         <Title value="Blocks" />
 

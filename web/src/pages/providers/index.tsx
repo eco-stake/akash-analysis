@@ -1,22 +1,19 @@
-import Paper from "@mui/material/Paper";
 import { useTheme } from "@mui/material/styles";
 import Layout from "@src/components/layout/Layout";
-import Error from "@src/components/shared/Error";
 import { Title } from "@src/components/shared/Title";
 import PageContainer from "@src/components/shared/PageContainer";
 import { ComingSoon } from "@src/components/ComingSoon";
+import { NextSeo } from "next-seo";
 
-type Props = {
-  errors?: string;
-};
+type Props = {};
 
-const ProvidersPage: React.FunctionComponent<Props> = ({ errors }) => {
-  if (errors) return <Error errors={errors} />;
-
+const ProvidersPage: React.FunctionComponent<Props> = ({}) => {
   const theme = useTheme();
 
   return (
-    <Layout title="Providers" appendGenericTitle>
+    <Layout>
+      <NextSeo title="Providers" />
+
       <PageContainer>
         <Title value="Providers" />
 

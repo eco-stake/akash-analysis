@@ -14,6 +14,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { useTransactions } from "@src/queries/useTransactionsQuery";
 import { TransactionRow } from "@src/components/shared/TransactionRow";
 import { Title } from "@src/components/shared/Title";
+import { NextSeo } from "next-seo";
 
 type Props = {
   errors?: string;
@@ -37,7 +38,9 @@ const TransactionsPage: React.FunctionComponent<Props> = ({}) => {
   });
 
   return (
-    <Layout title="Transactions" appendGenericTitle>
+    <Layout>
+      <NextSeo title="Transactions" />
+
       <PageContainer>
         <Title value="Transactions" />
 
