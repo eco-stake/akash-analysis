@@ -75,7 +75,7 @@ const TransactionDetailPage: React.FunctionComponent<Props> = ({ transaction, ha
               </>
             }
           />
-          <LabelValue label="Gas (used/wanted)" value={transaction.gasUsed / transaction.gasWanted} />
+          <LabelValue label="Gas (used/wanted)" value={`${transaction.gasUsed} / ${transaction.gasWanted}`} />
           <LabelValue label="Memo" value={transaction.memo} />
         </Paper>
 

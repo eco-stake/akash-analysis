@@ -75,7 +75,7 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block }) => {
           />
           <LabelValue label="Block Hash" value={block.hash} />
           <LabelValue label="# of Transactions" value={block.transactions.length} />
-          <LabelValue label="Gas wanted / used" value={block.gasUsed === 0 || block.gasWanted === 0 ? 0 : block.gasUsed / block.gasWanted} />
+          <LabelValue label="Gas wanted / used" value={block.gasUsed === 0 || block.gasWanted === 0 ? 0 : `${block.gasUsed} / ${block.gasWanted}`} />
         </Paper>
 
         <Box sx={{ mt: "1rem" }}>

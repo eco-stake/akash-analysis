@@ -101,7 +101,7 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
                       <strong>AKT</strong>
                     </GradientText>
                   }
-                  value={<FormattedDecimal value={udenomToDenom(addressDetail.available, 6)} />}
+                  value={<FormattedDecimal value={udenomToDenom(addressDetail.available + addressDetail.delegated + addressDetail.rewards + addressDetail.commission, 6)} />}
                   labelWidth="10rem"
                 />
               </Box>
