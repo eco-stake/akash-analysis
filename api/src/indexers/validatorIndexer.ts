@@ -67,25 +67,31 @@ export class ValidatorIndexer extends Indexer {
   }
 
   private async handleCreateValidator(decodedMessage: MsgCreateValidator, height: number, dbTransaction, msg: Message) {
-    console.log(`Creating validator ${decodedMessage.validatorAddress}`);
-    await Validator.create(
-      {
-        operatorAddress: decodedMessage.validatorAddress,
-        accountAddress: decodedMessage.delegatorAddress,
-        hexAddress: toHex(this.pubkeyToRawAddress(decodedMessage.pubkey.typeUrl, decodedMessage.pubkey.value.slice(2))).toUpperCase(),
-        createdMsgId: msg.id,
-        moniker: decodedMessage.description.moniker,
-        identity: decodedMessage.description.identity,
-        website: decodedMessage.description.website,
-        description: decodedMessage.description.details,
-        securityContact: decodedMessage.description.securityContact,
-        rate: parseFloat(decodedMessage.commission.rate),
-        maxRate: parseFloat(decodedMessage.commission.maxRate),
-        maxChangeRate: parseFloat(decodedMessage.commission.maxChangeRate),
-        minSelfDelegation: parseInt(decodedMessage.minSelfDelegation)
-      },
-      { transaction: dbTransaction }
-    );
+    const validatorInfo = {
+      operatorAddress: decodedMessage.validatorAddress,
+      accountAddress: decodedMessage.delegatorAddress,
+      hexAddress: toHex(this.pubkeyToRawAddress(decodedMessage.pubkey.typeUrl, decodedMessage.pubkey.value.slice(2))).toUpperCase(),
+      createdMsgId: msg.id,
+      moniker: decodedMessage.description.moniker,
+      identity: decodedMessage.description.identity,
+      website: decodedMessage.description.website,
+      description: decodedMessage.description.details,
+      securityContact: decodedMessage.description.securityContact,
+      rate: parseFloat(decodedMessage.commission.rate),
+      maxRate: parseFloat(decodedMessage.commission.maxRate),
+      maxChangeRate: parseFloat(decodedMessage.commission.maxChangeRate),
+      minSelfDelegation: parseInt(decodedMessage.minSelfDelegation)
+    };
+
+    const existingValidator = await Validator.findOne({ where: { operatorAddress: decodedMessage.validatorAddress }, transaction: dbTransaction });
+
+    if (!existingValidator) {
+      console.log(`Creating validator ${decodedMessage.validatorAddress}`);
+      await Validator.create(validatorInfo, { transaction: dbTransaction });
+    } else {
+      console.log(`Updating validator ${decodedMessage.validatorAddress}`);
+      await Validator.update(validatorInfo, { where: { operatorAddress: decodedMessage.validatorAddress }, transaction: dbTransaction });
+    }
   }
 
   private async handleEditValidator(decodedMessage: MsgEditValidator, height: number, dbTransaction, msg: Message) {

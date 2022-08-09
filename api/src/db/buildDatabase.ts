@@ -1,24 +1,11 @@
+import fs from "fs";
 import { dataFolderPath, executionMode, ExecutionMode } from "@src/shared/constants";
 import { download } from "@src/shared/utils/download";
 import { bytesToHumanReadableSize } from "@src/shared/utils/files";
-import { createExtractorFromFile } from "node-unrar-js";
-import fs from "fs";
-import {
-  Bid,
-  Block,
-  Transaction,
-  Deployment,
-  DeploymentGroup,
-  DeploymentGroupResource,
-  Lease,
-  Message,
-  sequelize,
-  sqliteDatabasePath,
-  Day,
-  Provider,
-  ProviderAttribute,
-  ProviderAttributeSignature
-} from "./schema";
+import { Block, Transaction, Message, sequelize, sqliteDatabasePath, Day } from "./schema";
+import { indexers } from "@src/indexers";
+import { getGenesis } from "@src/akash/genesisImporter";
+import { extractLz4, extractTar } from "@src/shared/utils/archive";
 
 /**
  * Initiate database schema
@@ -33,25 +20,19 @@ export const initDatabase = async () => {
 
   if (executionMode === ExecutionMode.DownloadAndSync) {
     console.log("Downloading database files...");
-    const localArchivePath = dataFolderPath + "/database.rar";
-    await download("https://storage.googleapis.com/akashlytics-deploy-public/database.rar", localArchivePath);
+    const localArchivePath = dataFolderPath + "/database.tar.lz4";
+    await download("https://storage.googleapis.com/akashlytics-deploy-public/database-backup/database.tar.lz4", localArchivePath);
     console.log("Database downloaded");
 
-    console.log("Extracting files...");
-    const extractor = await createExtractorFromFile({ filepath: localArchivePath, targetPath: dataFolderPath });
-    const { files } = extractor.extract();
-    for (const file of files) {
-      await file.extraction;
-    }
-    console.log("Deleting archive...");
-    fs.promises
-      .rm(localArchivePath, { force: true })
-      .then(() => {
-        console.log("Archive deleted");
-      })
-      .catch((err) => {
-        console.error("Error deleting archive", err);
-      });
+    console.log("Extracting lz4 file...");
+    await extractLz4(localArchivePath, dataFolderPath + "/database.tar");
+    console.log("Deleting lz4 file");
+    await fs.promises.rm(localArchivePath, { force: true });
+    console.log("Extracting tar file...");
+    await extractTar(dataFolderPath + "/database.tar", dataFolderPath);
+    console.log("Deleting tar archive...");
+    await fs.promises.rm(dataFolderPath + "/database.tar", { force: true });
+    console.log("Archive deleted");
   }
 
   try {
@@ -62,33 +43,17 @@ export const initDatabase = async () => {
   }
 
   if (executionMode === ExecutionMode.RebuildAll) {
-    await Bid.drop();
-    await Lease.drop();
-    await DeploymentGroupResource.drop();
-    await DeploymentGroup.drop();
-    await Deployment.drop();
-    await Provider.drop();
-    await ProviderAttribute.drop();
-    await ProviderAttributeSignature.drop();
-    await Message.drop();
-    await Transaction.drop();
-    await Block.drop();
-    await Day.drop();
+    const genesis = await getGenesis();
+    for (const indexer of indexers) {
+      await indexer.recreateTables();
+      await indexer.seed(genesis);
+    }
   }
 
   await Day.sync();
   await Block.sync();
   await Transaction.sync();
   await Message.sync();
-
-  await Deployment.sync({ force: false });
-  await DeploymentGroup.sync({ force: false });
-  await DeploymentGroupResource.sync({ force: false });
-  await Lease.sync({ force: false });
-  await Bid.sync({ force: false });
-  await Provider.sync({ force: false });
-  await ProviderAttribute.sync({ force: false });
-  await ProviderAttributeSignature.sync({ force: false });
 };
 
 export async function getDbSize() {

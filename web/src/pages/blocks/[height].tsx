@@ -97,7 +97,7 @@ const BlockDetailPage: React.FunctionComponent<Props> = ({ block }) => {
                         Type
                       </TableCell>
                       <TableCell align="center">Result</TableCell>
-                      <TableCell align="center">Amount</TableCell>
+                      {/* <TableCell align="center">Amount</TableCell> */}
                       <TableCell align="center">Fee</TableCell>
                       <TableCell align="center">Height</TableCell>
                       <TableCell align="center">Time</TableCell>

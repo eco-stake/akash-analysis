@@ -5,7 +5,10 @@ export enum SelectedRange {
 }
 
 export const drawerWidth = 280;
-export const BASE_API_URL = process.env.API_BASE_URL || "http://localhost:3080";
+export const isProd = process.env.NODE_ENV === "production";
+export const BASE_API_URL =
+  process.env.API_BASE_URL ||
+  (typeof window !== "undefined" && window.location?.hostname.endsWith("cloudmos.io") ? "https://api.cloudmos.io" : "http://localhost:3080");
 
 export const rpcEndpoint = "http://65.108.125.182:26657/";
 export const restEndpoint = "http://65.108.125.182:1317/";

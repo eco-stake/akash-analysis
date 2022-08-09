@@ -1,5 +1,9 @@
-import { Op, sequelize, Validator } from "@src/db/schema";
 import fetch from "node-fetch";
+import { getDeploymentRelatedMessages } from "../db/deploymentProvider";
+import { Op, Provider, ProviderAttribute, Validator } from "@src/db/schema";
+import { averageBlockCountInAMonth } from "@src/shared/constants";
+import { round } from "@src/shared/utils/math";
+import { getAktMarketData } from "./marketDataProvider";
 
 const apiNodeUrl = "http://akash-node.akashlytics.com:1317";
 
@@ -195,11 +199,20 @@ export async function getProposals() {
 export async function getProposal(id: number) {
   const response = await fetch(`${apiNodeUrl}/cosmos/gov/v1beta1/proposals/${id}`);
   const data = await response.json();
-  const proposerResponse = await fetch(`${apiNodeUrl}/gov/proposals/${id}/proposer`);
-  const proposerData = await proposerResponse.json();
-  const proposer = proposerData?.result.proposer;
 
-  const validatorFromDb = await Validator.findOne({ where: { accountAddress: proposer } });
+  let proposer = null;
+  if (id > 3) {
+    const proposerResponse = await fetch(`${apiNodeUrl}/gov/proposals/${id}/proposer`);
+    const proposerData = await proposerResponse.json();
+
+    const validatorFromDb = await Validator.findOne({ where: { accountAddress: proposerData.result.proposer } });
+    proposer = {
+      address: proposer,
+      moniker: validatorFromDb?.moniker,
+      operatorAddress: validatorFromDb?.operatorAddress,
+      avatarUrl: validatorFromDb?.keybaseAvatarUrl
+    };
+  }
 
   return {
     id: parseInt(data.proposal.proposal_id),
@@ -210,12 +223,7 @@ export async function getProposal(id: number) {
     votingStartTime: data.proposal.voting_start_time,
     votingEndTime: data.proposal.voting_end_time,
     totalDeposit: parseInt(data.proposal.total_deposit[0].amount),
-    proposer: {
-      address: proposer,
-      moniker: validatorFromDb?.moniker,
-      operatorAddress: validatorFromDb?.operatorAddress,
-      avatarUrl: validatorFromDb?.keybaseAvatarUrl
-    },
+    proposer: proposer,
     finalTally: {
       yes: parseInt(data.proposal.final_tally_result.yes),
       abstain: parseInt(data.proposal.final_tally_result.abstain),
@@ -232,5 +240,68 @@ export async function getProposal(id: number) {
       key: change.key,
       value: JSON.parse(change.value)
     }))
+  };
+}
+
+export async function getDeployment(owner: string, dseq: number) {
+  const deploymentQuery = fetch(`${apiNodeUrl}/akash/deployment/v1beta2/deployments/info?id.owner=${owner}&id.dseq=${dseq}`);
+  const leasesQuery = fetch(`${apiNodeUrl}/akash/market/v1beta2/leases/list?filters.owner=${owner}&filters.dseq=${dseq}&pagination.limit=1000`);
+  const relatedMessagesQuery = getDeploymentRelatedMessages(owner, dseq);
+
+  const [deploymentResponse, leasesResponse, relatedMessages] = await Promise.all([deploymentQuery, leasesQuery, relatedMessagesQuery]);
+
+  const deploymentData = await deploymentResponse.json();
+  const leasesData = await leasesResponse.json();
+
+  const providerAddresses = leasesData.leases.map((x) => x.lease.lease_id.provider);
+  const providers = await Provider.findAll({
+    where: {
+      owner: {
+        [Op.in]: providerAddresses
+      }
+    },
+    include: [{ model: ProviderAttribute }]
+  });
+
+  const aktPrice = getAktMarketData()?.price;
+
+  const leases = leasesData.leases.map((x) => {
+    const provider = providers.find((p) => p.owner === x.lease.lease_id.provider);
+    const monthlyUAKT = Math.round(parseFloat(x.lease.price.amount) * averageBlockCountInAMonth);
+    const group = deploymentData.groups.find((g) => g.group_id.gseq === x.lease.lease_id.gseq);
+
+    return {
+      gseq: x.lease.lease_id.gseq,
+      oseq: x.lease.lease_id.oseq,
+      provider: {
+        address: provider.owner,
+        hostUri: provider.hostUri,
+        isDeleted: !!provider.deletedHeight,
+        attributes: provider.providerAttributes.map((attr) => ({
+          key: attr.key,
+          value: attr.value
+        }))
+      },
+      status: x.lease.state,
+      monthlyCostAKT: round(monthlyUAKT / 1_000_000, 2),
+      monthlyCostUSD: aktPrice ? round((monthlyUAKT / 1_000_000) * aktPrice, 2) : null,
+      cpuUnits: group.group_spec.resources.map((r) => parseInt(r.resources.cpu.units.val) * r.count).reduce((a, b) => a + b, 0),
+      memoryQuantity: group.group_spec.resources.map((r) => parseInt(r.resources.memory.quantity.val) * r.count).reduce((a, b) => a + b, 0),
+      storageQuantity: group.group_spec.resources
+        .map((r) => r.resources.storage.map((s) => parseInt(s.quantity.val)).reduce((a, b) => a + b, 0) * r.count)
+        .reduce((a, b) => a + b, 0)
+    };
+  });
+
+  return {
+    owner: deploymentData.deployment.deployment_id.owner,
+    dseq: parseInt(deploymentData.deployment.deployment_id.dseq),
+    balance: parseFloat(deploymentData.escrow_account.balance.amount),
+    status: deploymentData.deployment.state,
+    totalMonthlyCostAKT: leases.map((x) => x.monthlyCostAKT).reduce((a, b) => a + b, 0),
+    totalMonthlyCostUSD: leases.map((x) => x.monthlyCostUSD).reduce((a, b) => a + b, 0),
+    leases: leases,
+    events: relatedMessages,
+    other: deploymentData
   };
 }

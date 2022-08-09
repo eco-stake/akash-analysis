@@ -1,5 +1,5 @@
 export function getFriendlyProposalType(typeUrl: string) {
-  return typeUrl.split(".").at(-1).split("Proposal")[0];
+  return typeUrl.split(".")[typeUrl.split(".").length - 1].split("Proposal")[0];
 }
 
 export function getFriendlyProposalStatus(status: string) {

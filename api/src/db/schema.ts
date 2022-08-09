@@ -342,10 +342,10 @@ Validator.init(
     tableName: "validator",
     modelName: "validator",
     indexes: [
-      { unique: false, fields: ["id"] },
-      { unique: false, fields: ["operatorAddress"] },
-      { unique: false, fields: ["accountAddress"] },
-      { unique: false, fields: ["hexAddress"] }
+      { unique: true, fields: ["id"] },
+      { unique: true, fields: ["operatorAddress"] },
+      { unique: true, fields: ["accountAddress"] },
+      { unique: true, fields: ["hexAddress"] }
     ],
     sequelize
   }
@@ -482,7 +482,9 @@ Transaction.init(
     modelName: "transaction",
     indexes: [
       { unique: false, fields: ["height"] },
-      { unique: false, fields: ["height", "isProcessed", "hasProcessingError"] }
+      { unique: false, fields: ["height", "isProcessed", "hasProcessingError"] },
+      { unique: false, fields: ["downloaded"] },
+      { unique: false, fields: ["hash"] }
     ],
     sequelize
   }
@@ -577,4 +579,4 @@ Lease.belongsTo(Deployment);
 
 Lease.belongsTo(Provider, { foreignKey: "providerAddress" });
 
-Block.belongsTo(Validator, { foreignKey: "proposer", targetKey: "hexAddress", as: "proposerValidator" });
+Block.belongsTo(Validator, { foreignKey: "proposer", targetKey: "hexAddress", as: "proposerValidator", constraints: false });

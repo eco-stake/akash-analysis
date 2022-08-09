@@ -1,6 +1,6 @@
 const { version } = require("./package.json");
 const withPWA = require("next-pwa");
-const { withSentryConfig } = require('@sentry/nextjs');
+const { withSentryConfig } = require("@sentry/nextjs");
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -35,7 +35,12 @@ const sentryWebpackPluginOptions = {
   //   release, url, org, project, authToken, configFile, stripPrefix,
   //   urlPrefix, include, ignore
 
-  silent: true // Suppresses all logs
+  silent: true, // Suppresses all logs,
+  dryRun: true,
+  release: require("./package.json").version
+  // org: "akashlytics",
+  // project: "cloudmos-explorer"
+
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options.
 };

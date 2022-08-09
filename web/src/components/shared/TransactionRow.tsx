@@ -60,7 +60,7 @@ export const TransactionRow: React.FunctionComponent<Props> = ({ transaction, bl
       {!isSimple && (
         <>
           <TableCell align="center">{transaction.isSuccess ? "Success" : "Failed"}</TableCell>
-          <TableCell align="center">AMOUNT</TableCell>
+          {/* <TableCell align="center">AMOUNT</TableCell> */}
           <TableCell align="center">
             <FormattedDecimal value={udenomToDenom(transaction.fee, 6)} />
             &nbsp;

@@ -31,7 +31,7 @@ export const MsgAcknowledgement: React.FunctionComponent<TxMessageProps> = ({ me
           </Link>
         }
       />
-      <LabelValue label="Effected" value={message?.data?.clientId} />
+      {/* <LabelValue label="Effected" value={message?.data?.clientId} /> */}
     </>
   );
 };

@@ -3,25 +3,29 @@ version: "2.0"
 
 services:
   web:
-    image: baktun/akashlytics-web
+    image: baktun/akashlytics-web:2.0.0
+    env:
+      - API_BASE_URL=http://api:80
     expose:
-      - port: 80
+      - port: 3001
         as: 80
         accept:
-          - akashlytics.com
-          - www.akashlytics.com
+          - cloudmos.io
+          - www.cloudmos.io
         to:
           - global: true
   api:
-    image: baktun/akashlytics-api
+    image: baktun/akashlytics-api:2.0.0
     env:
+      - NEXT_PUBLIC_GA_MEASUREMENT_ID=<GA_TOKEN>
+      - HealthchecksEnabled=true
       - AkashlyticsGithubPAT=<GITHUB_PAT>
-      - AKASHLYTICS_CORS_WEBSITE_URLS=https://akashlytics.com,https://www.akashlytics.com
+      - AKASHLYTICS_CORS_WEBSITE_URLS=https://cloudmos.io,https://www.cloudmos.io
     expose:
       - port: 3080
         as: 80
         accept:
-          - api.akashlytics.com
+          - api.cloudmos.io
         to:
           - global: true
 
@@ -42,14 +46,9 @@ profiles:
         memory:
           size: 2Gi
         storage:
-          size: 20Gi
+          size: 60Gi
   placement:
     dcloud:
-      attributes:
-        host: akash
-      signedBy:
-        anyOf:
-          - "akash1365yvmc4s7awdyj3n2sav7xfx76adc6dnmlx63"
       pricing:
         web:
           denom: uakt

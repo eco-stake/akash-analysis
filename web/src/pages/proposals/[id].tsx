@@ -33,7 +33,9 @@ const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal }) =>
   const theme = useTheme();
   const status = getFriendlyProposalStatus(proposal.status);
   const statusColor = useProposalStatusColor(status);
-  const isValidator = !!proposal.proposer.operatorAddress;
+
+  const hasProposer = !!proposal.proposer;
+  const isValidator = hasProposer && !!proposal.proposer.operatorAddress;
 
   return (
     <Layout>
@@ -58,9 +60,11 @@ const ProposalDetailPage: React.FunctionComponent<Props> = ({ id, proposal }) =>
           <LabelValue
             label="Proposer"
             value={
-              <Link href={isValidator ? UrlService.validator(proposal.proposer.operatorAddress) : UrlService.address(proposal.proposer.address)}>
-                <a>{isValidator ? proposal.proposer.moniker : proposal.proposer.address}</a>
-              </Link>
+              hasProposer && (
+                <Link href={isValidator ? UrlService.validator(proposal.proposer.operatorAddress) : UrlService.address(proposal.proposer.address)}>
+                  <a>{isValidator ? proposal.proposer.moniker : proposal.proposer.address}</a>
+                </Link>
+              )
             }
             labelWidth="10rem"
           />

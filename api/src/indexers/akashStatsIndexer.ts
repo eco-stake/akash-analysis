@@ -124,6 +124,9 @@ export class AkashStatsIndexer extends Indexer {
     });
 
     existingDeploymentGroups.forEach((d) => this.addToDeploymentGroupIdCache(d.owner, d.dseq, d.gseq, d.id));
+
+    this.totalLeaseCount = await Lease.count();
+    this.activeProviderCount = await Provider.count();
   }
 
   @benchmark.measureMethodAsync

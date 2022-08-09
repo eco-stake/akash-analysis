@@ -11,8 +11,6 @@ export interface DeploymentDetail {
     status: string;
     monthlyCostAKT: number;
     monthlyCostUSD: number;
-    spentAKT: number;
-    spentUSD: number;
     cpuUnits: number;
     memoryQuantity: number;
     storageQuantity: number;

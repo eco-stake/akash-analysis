@@ -61,9 +61,9 @@ const TransactionsPage: React.FunctionComponent<Props> = ({}) => {
                     <TableCell align="center" width="10%">
                       Result
                     </TableCell>
-                    <TableCell align="center" width="10%">
+                    {/* <TableCell align="center" width="10%">
                       Amount
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell align="center" width="10%">
                       Fee
                     </TableCell>

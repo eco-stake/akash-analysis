@@ -1,7 +1,6 @@
 import { TransactionMessage } from "@src/types";
 import { coinsToAmount } from "@src/utils/mathHelpers";
-import { UrlService } from "@src/utils/urlUtils";
-import Link from "next/link";
+import { AddressLink } from "../../AddressLink";
 import { AKTLabel } from "../../AKTLabel";
 import { LabelValue } from "../../LabelValue";
 
@@ -15,22 +14,8 @@ export const MsgTransfer: React.FunctionComponent<TxMessageProps> = ({ message }
   // ###################
   return (
     <>
-      <LabelValue
-        label="Sender"
-        value={
-          <Link href={UrlService.address(message?.data?.sender)}>
-            <a>{message?.data?.sender}</a>
-          </Link>
-        }
-      />
-      <LabelValue
-        label="Receiver"
-        value={
-          <Link href={UrlService.address(message?.data?.receiver)}>
-            <a>{message?.data?.receiver}</a>
-          </Link>
-        }
-      />
+      <LabelValue label="Sender" value={<AddressLink address={message?.data?.sender} />} />
+      <LabelValue label="Receiver" value={<AddressLink address={message?.data?.receiver} />} />
       <LabelValue label="Source Channel" value={message?.data?.sourceChannel} />
       <LabelValue label="Port" value={message?.data?.sourcePort} />
       {/* <MessageLabelValue label="Sequence" value={"TODO"} /> */}

@@ -34,13 +34,13 @@ export async function getBlocks(limit: number) {
 }
 
 export async function getBlock(height: number) {
-  const latestBlock = await Block.findOne({
-    order: [["height", "DESC"]]
-  });
+  // const latestBlock = await Block.findOne({
+  //   order: [["height", "DESC"]]
+  // });
 
-  if (height > latestBlock.height) {
-    return getFutureBlockEstimate(height, latestBlock);
-  }
+  // if (height > latestBlock.height) {
+  //   return getFutureBlockEstimate(height, latestBlock);
+  // }
 
   const block = await Block.findOne({
     where: {

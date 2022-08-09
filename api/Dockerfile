@@ -1,4 +1,4 @@
-FROM node:14-alpine as build
+FROM node:16-alpine
 
 # Create app directory
 
@@ -7,6 +7,8 @@ WORKDIR /app
 
 # Bundle app source
 COPY . .
+
+RUN apk --no-cache --virtual build-dependencies add python3 make g++
 
 RUN npm ci
 RUN npm run build

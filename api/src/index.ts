@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cache from "./caching/cacheMiddleware";
+import { version } from "../package.json";
 import { getDbSize, initDatabase } from "./db/buildDatabase";
 import { getStatus, getWeb3IndexRevenue } from "./db/networkRevenueProvider";
 import { syncPriceHistory } from "./db/priceHistoryProvider";
@@ -17,10 +18,9 @@ import { fetchGithubReleases } from "./providers/githubProvider";
 import { getNetworkCapacity, getProviders, syncProvidersInfo } from "./providers/providerStatusProvider";
 import { getTemplateGallery } from "./providers/templateReposProvider";
 import { Scheduler } from "./scheduler";
-import { getDeployment } from "./db/explorerProvider";
 import { getBlock, getBlocks } from "./db/blocksProvider";
 import { getTransaction, getTransactions } from "./db/transactionsProvider";
-import { getAddressBalance, getProposal, getProposals, getValidator, getValidators } from "./providers/apiNodeProvider";
+import { getAddressBalance, getDeployment, getProposal, getProposals, getValidator, getValidators } from "./providers/apiNodeProvider";
 import { fetchValidatorKeybaseInfos } from "./db/keybaseProvider";
 
 require("dotenv").config();
@@ -41,6 +41,7 @@ let latestQueryingErrorDate = null;
 Sentry.init({
   dsn: "https://1ef35fcd6f3b43aa887cd8a152df1014@o877251.ingest.sentry.io/5957967",
   environment: process.env.NODE_ENV,
+  release: version,
   integrations: [
     // enable HTTP calls tracing
     new Sentry.Integrations.Http({ tracing: true }),
@@ -110,7 +111,7 @@ apiRouter.get("/blocks/:height", async (req, res) => {
     if (blockInfo) {
       res.send(blockInfo);
     } else {
-      res.status(400).send("Block not found");
+      res.status(404).send("Block not found");
     }
   } catch (err) {
     console.error(err);
@@ -202,7 +203,7 @@ apiRouter.get("/proposals/:id", async (req, res) => {
 
 apiRouter.get("/deployment/:owner/:dseq", async (req, res) => {
   try {
-    const deployment = await getDeployment(req.params.owner, req.params.dseq);
+    const deployment = await getDeployment(req.params.owner, parseInt(req.params.dseq));
 
     if (deployment) {
       res.send(deployment);
@@ -382,10 +383,7 @@ async function initApp() {
       await syncBlocks();
       console.timeEnd("Rebuilding all");
     } else if (executionMode === ExecutionMode.DownloadAndSync || executionMode === ExecutionMode.SyncOnly) {
-      scheduler.registerTask("Sync Blocks", syncBlocks, "7 seconds", true, {
-        id: "66fa2c48-8a7c-4245-81ac-a0493298f9de",
-        measureDuration: true
-      });
+      scheduler.registerTask("Sync Blocks", syncBlocks, "7 seconds", true, { id: "66fa2c48-8a7c-4245-81ac-a0493298f9de" });
       scheduler.registerTask("Sync AKT Market Data", marketDataProvider.fetchLatestData, "5 minutes", true, {
         id: "23e94b00-940a-4b4a-8b61-c2167865fa2f",
         measureDuration: true

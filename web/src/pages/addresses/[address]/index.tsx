@@ -27,6 +27,7 @@ import { LabelValue } from "@src/components/shared/LabelValue";
 import { Title } from "@src/components/shared/Title";
 import { ComingSoon } from "@src/components/ComingSoon";
 import { NextSeo } from "next-seo";
+import { FormattedNumber } from "react-intl";
 
 type Props = {
   address: string;
@@ -134,7 +135,9 @@ const AddressDetailPage: React.FunctionComponent<Props> = ({ address, addressDet
                       {addressDetail.assets.map(asset => (
                         <TableRow key={asset.denom}>
                           <TableCell>{asset.denom}</TableCell>
-                          <TableCell align="center">{asset.amount}</TableCell>
+                          <TableCell align="center">
+                            <FormattedNumber value={asset.amount} />
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

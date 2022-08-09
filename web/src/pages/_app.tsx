@@ -12,6 +12,8 @@ import "../styles/index.css";
 import { QueryClientProvider } from "react-query";
 import { queryClient } from "@src/queries";
 import { KeplrWalletProvider } from "@src/context/KeplrWalletProvider";
+import { GoogleAnalytics, usePageViews } from "nextjs-google-analytics";
+import { isProd } from "@src/utils/constants";
 
 interface Props extends AppProps {
   emotionCache?: EmotionCache;
@@ -30,6 +32,8 @@ Router.events.on("routeChangeError", () => NProgress.done());
 const clientSideEmotionCache = createEmotionCache();
 
 const App: React.FunctionComponent<Props> = ({ Component, pageProps, emotionCache = clientSideEmotionCache }) => {
+  //usePageViews();
+
   useEffect(() => {
     // Remove the server-side injected CSS.
     const jssStyles = document.querySelector("#jss-server-side");
@@ -44,7 +48,8 @@ const App: React.FunctionComponent<Props> = ({ Component, pageProps, emotionCach
         <ColorModeProvider>
           <CustomSnackbarProvider>
             {/* <KeplrWalletProvider> */}
-              <Component {...pageProps} />
+            {isProd && <GoogleAnalytics />}
+            <Component {...pageProps} />
             {/* </KeplrWalletProvider> */}
           </CustomSnackbarProvider>
         </ColorModeProvider>
