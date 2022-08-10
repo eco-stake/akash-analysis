@@ -2,3 +2,6 @@
 /data
 npm-debug.log
 .git
+
+database.sqlite
+database.sql
