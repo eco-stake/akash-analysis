@@ -100,9 +100,9 @@ export class AkashStatsIndexer extends Indexer {
     await Deployment.sync({ force: false });
     await DeploymentGroup.sync({ force: false });
     await DeploymentGroupResource.sync({ force: false });
+    await Provider.sync({ force: false });
     await ProviderAttributeSignature.sync({ force: false });
     await ProviderAttribute.sync({ force: false });
-    await Provider.sync({ force: false });
     await Lease.sync({ force: false });
     await Bid.sync({ force: false });
   }
