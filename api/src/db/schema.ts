@@ -1,11 +1,9 @@
-import { dataFolderPath } from "@src/shared/constants";
+import { dataFolderPath, dbConnectionString } from "@src/shared/constants";
 import { Sequelize, DataTypes, UUIDV4, Model, Association } from "sequelize";
 
 export const sqliteDatabasePath = dataFolderPath + "/database.sqlite";
 
-export const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage: sqliteDatabasePath,
+export const sequelize = new Sequelize(dbConnectionString, {
   logging: false,
   define: {
     freezeTableName: true
@@ -351,6 +349,36 @@ Validator.init(
   }
 );
 
+export class Send extends Model {
+  public id!: string;
+  public senderAddress!: string;
+  public recipientAddress!: string;
+  public amount!: number;
+  public memo?: string;
+  public createdMsgId?: string;
+}
+
+Send.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: UUIDV4, primaryKey: true, allowNull: false },
+    senderAddress: { type: DataTypes.STRING, allowNull: false },
+    recipientAddress: { type: DataTypes.STRING, allowNull: false },
+    amount: { type: DataTypes.DECIMAL, allowNull: false },
+    memo: { type: DataTypes.STRING, allowNull: true },
+    createdMsgId: { type: DataTypes.UUID, allowNull: true },
+  },
+  {
+    tableName: "send",
+    modelName: "send",
+    indexes: [
+      { unique: true, fields: ["id"] },
+      { unique: true, fields: ["senderAddress"] },
+      { unique: true, fields: ["recipientAddress"] },
+    ],
+    sequelize
+  }
+);
+
 export class Day extends Model {
   public id!: string;
   public date!: Date;
@@ -528,7 +556,11 @@ Message.init(
     index: { type: DataTypes.INTEGER, allowNull: false },
     indexInBlock: { type: DataTypes.INTEGER, allowNull: false },
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    relatedDeploymentId: { type: DataTypes.STRING, allowNull: true },
+    relatedDeploymentId: { 
+      type: DataTypes.UUID, 
+      allowNull: true,
+      references: { model: Deployment, key: "id" }
+    },
     data: { type: DataTypes.BLOB, allowNull: false }
   },
   {

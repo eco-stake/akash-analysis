@@ -43,6 +43,8 @@
     "markdown-to-text": "^0.1.1",
     "memory-cache": "^0.2.0",
     "node-fetch": "^2.6.1",
+    "pg": "^8.7.3",
+    "pg-hstore": "^2.3.4",
     "progress-stream": "^2.0.0",
     "protobufjs": "^6.11.2",
     "sequelize": "^6.6.2",
