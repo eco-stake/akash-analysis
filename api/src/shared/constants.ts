@@ -11,7 +11,7 @@ export enum ExecutionMode {
   RebuildAll
 }
 
-export const executionMode: ExecutionMode = false ? ExecutionMode.DownloadAndSync : ExecutionMode.SyncOnly;
+export const executionMode: ExecutionMode = process.env.REBUILD_DATABASE ? ExecutionMode.RebuildAll : ExecutionMode.SyncOnly;
 export const lastBlockToSync = Number.POSITIVE_INFINITY;
 
 export const dataFolderPath = "./data";
