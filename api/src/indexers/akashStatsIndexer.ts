@@ -88,9 +88,9 @@ export class AkashStatsIndexer extends Indexer {
   async dropTables(): Promise<void> {
     await Bid.drop();
     await Lease.drop();
-    await Provider.drop();
     await ProviderAttribute.drop();
     await ProviderAttributeSignature.drop();
+    await Provider.drop();
     await DeploymentGroupResource.drop();
     await DeploymentGroup.drop();
     await Deployment.drop();

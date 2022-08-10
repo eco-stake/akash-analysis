@@ -44,6 +44,10 @@ export const initDatabase = async () => {
 
   if (executionMode === ExecutionMode.RebuildAll) {
     const genesis = await getGenesis();
+    await Day.drop();
+    await Block.drop();
+    await Transaction.drop();
+    await Message.drop();
     for (const indexer of indexers) {
       await indexer.recreateTables();
       await indexer.seed(genesis);
