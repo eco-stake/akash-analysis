@@ -11,10 +11,11 @@ export enum ExecutionMode {
   RebuildAll
 }
 
-export const executionMode: ExecutionMode = isProd ? ExecutionMode.DownloadAndSync : ExecutionMode.SyncOnly;
+export const executionMode: ExecutionMode = process.env.REBUILD_DATABASE ? ExecutionMode.RebuildAll : ExecutionMode.SyncOnly;
 export const lastBlockToSync = Number.POSITIVE_INFINITY;
 
 export const dataFolderPath = "./data";
+export const dbConnectionString = process.env.DB_CONNECTION_STRING
 
 export const mainNet = "https://raw.githubusercontent.com/ovrclk/net/master/mainnet";
 export const testNet = "https://raw.githubusercontent.com/ovrclk/net/master/testnet";

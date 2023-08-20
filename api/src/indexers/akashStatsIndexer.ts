@@ -88,9 +88,9 @@ export class AkashStatsIndexer extends Indexer {
   async dropTables(): Promise<void> {
     await Bid.drop();
     await Lease.drop();
-    await Provider.drop();
     await ProviderAttribute.drop();
     await ProviderAttributeSignature.drop();
+    await Provider.drop();
     await DeploymentGroupResource.drop();
     await DeploymentGroup.drop();
     await Deployment.drop();
@@ -100,9 +100,9 @@ export class AkashStatsIndexer extends Indexer {
     await Deployment.sync({ force: false });
     await DeploymentGroup.sync({ force: false });
     await DeploymentGroupResource.sync({ force: false });
+    await Provider.sync({ force: false });
     await ProviderAttributeSignature.sync({ force: false });
     await ProviderAttribute.sync({ force: false });
-    await Provider.sync({ force: false });
     await Lease.sync({ force: false });
     await Bid.sync({ force: false });
   }

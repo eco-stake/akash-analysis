@@ -1,11 +1,9 @@
-import { dataFolderPath } from "@src/shared/constants";
+import { dataFolderPath, dbConnectionString } from "@src/shared/constants";
 import { Sequelize, DataTypes, UUIDV4, Model, Association } from "sequelize";
 
 export const sqliteDatabasePath = dataFolderPath + "/database.sqlite";
 
-export const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage: sqliteDatabasePath,
+export const sequelize = new Sequelize(dbConnectionString, {
   logging: false,
   define: {
     freezeTableName: true
@@ -528,7 +526,11 @@ Message.init(
     index: { type: DataTypes.INTEGER, allowNull: false },
     indexInBlock: { type: DataTypes.INTEGER, allowNull: false },
     isProcessed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    relatedDeploymentId: { type: DataTypes.STRING, allowNull: true },
+    relatedDeploymentId: { 
+      type: DataTypes.UUID, 
+      allowNull: true,
+      references: { model: Deployment, key: "id" }
+    },
     data: { type: DataTypes.BLOB, allowNull: false }
   },
   {
